@@ -181,6 +181,17 @@ class EventsParams:
     n_log: int = 20  # n_log: Recent event log size per citizen
     beta_det: float = 0.1667  # β_det: Salience bonus for determinant events
     beta_may: float = 0.1667  # β_may: Salience bonus when the mayor is actor or target
+    alpha_react: float = 0.35  # alpha_react: Opinion pull per reaction at full intensity (slice v0)
+    alpha_ideo: float = 0.08  # alpha_ideo: Ideology pull per reaction at full intensity (slice v0)
+    k_wealth: float = 0.03  # k_wealth: Wealth shift per unit of economic effect and intensity (slice v0)
+    h_fear: float = 60.0  # h_fear: Half-life of fear (days)
+    fear_decree: float = 0.25  # fear_decree: Fear raised by a decree per unit of aggressiveness (slice v0)
+    persuade: float = 0.12  # persuade: Opinion pull of a private message (slice v0)
+    k_contagion: float = 0.01  # k_contagion: Rate of opinion contagion through ties per day (slice v0)
+    cost_decree: float = 0.15  # cost_decree: Capital cost of a decree per unit of aggressiveness (slice v0)
+    cost_message: float = 0.01  # cost_message: Capital cost of a private message (slice v0)
+    nu_news_decree: float = 1.0  # nu_news_decree: Mayor-decree reaction spread: share of adults involved when the predicate is 'any'
+    alpha_aware: float = 0.35  # alpha_aware: Pull of an attacked pillar's acceptance toward rejection per unit of aggressiveness (slice v0)
 
 @dataclass(frozen=True)
 class DemographyParams:
@@ -370,6 +381,17 @@ GROUP_OF = {
     'n_log': 'events',
     'beta_det': 'events',
     'beta_may': 'events',
+    'alpha_react': 'events',
+    'alpha_ideo': 'events',
+    'k_wealth': 'events',
+    'h_fear': 'events',
+    'fear_decree': 'events',
+    'persuade': 'events',
+    'k_contagion': 'events',
+    'cost_decree': 'events',
+    'cost_message': 'events',
+    'nu_news_decree': 'events',
+    'alpha_aware': 'events',
     'nu_b': 'demography',
     'nu_im': 'demography',
     'nu_em': 'demography',

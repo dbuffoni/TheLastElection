@@ -188,3 +188,146 @@ stage       = 0
 introduced  = 7
 module      = "systems.news"
 status      = "provisional"
+
+[alpha_react]
+symbol      = "alpha_react"
+spec        = "7.1"
+description = "Opinion pull per reaction at full intensity (slice v0)"
+default     = 0.35
+range       = [0.05, 0.9]
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 1
+module      = "loop.reaction"
+status      = "provisional"
+
+[alpha_ideo]
+symbol      = "alpha_ideo"
+spec        = "7.1"
+description = "Ideology pull per reaction at full intensity (slice v0)"
+default     = 0.08
+range       = [0.0, 0.4]
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 1
+module      = "loop.reaction"
+status      = "provisional"
+
+[k_wealth]
+symbol      = "k_wealth"
+spec        = "7.1"
+description = "Wealth shift per unit of economic effect and intensity (slice v0)"
+default     = 0.03
+range       = [0.0, 0.2]
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 1
+module      = "loop.reaction"
+status      = "provisional"
+
+[h_fear]
+symbol      = "h_fear"
+spec        = "7.1"
+description = "Half-life of fear (days)"
+default     = 60.0
+range       = [7, 365]
+scale       = "log"
+class       = "fixed"
+stage       = 0
+introduced  = 1
+module      = "loop.turn"
+status      = "provisional"
+
+[fear_decree]
+symbol      = "fear_decree"
+spec        = "7.1"
+description = "Fear raised by a decree per unit of aggressiveness (slice v0)"
+default     = 0.25
+range       = [0.0, 1.0]
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 1
+module      = "loop.decree"
+status      = "provisional"
+
+[persuade]
+symbol      = "persuade"
+spec        = "7.1"
+description = "Opinion pull of a private message (slice v0)"
+default     = 0.12
+range       = [0.0, 0.5]
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 1
+module      = "loop.decree"
+status      = "provisional"
+
+[k_contagion]
+symbol      = "k_contagion"
+spec        = "7.1"
+description = "Rate of opinion contagion through ties per day (slice v0)"
+default     = 0.01
+range       = [0.0005, 0.1]
+scale       = "log"
+class       = "fixed"
+stage       = 0
+introduced  = 1
+module      = "loop.turn"
+status      = "provisional"
+
+[cost_decree]
+symbol      = "cost_decree"
+spec        = "7.1"
+description = "Capital cost of a decree per unit of aggressiveness (slice v0)"
+default     = 0.15
+range       = [0.02, 0.6]
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 1
+module      = "loop.decree"
+status      = "provisional"
+
+[cost_message]
+symbol      = "cost_message"
+spec        = "7.1"
+description = "Capital cost of a private message (slice v0)"
+default     = 0.01
+range       = [0.0, 0.1]
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 1
+module      = "loop.decree"
+status      = "provisional"
+
+[nu_news_decree]
+symbol      = "nu_news_decree"
+spec        = "7.1"
+description = "Mayor-decree reaction spread: share of adults involved when the predicate is 'any'"
+default     = 1.0
+range       = [0.1, 1.0]
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 1
+module      = "loop.decree"
+status      = "provisional"
+
+[alpha_aware]
+symbol      = "alpha_aware"
+spec        = "7.1"
+description = "Pull of an attacked pillar's acceptance toward rejection per unit of aggressiveness (slice v0)"
+default     = 0.35
+range       = [0.0, 1.0]
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 1
+module      = "loop.decree"
+status      = "provisional"
