@@ -23,7 +23,29 @@ Branch of first slice: complete vertical slice, simulated engines only. "Spec x.
 - **Run store**: `citizens` panel and `bonds` tables, `checks.json`, `state/day0.npz` and `final.npz`, `phase` column.
 - **Analyzers and tools** (`tle.analysis.population`, `tle pop ...`, `tle metrics ...`): drift, stability verdicts, target scorecard, mobility, flows, scenario identity, vital rates, impulse test (17.3), live watch, self-contained HTML report.
 - New params: `alpha_aware`, `share_coupled_init`, `routine_partners`, `routine_step`, `tie_preference`, `circle_homophily`.
-- **Calibration findings (default params, not tuned)**: stage-1 network/demography targets pass after warm-up (mean degree, stable-tie share, population, age, minors, polarization drift). Failing: mobility displacement, impulse response, saturated character share; birth rate about 2x the target.
+- **Calibration findings at the end of session 2 (superseded by session 3)**: stage-1 network/demography targets pass after warm-up (mean degree, stable-tie share, population, age, minors, polarization drift). Failing: mobility displacement, impulse response, saturated character share; birth rate about 2x the target.
+
+## Session 3: calibration of stages 1-2 (local, simulated engines, no real-model server was reachable)
+Evidence: `passive` strategy (the "no player" baseline of spec 17.2), seeds 1-9 (7 survive 730 days), `tle pop impulse` seeds 1-9.
+- **Bug fixed: `GameRng.child` ignored the parent's keys.** `turn_rng.child("exo")`, `child("life")`, ... returned the same stream on
+  every turn (exogenous events per turn were nearly constant, daily life repeated). `child` is now keyed by the whole path.
+  Every digest changes; the impulse control copies `next_event_id` so both runs share all later draws.
+- **Opinion decay implemented**: `h_O` existed but was unused; opinions now relax toward their baseline `Ob` (mayor baseline 0).
+- **Indirect exposure** (spec 8.1, `alpha_ind`): adults outside the involved group react like a random involved citizen, attenuated.
+- **Impulse response**: `alpha_react` 0.35 -> 2.8 (range up to 4), `k_contagion` 0.01 -> 0.005; new `alpha_direct` (0.35) keeps the
+  mayor-opinion pull of a decree at its old strength. Involved 0.26-0.40 (target 0.25-0.42), others 0.08-0.18 (0.07-0.15, one seed over),
+  half-life 42-70 days (39-81), 9/9 seeds on the first and third measure.
+- **Mobility** (decision about meaning): the metric registry evaluated "measured at two years" on the last row of a five-year run
+  (`at_after_days`), and counted label changes without the S7 hysteresis (a continuous crossing at 1/6 made "median >= 1/6" and
+  "<= 35% changed" contradictory). Now measured at day 730 with P7 hysteresis against the day-0 label. Dynamics: new `sigma_I`
+  (idiosyncratic ideological drift, 0.13/sqrt(year)), `eps` 0.05 -> 0.07. Result: changed 21-30%, median displacement 0.18-0.21, 7/7 survivors.
+- **Saturated character**: new `sd_C_init` 0.30 (was a hard-coded 0.35) and `C_max` 0.9 (events cannot push character to the bound).
+  Saturated share 0.0-4.6% (was 4-14%).
+- **Births**: `nu_child` 0.15 -> 0.05, crude birth rate 0.027 -> 0.010 (target 0.01); population drift -0.3%/year.
+- New `passive` strategy (empty player input). Tests that played `gradual` for 20 turns use `random` (gradual is removed earlier now).
+- **Not solved, to review**: with the corrected RNG the game outcomes moved: `fear`, `clientelist`, `populist` now reach victory
+  (before: removed or term end), `assault` and `gradual` are mostly removed; 5 of 12 passive seeds are removed by a council motion
+  (the mayor does nothing). Outcome bands in `config/balance/targets.toml` are still placeholders, so stage 3 must re-tune threats/capital.
 
 ## Simplified in this slice (decisions to review against the spec)
 These are marked `slice v0` in `config/params/events.toml` (module `loop.*`).

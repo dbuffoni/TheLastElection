@@ -24,7 +24,7 @@ class TimeParams:
 
 @dataclass(frozen=True)
 class LabelsParams:
-    eps: float = 0.05  # ε: Hysteresis margin of quantize
+    eps: float = 0.07  # ε: Hysteresis margin of quantize
     h_agg: float = 14.0  # h_agg: Half-life of moving averages (days)
     omega_citizen: float = 1.0  # ω_1: Aggregation weight of a citizen
     omega_elite: float = 3.0  # ω_3: Aggregation weight of an elite citizen
@@ -45,7 +45,7 @@ class VectorsParams:
     alpha_c: float = 0.5  # α_c: Contagion attenuation
     sd_C_init: float = 0.3  # sd_C_init: Spread of character at generation (bipolar units, before label noise)
     C_max: float = 0.9  # C_max: Bound of character reachable by events (below 1: events alone never saturate it)
-    sigma_I: float = 0.1  # sigma_I: Idiosyncratic ideological drift of adults (bipolar units per sqrt(year))
+    sigma_I: float = 0.13  # sigma_I: Idiosyncratic ideological drift of adults (bipolar units per sqrt(year))
 
 @dataclass(frozen=True)
 class TiesParams:
@@ -188,7 +188,7 @@ class EventsParams:
     n_log: int = 20  # n_log: Recent event log size per citizen
     beta_det: float = 0.1667  # β_det: Salience bonus for determinant events
     beta_may: float = 0.1667  # β_may: Salience bonus when the mayor is actor or target
-    alpha_react: float = 3.0  # alpha_react: Opinion pull per reaction at full intensity (slice v0)
+    alpha_react: float = 2.8  # alpha_react: Opinion pull per reaction at full intensity (slice v0)
     alpha_direct: float = 0.35  # alpha_direct: Pull of the mayor's opinion per decree at full aggressiveness (slice v0)
     alpha_ideo: float = 0.08  # alpha_ideo: Ideology pull per reaction at full intensity (slice v0)
     k_wealth: float = 0.03  # k_wealth: Wealth shift per unit of economic effect and intensity (slice v0)
