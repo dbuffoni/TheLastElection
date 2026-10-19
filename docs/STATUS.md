@@ -44,7 +44,7 @@ Evidence: `passive` strategy (the "no player" baseline of spec 17.2), seeds 1-9 
 - **Births**: `nu_child` 0.15 -> 0.05, crude birth rate 0.027 -> 0.010 (target 0.01); population drift -0.3%/year.
 - New `passive` strategy (empty player input). Tests that played `gradual` for 20 turns use `random` (gradual is removed earlier now).
 - **Not solved, to review**: with the corrected RNG the game outcomes moved: `fear`, `clientelist`, `populist` now reach victory
-  (before: removed or term end), `assault` and `gradual` are mostly removed; 5 of 12 passive seeds are removed by a council motion
+  (before: removed or term end), `assault` and `gradual` are mostly removed; 6 of 12 passive seeds are removed by a council motion (2 of 9 before day 730)
   (the mayor does nothing). Outcome bands in `config/balance/targets.toml` are still placeholders, so stage 3 must re-tune threats/capital.
 
 ## Simplified in this slice (decisions to review against the spec)
