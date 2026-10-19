@@ -44,12 +44,13 @@ Evidence: `passive` strategy (the "no player" baseline of spec 17.2), seeds 1-9 
 - **Births**: `nu_child` 0.15 -> 0.05, crude birth rate 0.027 -> 0.010 (target 0.01); population drift -0.3%/year.
 - New `passive` strategy (empty player input). Tests that played `gradual` for 20 turns use `random` (gradual is removed earlier now).
 - **Outcome re-tune (stage 3 first pass)**: after the RNG fix `fear`/`populist`/`clientelist` won almost always and a passive mayor was
-  removed in 33-56% of seeds. Changed `g_p` 0.05 -> 0.025, `theta_outcome` 0.6 -> 0.8 (threat chains need real pressure),
-  `alpha_aware` 0.35 -> 0.5 (an attack on a pillar is noticed more), `theta_down` 0.35 -> 0.45. Search seeds 1-9 / validation 101-109:
-  assault removed 0.33 -> 0.56 / 0.67 (band 0.6-1.0), populist pillars fallen 4.8 -> 4.0 / 4.9 (band 1-4.5), random victory 0, passive removed
-  0.33-0.56 -> 0.11 / 0.00. Still short: gradual victory 0.00 / 0.11 (band 0.15-0.6; the gradual player stalls with no pillar fallen in
-  most seeds, gains slide back through demotion), `fear` and `clientelist` still win about 40% of the time. Bands are placeholders; the next
-  step is a Latin-hypercube search over `theta_0`, `theta_1`, `alpha_aware`, `g_p` with the gradual strategy's step size.
+  removed in 33-56% of seeds. LHS search (48 points, seeds 1-6, 7 strategies, loss = distance to the four placeholder bands plus
+  passive removal and runaway `fear`/`clientelist`) over `theta_0`, `theta_1`, `alpha_aware`, `g_p`, `theta_down`; best point validated
+  on seeds 101-112. Final: `theta_0` 0.25 -> 0.20, `theta_1` 0.15 -> 0.16, `alpha_aware` 0.35 -> 0.47, `g_p` 0.05 -> 0.022,
+  `theta_down` 0.35 -> 0.54, `theta_outcome` 0.6 -> 0.8 (earlier manual step). Validation: assault removed 0.67 (band 0.6-1.0),
+  gradual victory 0.17 (0.15-0.6), populist pillars fallen 4.0 (1-4.5), random victory 0, passive removed 0.00, `fear` victory 0.33,
+  `clientelist` 0.08. All four placeholder bands pass; with 12 seeds the gradual margin is thin. Mobility, impulse and saturation unchanged
+  (mobility now in band on 9/9 seeds since the passive mayor survives).
 
 ## Simplified in this slice (decisions to review against the spec)
 These are marked `slice v0` in `config/params/events.toml` (module `loop.*`).

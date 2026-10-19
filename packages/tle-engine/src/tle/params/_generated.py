@@ -150,9 +150,9 @@ class EconomyParams:
 
 @dataclass(frozen=True)
 class PillarsParams:
-    theta_0: float = 0.25  # θ_0: Resistance tolerated at the first level
-    theta_1: float = 0.15  # θ_1: Reduction of tolerated resistance down to the fall
-    theta_down: float = 0.45  # θ_down: Resistance that causes demotion
+    theta_0: float = 0.2  # θ_0: Resistance tolerated at the first level
+    theta_1: float = 0.16  # θ_1: Reduction of tolerated resistance down to the fall
+    theta_down: float = 0.54  # θ_down: Resistance that causes demotion
     n_council: int = 12  # n_council: Number of councillors
     q_maj: float = 0.6  # q_maj: Initial majority share of the council
     omega_cust: float = 5.0  # ω_cust: Weight of custodians in the resistance
@@ -174,7 +174,7 @@ class ThreatsParams:
 @dataclass(frozen=True)
 class EventsParams:
     K_opt: int = 10  # K_opt: Reaction options per set
-    g_p: float = 0.025  # g_p: Income of accumulated pressure (classes, custodians), per day
+    g_p: float = 0.022  # g_p: Income of accumulated pressure (classes, custodians), per day
     h_p: float = 30.0  # h_p: Half-life of accumulated pressure (days)
     nu_tot: float = 0.3  # ν_tot: Global rate of endogenous events at full tension (per day)
     gamma: float = 2.0  # γ: Exponent of narrative pressure in the draw
@@ -199,7 +199,7 @@ class EventsParams:
     cost_decree: float = 0.15  # cost_decree: Capital cost of a decree per unit of aggressiveness (slice v0)
     cost_message: float = 0.01  # cost_message: Capital cost of a private message (slice v0)
     nu_news_decree: float = 1.0  # nu_news_decree: Mayor-decree reaction spread: share of adults involved when the predicate is 'any'
-    alpha_aware: float = 0.5  # alpha_aware: Pull of an attacked pillar's acceptance toward rejection per unit of aggressiveness (slice v0)
+    alpha_aware: float = 0.47  # alpha_aware: Pull of an attacked pillar's acceptance toward rejection per unit of aggressiveness (slice v0)
 
 @dataclass(frozen=True)
 class DemographyParams:
