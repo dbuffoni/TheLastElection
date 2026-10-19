@@ -91,8 +91,10 @@ def compute(w: World, p: Params, ref: PopRef | None = None) -> dict[str, float]:
         m = len(ref.alive)  # the table may have grown since day 0: ids below m keep their meaning
         same = ad[:m] & ref.alive & (w.arrival_day[:m] == ref.arrival)
         if same.any():
-            now = quantize_bipolar(w.I[:m][same])
             then = quantize_bipolar(ref.I[same])
+            now = quantize_bipolar(
+                w.I[:m][same], then, p.labels.eps
+            )  # P7: a label changes only past the hysteresis
             out["share_label_changed"] = float(np.mean((now != then).any(axis=1)))
             out["median_displacement"] = float(np.median(np.abs(w.I[:m][same] - ref.I[same]).max(axis=1)))
         else:

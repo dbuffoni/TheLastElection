@@ -43,15 +43,17 @@ class GameRng:
         return r
 
     def child(self, *keys: Any) -> GameRng:
-        """Independent stream keyed by ``(seed, keys)``; does not touch the main stream."""
+        """Independent stream keyed by ``(seed, path of keys)``; does not touch the main stream. The path includes the
+        keys of the parent, so ``rng.child("turn", 3).child("life")`` differs from the same call on turn 4."""
         r = GameRng.__new__(GameRng)
         r.seed = self.seed
+        r._path = (*getattr(self, "_path", ()), *keys)
         ss = np.random.SeedSequence(
             [
                 self.seed & 0xFFFFFFFF,
                 0xC41D,
-                *[_key_to_int(k) & 0xFFFFFFFF for k in keys],
-                *[(_key_to_int(k) >> 32) & 0xFFFFFFFF for k in keys],
+                *[_key_to_int(k) & 0xFFFFFFFF for k in r._path],
+                *[(_key_to_int(k) >> 32) & 0xFFFFFFFF for k in r._path],
             ]
         )
         r._gen = np.random.Generator(np.random.PCG64(ss))

@@ -25,6 +25,7 @@ class Target(BaseModel):
     window_days: float = 180.0
     scenarios: list[str] = []  # empty = every scenario
     after_days: float = 0.0  # measure from this day (e.g. mobility after two years)
+    at_after_days: bool = False  # measure at after_days (first rows from then on), not at the end of the run
     note: str = ""
 
 

@@ -173,7 +173,10 @@ def apply_reactions(
     w.I = bi.apply(w.I)
     bc = PushBuffer(w.n_cap, 3)
     bc.add(ids, F.t_C[choice], p.events.alpha_ideo * 0.5 * strength)
-    w.C = bc.apply(w.C)
+    cap = np.maximum(
+        p.vectors.C_max, np.abs(w.C)
+    )  # events never push a trait past C_max (nor out of its extreme)
+    w.C = np.clip(bc.apply(w.C), -cap, cap)
     e = F.e_r[choice]
     ok = ~np.isnan(e)
     if ok.any():

@@ -148,7 +148,7 @@ source = "turn"
 unit = "share"
 stage = 2
 group = "ideology"
-target = { kind = "band", lo = 0.15, hi = 0.35, after_days = 730, note = "mobility test (a), measured at two years" }
+target = { kind = "band", lo = 0.15, hi = 0.35, after_days = 730, at_after_days = true, note = "mobility test (a), measured at two years" }
 
 [median_displacement]
 title = "Median individual ideological displacement since day 0"
@@ -157,7 +157,7 @@ family = "outcome"
 unit = "bipolar units"
 stage = 2
 group = "ideology"
-target = { kind = "band", lo = 0.1667, hi = 0.5, after_days = 730, note = "mobility test (b): half to one and a half S7 steps" }
+target = { kind = "band", lo = 0.1667, hi = 0.5, after_days = 730, at_after_days = true, note = "mobility test (b): half to one and a half S7 steps" }
 
 [opinion_mean]
 scale_floor = 0.3333

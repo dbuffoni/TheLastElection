@@ -126,9 +126,14 @@ def _clientelist(w, cat, rng):
     return _gradual(w, cat, rng)
 
 
+def _passive(w, cat, rng):
+    return PlayerInput()
+
+
 STRATEGIES: dict[str, Strategy] = {
     s.name: s
     for s in [
+        Strategy("passive", _passive),
         Strategy("random", _random),
         Strategy("assault", _assault),
         Strategy("gradual", _gradual),

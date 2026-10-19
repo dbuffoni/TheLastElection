@@ -278,7 +278,7 @@ class SimulatedEngine:
                 I = _mean_shift(par["I"], rng)
             else:
                 T = np.clip(np.rint(rng.normal(0, 0.35, 4) * 3), -3, 3).astype(int)
-                C = np.clip(np.rint(rng.normal(0, 0.35, 3) * 3), -3, 3).astype(int)
+                C = np.clip(np.rint(rng.normal(0, self.p.vectors.sd_C_init, 3) * 3), -3, 3).astype(int)
                 if sc.bimodal:
                     mean1 = sc.axis1_mean if rng.random() < 0.5 else -sc.axis1_mean
                 else:

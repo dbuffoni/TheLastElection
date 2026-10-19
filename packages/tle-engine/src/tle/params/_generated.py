@@ -43,6 +43,9 @@ class VectorsParams:
     f_max: float = 0.9  # f_max: Maximum fear
     alpha_ind: float = 0.3  # α_ind: Indirect attenuation
     alpha_c: float = 0.5  # α_c: Contagion attenuation
+    sd_C_init: float = 0.3  # sd_C_init: Spread of character at generation (bipolar units, before label noise)
+    C_max: float = 0.9  # C_max: Bound of character reachable by events (below 1: events alone never saturate it)
+    sigma_I: float = 0.1  # sigma_I: Idiosyncratic ideological drift of adults (bipolar units per sqrt(year))
 
 @dataclass(frozen=True)
 class TiesParams:
@@ -210,7 +213,7 @@ class DemographyParams:
     mu_30: float = 0.001  # μ_30: Annual mortality at 30 years (doubles every 8 years)
     nu_couple: float = 0.5  # ν_couple: Couple formation (annual)
     delta_a_couple: int = 10  # Δa_couple: Maximum age difference in a couple (years)
-    nu_child: float = 0.15  # ν_child: Birth frequency per fertile couple (annual)
+    nu_child: float = 0.05  # ν_child: Birth frequency per fertile couple (annual)
     share_coupled_init: float = 0.5  # share_coupled_init: Share of eligible adults paired in couples at generation (slice v0)
 
 @dataclass(frozen=True)
@@ -276,6 +279,9 @@ GROUP_OF = {
     'f_max': 'vectors',
     'alpha_ind': 'vectors',
     'alpha_c': 'vectors',
+    'sd_C_init': 'vectors',
+    'C_max': 'vectors',
+    'sigma_I': 'vectors',
     'g_w': 'ties',
     'w_0': 'ties',
     'w_fam': 'ties',
