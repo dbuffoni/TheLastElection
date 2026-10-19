@@ -17,3 +17,5 @@ description: Inspect run directories and campaign summaries (metrics, events, mi
 - Open runs (still writing) are readable up to the last flushed batch (`status.json` has the heartbeat).
 - Questions to ask of a run: when did capital collapse? which decree preceded a threat chain? did resistance track fear
   (expressed vs private opinion diverge)? which pillar stalled at which level and why (`decree_result == "resisted"`)?
+- Population view: tables `citizens` (panel snapshots every `panel_every` days) and `bonds`; `metrics` has a `phase` column;
+  `Run.metrics.daily()` for per-day series. See the monitor-population skill.

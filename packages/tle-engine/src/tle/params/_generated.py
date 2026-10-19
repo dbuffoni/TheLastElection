@@ -69,6 +69,10 @@ class TiesParams:
     chi_riv: float = 0.6  # χ_riv: Contagion factor, rivalry (repulsion)
     rho_tr: float = 0.5  # ρ_tr: Bounded-confidence radius (disabled when bounded_confidence = 0)
     bounded_confidence: int = 0  # bc: Enable bounded-confidence pull (0/1)
+    routine_partners: int = 3  # routine_partners: Contacts each participant makes in one routine activity (slice v0)
+    routine_step: float = 0.02  # routine_step: Ideological pull of a routine activity toward its design target, at full social weight (slice v0)
+    tie_preference: float = 30.0  # tie_preference: How much likelier an acquaintance is met than a stranger in a routine activity (slice v0)
+    circle_homophily: float = 0.7  # circle_homophily: Share of the initial affinity ties that stay inside the citizen's circle (slice v0)
 
 @dataclass(frozen=True)
 class FactionsParams:
@@ -206,6 +210,7 @@ class DemographyParams:
     nu_couple: float = 0.5  # ν_couple: Couple formation (annual)
     delta_a_couple: int = 10  # Δa_couple: Maximum age difference in a couple (years)
     nu_child: float = 0.15  # ν_child: Birth frequency per fertile couple (annual)
+    share_coupled_init: float = 0.5  # share_coupled_init: Share of eligible adults paired in couples at generation (slice v0)
 
 @dataclass(frozen=True)
 class TechnicalParams:
@@ -293,6 +298,10 @@ GROUP_OF = {
     'chi_riv': 'ties',
     'rho_tr': 'ties',
     'bounded_confidence': 'ties',
+    'routine_partners': 'ties',
+    'routine_step': 'ties',
+    'tie_preference': 'ties',
+    'circle_homophily': 'ties',
     'rho_in': 'factions',
     'rho_out': 'factions',
     'rho_conf': 'factions',
@@ -403,6 +412,7 @@ GROUP_OF = {
     'nu_couple': 'demography',
     'delta_a_couple': 'demography',
     'nu_child': 'demography',
+    'share_coupled_init': 'demography',
     'n_lab': 'technical',
     'n_retry': 'technical',
     'B_S1': 'technical',
@@ -425,7 +435,7 @@ FORMULAS = {
     'theta_y_out': '0.5 * theta_y_in',
     'g_T': 'income_for_equilibrium(h_pT, x_star_T)',
 }
-INT_PARAMS = ('N', 'horizon_days', 'T_warm', 'B_bond', 'bounded_confidence', 'N_min', 'n_council', 'n_cust', 'K_opt', 'n_news_0', 'n_log', 'a_adult', 'a_pens', 'a_fert', 'delta_a_couple', 'n_lab', 'n_retry', 'B_S1', 'panel_every')
+INT_PARAMS = ('N', 'horizon_days', 'T_warm', 'B_bond', 'bounded_confidence', 'routine_partners', 'N_min', 'n_council', 'n_cust', 'K_opt', 'n_news_0', 'n_log', 'a_adult', 'a_pens', 'a_fert', 'delta_a_couple', 'n_lab', 'n_retry', 'B_S1', 'panel_every')
 
 
 def to_flat(p: Params, include_derived: bool = True) -> dict[str, Any]:

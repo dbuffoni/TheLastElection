@@ -27,7 +27,7 @@ uv run tle play                            # play the mayor yourself in the term
 ## Typical workflow when you start simulating and balancing
 
 1. `uv run tle campaign run smoke --seeds 1,2,3,4,5 --n 300` : baseline outcome rates and the table of target bands.
-2. Edit the bands in `config/metrics/targets.toml` (they are placeholders) to what you want the game to feel like.
+2. Edit the bands in `config/balance/targets.toml` (they are placeholders) to what you want the game to feel like.
 3. `uv run tle campaign run sensitivity_events` then `uv run tle campaign analyze sensitivity_events --analyzer sensitivity` : which parameters matter.
 4. Change parameters in `config/params/*.toml` (one registry, typed code is regenerated automatically; `uv run tle params codegen`).
 5. Re-run with the same seeds and compare. `uv run tle campaign verify smoke` proves that results are reproducible.
@@ -37,6 +37,10 @@ uv run tle play                            # play the mayor yourself in the term
 Claude Code users: the repo ships skills (`.claude/skills/`: run-simulation, read-runs, balance, sensitivity, calibrate,
 debug-determinism, add-system, real-model-setup), two agents (run-analyst, calibrator) and a hook that regenerates the typed
 parameters when the registry changes. `CLAUDE.md` holds the working rules.
+
+## Monitoring the population
+`uv run tle run --strategy gradual --report` writes an HTML report; `tle pop report|watch|stability|targets|mobility|identity|panel|impulse`
+and `tle metrics list|lint` answer specific questions (see `.claude/skills/monitor-population`).
 
 ## Layout
 

@@ -1,4 +1,4 @@
-"""Balance: target bands (config/metrics/targets.toml), band loss, dominance of strategies."""
+"""Balance: target bands (config/balance/targets.toml), band loss, dominance of strategies."""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ from tle.registry.loader import repo_root
 
 
 def load_bands(path: str | Path | None = None) -> list[dict]:
-    p = Path(path) if path else repo_root() / "config" / "metrics" / "targets.toml"
+    p = Path(path) if path else repo_root() / "config" / "balance" / "targets.toml"
     return tomllib.loads(p.read_text())["band"]
 
 

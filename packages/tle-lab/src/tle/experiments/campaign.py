@@ -100,7 +100,6 @@ def run_one(spec: dict, out_dir: str | None = None) -> dict:
     cat = load_catalogs()
     p = default_params().with_overrides(spec["overrides"]) if spec["overrides"] else default_params()
     eng = Engines(SimulatedEngine(cat, p), SimulatedEngine(cat, p))
-    game = Game(cat, p, eng, scenario=spec["scenario"], seed=spec["seed"], n=spec["n"])
     obs = []
     store = None
     run_id = f"{spec['campaign']}-p{spec['point']:03d}-{spec['scenario']}-{spec['strategy']}-s{spec['seed']}"
@@ -118,6 +117,7 @@ def run_one(spec: dict, out_dir: str | None = None) -> dict:
             to_flat(p),
         )
         obs.append(TelemetryObserver(store))
+    game = Game(cat, p, eng, scenario=spec["scenario"], seed=spec["seed"], n=spec["n"], observers=obs)
     w = play(game, STRATEGIES[spec["strategy"]], spec["max_turns"], obs)
     if store:
         store.close(w.outcome)

@@ -1,0 +1,290 @@
+# Metric registry: population evolution (spec 10 and 17). A metric listed here with source = "turn" must be computed by
+# tle.systems.popstats.compute and is written as a column of metrics.arrow; `tle metrics lint` checks both directions.
+# Targets marked in `note` come from spec 10 / 17.2-17.3; bands here are the spec's indicative values.
+
+[pop_size]
+title = "Population"
+spec = ["1.6", "10"]
+family = "continuous"
+unit = "citizens"
+stage = 1
+group = "population"
+target = { kind = "drift_max", value = 0.20, window_days = 365, note = "no demographic drifts (spec 10)" }
+
+[mean_age]
+title = "Mean age"
+spec = ["10"]
+unit = "years"
+stage = 1
+group = "population"
+target = { kind = "drift_max", value = 0.10, window_days = 365, note = "stable during the term" }
+
+[share_minors]
+title = "Share of minors"
+spec = ["10", "17.2"]
+unit = "share"
+stage = 1
+group = "population"
+target = { kind = "drift_max", value = 0.20, window_days = 365, note = "stable during the term" }
+
+[share_elderly]
+title = "Share of retirees"
+spec = ["10"]
+unit = "share"
+stage = 1
+group = "population"
+
+[births_total]
+title = "Births (cumulative)"
+spec = ["1.6"]
+unit = "citizens"
+stage = 1
+group = "population"
+
+[deaths_total]
+title = "Deaths (cumulative)"
+spec = ["1.6"]
+unit = "citizens"
+stage = 1
+group = "population"
+
+[immigrants_total]
+title = "Immigrants (cumulative)"
+spec = ["1.6"]
+unit = "citizens"
+stage = 1
+group = "population"
+
+[emigrants_total]
+title = "Emigrants (cumulative)"
+spec = ["1.6"]
+unit = "citizens"
+stage = 1
+group = "population"
+
+[couples_total]
+title = "Couples formed (cumulative)"
+spec = ["1.6"]
+unit = "couples"
+stage = 1
+group = "population"
+
+[ideology_mean_1]
+scale_floor = 0.3333
+title = "Mean ideology, axis 1"
+spec = ["17.5"]
+unit = "bipolar"
+stage = 2
+group = "ideology"
+
+[ideology_mean_2]
+scale_floor = 0.3333
+title = "Mean ideology, axis 2"
+spec = ["17.5"]
+unit = "bipolar"
+stage = 2
+group = "ideology"
+
+[ideology_mean_3]
+scale_floor = 0.3333
+title = "Mean ideology, axis 3"
+spec = ["17.5"]
+unit = "bipolar"
+stage = 2
+group = "ideology"
+
+[ideology_sd_1]
+title = "Ideology dispersion, axis 1"
+spec = ["17.5"]
+unit = "bipolar sd"
+stage = 2
+group = "ideology"
+
+[ideology_sd_2]
+title = "Ideology dispersion, axis 2"
+spec = ["17.5"]
+unit = "bipolar sd"
+stage = 2
+group = "ideology"
+
+[ideology_sd_3]
+title = "Ideology dispersion, axis 3"
+spec = ["17.5"]
+unit = "bipolar sd"
+stage = 2
+group = "ideology"
+
+[polarization_mean]
+title = "Mean polarization"
+spec = ["10", "17.2", "17.5"]
+unit = "P1 distance"
+stage = 2
+group = "ideology"
+target = { kind = "drift_max", value = 0.10, window_days = 180, note = "stable without the player (17.2); after the pillars fall it should rise, not saturate" }
+
+[bimodality_axis1]
+title = "Bimodality of axis 1 (Sarle)"
+spec = ["17.5"]
+family = "distribution"
+unit = "coefficient"
+stage = 2
+group = "ideology"
+target = { kind = "min", value = 0.555, scenarios = ["mixed_polarised"], note = "the two camps must survive the warm-up (17.5)" }
+
+[saturated_character_share]
+title = "Share of saturated character"
+spec = ["10", "17.2"]
+family = "saturation"
+unit = "share of adults"
+stage = 2
+group = "ideology"
+target = { kind = "max", value = 0.05, after_days = 365, note = "below 5% at the end of the term" }
+
+[share_label_changed]
+title = "Adults whose S7 ideology label changed since day 0"
+spec = ["17.3"]
+family = "outcome"
+source = "turn"
+unit = "share"
+stage = 2
+group = "ideology"
+target = { kind = "band", lo = 0.15, hi = 0.35, after_days = 730, note = "mobility test (a), measured at two years" }
+
+[median_displacement]
+title = "Median individual ideological displacement since day 0"
+spec = ["17.3"]
+family = "outcome"
+unit = "bipolar units"
+stage = 2
+group = "ideology"
+target = { kind = "band", lo = 0.1667, hi = 0.5, after_days = 730, note = "mobility test (b): half to one and a half S7 steps" }
+
+[opinion_mean]
+scale_floor = 0.3333
+title = "Private opinion of the mayor"
+spec = ["10"]
+unit = "bipolar"
+stage = 2
+group = "opinion"
+
+[expressed_mean]
+scale_floor = 0.3333
+title = "Expressed opinion of the mayor"
+spec = ["10"]
+unit = "bipolar"
+stage = 2
+group = "opinion"
+
+[opinion_gap]
+title = "Gap between private and expressed opinion"
+spec = ["10"]
+unit = "mean absolute gap"
+stage = 4
+group = "opinion"
+
+[silenced_share]
+title = "Silenced dissent"
+spec = ["10"]
+unit = "share of adults"
+stage = 4
+group = "opinion"
+
+[fear_mean]
+title = "Mean fear"
+spec = ["10"]
+unit = "unipolar"
+stage = 4
+group = "opinion"
+
+[wealth_mean]
+title = "Mean wealth"
+spec = ["10"]
+unit = "unipolar"
+stage = 4
+group = "wealth"
+
+[wealth_gini]
+title = "Wealth inequality (Gini)"
+spec = ["10"]
+unit = "gini"
+stage = 4
+group = "wealth"
+
+[share_low]
+title = "Lower class share"
+spec = ["1.5"]
+unit = "share of adults"
+stage = 1
+group = "wealth"
+
+[share_middle]
+title = "Middle class share"
+spec = ["1.5"]
+unit = "share of adults"
+stage = 1
+group = "wealth"
+
+[share_high]
+title = "Upper class share"
+spec = ["1.5"]
+unit = "share of adults"
+stage = 1
+group = "wealth"
+
+[degree_mean]
+title = "Mean degree"
+spec = ["17.2"]
+unit = "ties per citizen"
+stage = 1
+group = "network"
+target = { kind = "drift_max", value = 0.10, window_days = 180, note = "stage 1: constant over time" }
+
+[stable_tie_share]
+title = "Share of stable ties"
+spec = ["17.2"]
+unit = "share"
+stage = 1
+group = "network"
+target = { kind = "drift_max", value = 0.10, window_days = 180, note = "stage 1: constant over time" }
+
+[tie_weight_mean]
+title = "Mean tie intensity"
+spec = ["5.1"]
+unit = "unipolar"
+stage = 1
+group = "network"
+
+[tie_share_family]
+title = "Tie mix: family"
+spec = ["5.1"]
+unit = "share"
+stage = 1
+group = "network"
+
+[tie_share_affinity]
+title = "Tie mix: affinity"
+spec = ["5.1"]
+unit = "share"
+stage = 1
+group = "network"
+
+[tie_share_professional]
+title = "Tie mix: professional"
+spec = ["5.1"]
+unit = "share"
+stage = 1
+group = "network"
+
+[tie_share_rivalry]
+title = "Tie mix: rivalry"
+spec = ["5.1"]
+unit = "share"
+stage = 1
+group = "network"
+
+[tie_share_political]
+title = "Tie mix: political"
+spec = ["5.1"]
+unit = "share"
+stage = 1
+group = "network"

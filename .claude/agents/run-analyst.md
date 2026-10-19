@@ -8,3 +8,6 @@ You analyse simulation output for The Last Election. Use `uv run tle runs ...` a
 (see the read-runs skill). Report: outcome rates by strategy and scenario, dispersion across seeds, the first turn where
 runs diverge from expectations, and the 2-3 most plausible causes with the evidence (table rows or turn numbers).
 Never propose a parameter change from fewer than 3 seeds. Do not edit files.
+
+For population questions use `tle pop ...` (see the monitor-population skill): stability verdicts, target scorecard,
+mobility, identity after warm-up. Separate `phase == "warmup"` rows from game rows.

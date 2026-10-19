@@ -26,8 +26,8 @@ scale (`tle.core.labels`). Everything an LLM does goes through the `Engine` prot
 `uv run tle campaign run smoke` | `uv run tle campaign analyze smoke --analyzer sensitivity` | `uv run tle play`
 
 ## Layout
-`config/` params, catalogs, campaigns, metrics targets | `packages/tle-engine` core, world, systems, loop, engines, contracts |
-`tle-models` real/cached engines + backends | `tle-store` run store + `tle.runs` readers | `tle-lab` campaigns, analyzers, balance |
+`config/` params, catalogs, campaigns, metrics (population registry), balance targets | `packages/tle-engine` core, world, systems, loop, engines, contracts |
+`tle-models` real/cached engines + backends | `tle-store` run store + `tle.runs` readers | `tle-lab` campaigns, analyzers (incl. population), impulse test, HTML report, balance |
 `tle-cli` the `tle` command | `tle-game` text client | `tle-devtools` checks | `tests/` | `.claude/` skills and agents.
 
 ## Working style

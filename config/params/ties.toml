@@ -295,3 +295,55 @@ introduced  = 4
 module      = "systems.exposure"
 status      = "provisional"
 rationale   = "Disabled by default"
+
+[routine_partners]
+symbol      = "routine_partners"
+spec        = "5.14"
+description = "Contacts each participant makes in one routine activity (slice v0)"
+default     = 3
+range       = [1, 8]
+scale       = "int"
+class       = "fixed"
+stage       = 1
+introduced  = 4
+module      = "systems.ties"
+status      = "provisional"
+
+[routine_step]
+symbol      = "routine_step"
+spec        = "5.14"
+description = "Ideological pull of a routine activity toward its design target, at full social weight (slice v0)"
+default     = 0.02
+range       = [0.0, 0.1]
+scale       = "linear"
+class       = "free"
+stage       = 2
+introduced  = 4
+module      = "systems.ties"
+status      = "provisional"
+
+[tie_preference]
+symbol      = "tie_preference"
+spec        = "5.14"
+description = "How much likelier an acquaintance is met than a stranger in a routine activity (slice v0)"
+default     = 30.0
+range       = [1.0, 200.0]
+scale       = "log"
+class       = "free"
+stage       = 1
+introduced  = 4
+module      = "systems.ties"
+status      = "provisional"
+
+[circle_homophily]
+symbol      = "circle_homophily"
+spec        = "1.5"
+description = "Share of the initial affinity ties that stay inside the citizen's circle (slice v0)"
+default     = 0.7
+range       = [0.0, 1.0]
+scale       = "linear"
+class       = "fixed"
+stage       = 1
+introduced  = 1
+module      = "systems.population"
+status      = "provisional"

@@ -15,21 +15,31 @@ Branch of first slice: complete vertical slice, simulated engines only. "Spec x.
 - **Harness**: CLAUDE.md, 8 skills, 2 agents, post-edit hook, `tle check`, `tools/harness_check.py`, CI workflow.
 - **Tests**: primitives, label hysteresis, RNG, registry, schemas, determinism, resume, turn-length independence, failure injection, 50-char rule, real-engine retry/fallback, cache, store, campaigns, CLI.
 
+## Session 2: population evolution monitoring
+- **Demography** (`systems/demography.py`): mortality, births to couples, ageing, life transitions, slot reuse and growth; families and couples at creation.
+- **Daily life and ties** (`systems/ties.py`): routine partners, tie formation/decay with homophily, ideology pull; **warm-up** (`Game(warmup=True)`, spec 17.5) runs it before day 0 with the power block off.
+- **Metric registry** (`config/metrics/population.toml`, `tle.registry.metrics`): ~38 metrics with spec targets (band/min/max/drift_max/ratio/monotone, scenarios, windows). Outcome bands moved to `config/balance/targets.toml`.
+- **Population statistics** (`systems/popstats.py`): Sarle bimodality, Gini, invariants; computed each turn.
+- **Run store**: `citizens` panel and `bonds` tables, `checks.json`, `state/day0.npz` and `final.npz`, `phase` column.
+- **Analyzers and tools** (`tle.analysis.population`, `tle pop ...`, `tle metrics ...`): drift, stability verdicts, target scorecard, mobility, flows, scenario identity, vital rates, impulse test (17.3), live watch, self-contained HTML report.
+- New params: `alpha_aware`, `share_coupled_init`, `routine_partners`, `routine_step`, `tie_preference`, `circle_homophily`.
+- **Calibration findings (default params, not tuned)**: stage-1 network/demography targets pass after warm-up (mean degree, stable-tie share, population, age, minors, polarization drift). Failing: mobility displacement, impulse response, saturated character share; birth rate about 2x the target.
+
 ## Simplified in this slice (decisions to review against the spec)
 These are marked `slice v0` in `config/params/events.toml` (module `loop.*`).
 - Decrees act on the mayor's opinion through *direct exposure* only. Indirect (published news) and contagion-gated exposure are reduced to one tie-diffusion step on expressed opinion (`_contagion`).
 - Only mayor and exogenous events run the full pipeline. Faction, influencer, class and custodian events exist in the catalog but are not generated yet.
-- No factions, influencers, demography (births/deaths/couples), economy of rents/transfers, community indices (tec/cul), daily-life activities, warm-up, newspaper/annual edition/almanac, private-message influencer responses (messages are a simple persuasion pull).
+- No factions, influencers, economy of rents/transfers, community indices (tec/cul), newspaper/annual edition/almanac, private-message influencer responses (messages are a simple persuasion pull).
 - Pillar resistance R_p = share of adults whose *expressed* acceptance of erosion is below -1/3; level gate uses it. Spec formulas for custodians are not implemented; threats are driven by council discontent and law-pillar resistance.
 - Parameters introduced by the slice (alpha_react, alpha_ideo, alpha_aware, k_wealth, h_fear, fear_decree, persuade, k_contagion, cost_decree, cost_message, nu_news_decree) are provisional.
-- **Balance is not tuned.** With defaults most aggressive strategies get the mayor removed and passive ones reach term end; the target bands in `config/metrics/targets.toml` are placeholders.
+- **Balance is not tuned.** With defaults most aggressive strategies get the mayor removed and passive ones reach term end; the target bands in `config/balance/targets.toml` are placeholders.
 
 ## Not built
-- Dashboard / visualization, MCP server for the lab, in-process `local` model backend (see docs/local-setup.md), Optuna/SALib wrappers (extras declared, not wired), profile promotion/journal tooling, GPU-specific tuning.
+- Panel dashboard, `tle plot`, journal, `runs reindex/gc`, factions, influencers, economy, custodians, MCP server for the lab, in-process `local` model backend (see docs/local-setup.md), Optuna/SALib wrappers (extras declared, not wired), profile promotion/journal tooling, GPU-specific tuning.
 
 ## Suggested order for the next increments
 1. Factions + influencers (spec 5.x) and their event generators -> turn the unused event types on.
-2. Demography and daily life (activities) -> routine contacts and tie dynamics.
+2. Calibrate stages 1-2 on the failing population targets (see findings).
 3. Economy (rents, transfers, extractive coalition), community indices.
 4. Custodians and the full threat model; replace the placeholder pillar gate inputs.
 5. Warm-up, newspaper and almanac (S2 text), then calibrate against real bands.

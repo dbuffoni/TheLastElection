@@ -10,7 +10,7 @@ from tle.core.rng import GameRng
 from tle.engines.protocol import Engines
 from tle.params import Params
 from tle.world.catalogs import AGE_BANDS, Catalogs
-from tle.world.state import B_AFF, N_PILLARS, World, allocate
+from tle.world.state import B_AFF, B_FAM, KIN_PARENT, KIN_PARTNER, N_PILLARS, World, allocate
 
 AGE_RANGE = {"minor": (0, 17), "young": (18, 34), "adult": (35, 66), "elderly": (67, 90)}
 
@@ -50,6 +50,15 @@ def add_bonds(w: World, src, dst, btype: int, weight, stable=False, kin=0) -> No
     w.bstable[s] = stable
     w.blast[s] = w.day
     w.bn = need
+
+
+def draw_trades(cat: Catalogs, sc, n: int, rng: GameRng) -> np.ndarray:
+    """Working trades drawn with the scenario weights (students and retirees are assigned by age)."""
+    tids = cat.trade_ids()
+    weights = np.array([t.weight * sc.trade_multipliers.get(t.id, 1.0) for t in cat.trades], dtype=float)
+    weights[[tids.index("student"), tids.index("retiree")]] = 0.0
+    cum = np.cumsum(weights / weights.sum())
+    return np.searchsorted(cum, rng.random(n), side="right").clip(0, len(tids) - 1)
 
 
 def create_world(
@@ -119,12 +128,8 @@ def create_world(
     cls[order[n - int(round(sc.q_high * n)) :]] = 2
     w.cls[:n] = cls
     tids = cat.trade_ids()
-    weights = np.array([t.weight * sc.trade_multipliers.get(t.id, 1.0) for t in cat.trades], dtype=float)
     student, retiree = tids.index("student"), tids.index("retiree")
-    wk = weights.copy()
-    wk[[student, retiree]] = 0.0
-    cumw = np.cumsum(wk / wk.sum())
-    trade = np.searchsorted(cumw, rng.random(n), side="right").clip(0, len(tids) - 1)
+    trade = draw_trades(cat, sc, n, rng)
     trade[w.age[:n] < p.demography.a_adult] = student
     trade[w.age[:n] >= p.demography.a_pens] = retiree
     w.trade[:n] = trade
@@ -136,21 +141,70 @@ def create_world(
     w.lab_O[:n] = np.rint(w.O[:n] * 3 + 3).astype(np.int8)
     w.fear[:n] = 0.0
 
+    # families: a share of adults in fertile range form couples; minors get two parents from the couples
+    fam = rng.child("families")
+    single = [
+        int(i)
+        for i in np.flatnonzero(
+            (w.age[:n] >= p.demography.a_adult)
+            & (w.age[:n] <= p.demography.a_fert + p.demography.delta_a_couple)
+        )
+    ]
+    order = [single[j] for j in fam.permutation(len(single))]
+    couples = []
+    for a in order:
+        if w.couple[a] >= 0 or fam.random() > p.demography.share_coupled_init:
+            continue
+        cand = [
+            b
+            for b in order
+            if b != a and w.couple[b] < 0 and abs(w.age[b] - w.age[a]) <= p.demography.delta_a_couple
+        ]
+        if not cand:
+            continue
+        b = cand[int(fam.integers(0, len(cand)))]
+        w.couple[a], w.couple[b] = b, a
+        couples.append((a, b))
+    minors = np.flatnonzero(w.age[:n] < p.demography.a_adult)
+    if couples:
+        for i in minors:
+            a, b = couples[int(fam.integers(0, len(couples)))]
+            w.parent1[i], w.parent2[i] = a, b
+            w.circle[i], w.cls[i] = w.circle[a], w.cls[a]
+    fs, fd = [], []
+    for a, b in couples:
+        fs += [a, b]
+        fd += [b, a]
+    add_bonds(
+        w, np.array(fs, dtype=int), np.array(fd, dtype=int), B_FAM, p.ties.w_fam, stable=True, kin=KIN_PARTNER
+    )
+    ks, kd = [], []
+    for i in minors:
+        for par in (w.parent1[i], w.parent2[i]):
+            if par >= 0:
+                ks += [i, par]
+                kd += [par, i]
+    add_bonds(
+        w, np.array(ks, dtype=int), np.array(kd, dtype=int), B_FAM, p.ties.w_fam, stable=True, kin=KIN_PARENT
+    )
+
     # affinity ties inside circles plus random acquaintances
-    src, dst = [], []
-    for c in range(n_circ):
-        members = np.flatnonzero(w.circle[:n] == c)
-        for a in members:
-            for b in members:
-                if a < b:
-                    src += [a, b]
-                    dst += [b, a]
-    k_extra = int(sc.cohesion_degree * n / 2)
-    a = rng.integers(0, n, k_extra)
-    b = rng.integers(0, n, k_extra)
+    # affinity ties: cohesion_degree per citizen on average, a share of them inside the circle
+    k_pairs = int(round(sc.cohesion_degree * n / 2))
+    a = rng.integers(0, n, k_pairs)
+    inside = rng.random(k_pairs) < p.ties.circle_homophily
+    b = rng.integers(0, n, k_pairs)
+    for j in np.flatnonzero(inside):  # re-draw the partner among the same circle (when it has company)
+        mates = np.flatnonzero(w.circle[:n] == w.circle[a[j]])
+        mates = mates[mates != a[j]]
+        if len(mates):
+            b[j] = mates[rng.integers(0, len(mates))]
     keep = a != b
-    src += list(np.concatenate([a[keep], b[keep]]))
-    dst += list(np.concatenate([b[keep], a[keep]]))
+    lo, hi = np.minimum(a[keep], b[keep]), np.maximum(a[keep], b[keep])
+    _, first = np.unique(lo * n + hi, return_index=True)
+    lo, hi = lo[first], hi[first]
+    src = list(np.concatenate([lo, hi]))
+    dst = list(np.concatenate([hi, lo]))
     add_bonds(w, np.array(src), np.array(dst), B_AFF, sc.cohesion_intensity)
 
     # council: adults, half on the mayor's side

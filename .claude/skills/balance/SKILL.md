@@ -5,7 +5,7 @@ description: Check whether the simulation lands inside the target bands and find
 
 # Balance loop
 
-Targets live in `config/metrics/targets.toml` (bands per strategy, status `placeholder` until the designer sets them).
+Targets live in `config/balance/targets.toml` (bands per strategy, status `placeholder` until the designer sets them).
 1. Baseline: `uv run tle campaign run smoke --seeds 1,2,3,4,5 --n 300` then read the "target bands" table (`miss` = distance outside).
 2. If the baseline is dominated by one outcome (all removed / all victory), it is a structural problem, not a tuning one: inspect
    `read-runs` for the first turns before touching parameters.

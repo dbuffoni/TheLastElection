@@ -14,7 +14,7 @@ from tle.core.rng import GameRng
 from tle.engines.errors import UnclassifiableDecree, validate_text
 from tle.engines.protocol import Engines
 from tle.params import Params
-from tle.systems import indicators, power
+from tle.systems import demography, indicators, power, ties
 from tle.systems.predicate import match
 from tle.systems.reaction import EventResult, run_event
 from tle.world.catalogs import Catalogs
@@ -45,6 +45,8 @@ class TurnPackage:
     capital: float = 0.0
     warnings: list[dict] = field(default_factory=list)
     outcome: str = ""
+    demography: dict = field(default_factory=dict)
+    phase: str = "game"
     rejected: str | None = None  # a decree that could not be classified goes back at no cost (13.1)
 
 
@@ -58,7 +60,9 @@ def classify(engines: Engines, inp: PlayerInput, rng: GameRng) -> m.ClassifyDecr
     return out
 
 
-def step(w: World, cat: Catalogs, p: Params, engines: Engines, inp: PlayerInput | None = None) -> TurnPackage:
+def step(
+    w: World, cat: Catalogs, p: Params, engines: Engines, inp: PlayerInput | None = None, warmup: bool = False
+) -> TurnPackage:
     inp = inp or PlayerInput()
     rng = w.rng
     dt = float(inp.dt if inp.dt is not None else p.time.dt_max)
@@ -96,7 +100,13 @@ def step(w: World, cat: Catalogs, p: Params, engines: Engines, inp: PlayerInput 
 
     # 4. contagion through ties, ideology drift, fear decay, wealth relaxation
     _contagion(w, p, dt)
-    w.I = relax(w.I, w.B, p.vectors.h_b, dt)
+    life = ties.daily_life(w, cat, p, engines, dt, turn_rng.child("life"))
+    ties.ideology_pull(w, p, dt)
+    w.stats["ties_dropped"] = w.stats.get("ties_dropped", 0) + ties.tie_dynamics(w, p, dt)
+    w.I = relax(w.I, w.B, p.vectors.h_I, dt)  # ideology fades toward its base ...
+    w.B = relax(
+        w.B, w.I, p.vectors.h_b, dt
+    )  # ... and the base itself follows slowly: lived events leave a scar
     w.fear = relax(w.fear, 0.0, p.events.h_fear, dt, 0.0, 1.0)
     w.r = relax(w.r, w.r0, 365.0, dt, 0.0, 1.0)
     # economic vote: opinion of the mayor follows the change in own wealth
@@ -106,22 +116,30 @@ def step(w: World, cat: Catalogs, p: Params, engines: Engines, inp: PlayerInput 
     )
     w.r_prev = w.r.copy()
 
+    demo = demography.step(w, cat, p, engines, dt, turn_rng.child("demography"))
+    ad = w.adults(p.demography.a_adult)
+
     # 5. time advances; power block
     w.day += dt
     w.turn += 1
     w.dt_prev = dt
     ind = indicators.compute(w, cat, p)
-    power.capital_step(w, p, dt, ind.get("support", 0.0))
-    pkg.threats = power.threats_step(w, cat, p, dt, turn_rng.child("threats"))
-    for ev in pkg.threats:
-        pkg.news.append(EventResult(-1, ev["event"], ev["event"].replace("_", " "), "", "high", "threat", 0))
-    power.demotion_step(w, cat, p, decreed_pillar)
+    if not warmup:
+        power.capital_step(w, p, dt, ind.get("support", 0.0))
+        pkg.threats = power.threats_step(w, cat, p, dt, turn_rng.child("threats"))
+        for ev in pkg.threats:
+            pkg.news.append(
+                EventResult(-1, ev["event"], ev["event"].replace("_", " "), "", "high", "threat", 0)
+            )
+        power.demotion_step(w, cat, p, decreed_pillar)
 
     # 6. outcome
     done = all(w.pillar_level[i] >= len(cat.pillars[i].levels) for i in range(len(cat.pillars)))
+    if warmup:
+        done = False
     if not w.outcome and done:
         w.outcome, w.outcome_day = "victory", w.day
-    if not w.outcome and w.day >= p.time.horizon_days:
+    if not warmup and not w.outcome and w.day >= p.time.horizon_days:
         w.outcome, w.outcome_day = "term_end", w.day
 
     # 7. report
@@ -130,6 +148,7 @@ def step(w: World, cat: Catalogs, p: Params, engines: Engines, inp: PlayerInput 
     pkg.labels = indicators.labels(w, ind, p.labels.eps)
     pkg.pillars = {pid: int(w.pillar_level[i]) for i, pid in enumerate(pil_ids)}
     pkg.capital = float(w.K)
+    pkg.demography = demo | life
     pkg.outcome = w.outcome
     pkg.warnings = engines.drain_warnings()
     w.save_rng(rng)

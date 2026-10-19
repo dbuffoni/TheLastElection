@@ -46,6 +46,48 @@ def boundary_violations(root: Path | None = None) -> list[str]:
     return out
 
 
+def metrics_lint_errors() -> list[str]:
+    """Registry <-> telemetry consistency (spec 6): run a 3-turn game with telemetry and compare the written columns."""
+    import tempfile
+
+    from tle.registry.metrics import load_metrics
+    from tle.systems import popstats
+
+    specs = load_metrics()
+    errs = []
+    for mid, s in specs.items():
+        t = s.target
+        if t is None:
+            continue
+        if t.kind == "band" and (t.lo is None or t.hi is None or t.lo >= t.hi):
+            errs.append(f"{mid}: band target needs lo < hi")
+        if t.kind in ("min", "max", "drift_max") and t.value is None:
+            errs.append(f"{mid}: {t.kind} target needs a value")
+    from tle.catalogs.loader import load_catalogs
+    from tle.loop.game import Game, play
+    from tle.params import default_params, to_flat
+    from tle.runs import open_run
+    from tle.telemetry import RunStore, TelemetryObserver
+
+    with tempfile.TemporaryDirectory() as d:
+        p = default_params().with_overrides({"T_warm": 14})
+        store = RunStore(d, "lint", {"scenario": "industrial_secular", "seed": 1}, to_flat(p))
+        ob = TelemetryObserver(store)
+        g = Game(load_catalogs(), p, seed=1, n=60, observers=[ob])
+        play(g, None, 3, [ob])
+        store.close()
+        cols = set(open_run(Path(d) / "lint").metrics(phase=None).df.columns)
+        computed = set(popstats.compute(g.w, p, popstats.PopRef.capture(g.w)))
+    for mid in computed - set(specs):
+        errs.append(f"{mid}: computed by popstats but not registered in config/metrics")
+    for mid, s in specs.items():
+        if s.source == "turn" and mid not in cols:
+            errs.append(f"{mid}: registered with source=turn but never written to metrics.arrow")
+        if s.target and mid not in computed and s.source == "turn":
+            errs.append(f"{mid}: has a target but is not computed")
+    return errs
+
+
 def run_checks(console) -> bool:
     ok = True
 
@@ -78,4 +120,5 @@ def run_checks(console) -> bool:
             errs += [f"{name}: {e}" for e in check_strict_subset(sch)]
         report("contract schemas are in the strict subset", errs)
     report("no global RNG / wall clock in the deterministic core", boundary_violations())
+    report("metric registry matches telemetry", metrics_lint_errors())
     return ok

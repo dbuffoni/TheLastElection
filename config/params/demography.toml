@@ -137,3 +137,16 @@ stage       = 1
 introduced  = 5
 module      = "systems.demography"
 status      = "draft"
+
+[share_coupled_init]
+symbol      = "share_coupled_init"
+spec        = "1.6"
+description = "Share of eligible adults paired in couples at generation (slice v0)"
+default     = 0.5
+range       = [0.1, 0.9]
+scale       = "linear"
+class       = "fixed"
+stage       = 1
+introduced  = 1
+module      = "systems.population"
+status      = "provisional"
