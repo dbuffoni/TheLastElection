@@ -423,13 +423,17 @@ def pop_impulse(
     days: float = 180.0,
     share: float = 0.2,
     aggressiveness: str = "medium",
+    override: list[str] = typer.Option([], "--set", help="parameter override name=value (repeatable)"),
 ):
     """Impulse test (spec 17.3): one standard decree on 20% of the adults against a control run from the same state."""
     from tle.catalogs.loader import load_catalogs
     from tle.experiments import impulse_test
     from tle.loop.game import Game
+    from tle.params import default_params
 
-    g = Game(load_catalogs(), scenario=scenario, seed=seed, n=n)
+    ov = {k: float(v) for k, v in (o.split("=") for o in override)}
+    p = default_params().with_overrides(ov) if ov else default_params()
+    g = Game(load_catalogs(), p, scenario=scenario, seed=seed, n=n)
     res = impulse_test(g, share, aggressiveness, days)
     t = Table(title=f"impulse test, {scenario}, seed {seed}")
     for c in ("measure", "observed", "target", "tolerance", "verdict"):

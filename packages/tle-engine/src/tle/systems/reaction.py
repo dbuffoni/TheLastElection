@@ -137,6 +137,13 @@ def run_event(
     else:
         ids, choice = sample, choice_s
     apply_reactions(w, p, ids, choice, F, float(uni_idx(intensity)) / 6.0)
+    # indirect exposure (spec 8.1): adults outside the involved group hear of it through the news and react like a
+    # random involved citizen, attenuated by alpha_ind
+    rest_ad = np.setdiff1d(np.flatnonzero(w.adults(p.demography.a_adult)), ids)
+    if len(rest_ad):
+        irng = rng.child("indirect", eid)
+        pick = choice[irng.integers(0, len(choice), size=len(rest_ad))]
+        apply_reactions(w, p, rest_ad, pick, F, float(uni_idx(intensity)) / 6.0, scale=p.vectors.alpha_ind)
     res.option_counts = np.bincount(choice, minlength=F.K).tolist()
     w.events.append(
         {
@@ -152,10 +159,12 @@ def run_event(
     return res
 
 
-def apply_reactions(w: World, p: Params, ids: np.ndarray, choice: np.ndarray, F, intensity01: float) -> None:
+def apply_reactions(
+    w: World, p: Params, ids: np.ndarray, choice: np.ndarray, F, intensity01: float, scale: float = 1.0
+) -> None:
     """Synchronous pushes (P2b): opinion toward the stance targets, ideology toward the extracted direction,
     wealth by the economic effect. ``F.F`` (strength of each option) scales the pull."""
-    strength = np.clip(0.35 + 0.65 * F.F[choice], 0.0, 1.0) * max(intensity01, 0.15)
+    strength = np.clip(0.35 + 0.65 * F.F[choice], 0.0, 1.0) * max(intensity01, 0.15) * scale
     buf = PushBuffer(w.n_cap, 6)
     buf.add(ids, F.t_O[choice], p.events.alpha_react * strength)
     w.O = buf.apply(w.O)
