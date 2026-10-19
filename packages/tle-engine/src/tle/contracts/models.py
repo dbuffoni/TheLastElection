@@ -11,7 +11,7 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, PrivateAttr
 
-from .vocab import Bipolar, BipolarOrMask, Stance, StanceOrMask, Unipolar
+from .vocab import Bipolar, BipolarOrMask, StanceOrMask, Unipolar
 
 
 def vocab(name: str) -> Any:
@@ -221,7 +221,9 @@ class EventSeed(Contract):
 
 class NarrateEventIn(Contract):
     seed: EventSeed
-    _hidden: Any = PrivateAttr(default=None)  # simulated engines only: numeric design inputs (actor ideology, signs)
+    _hidden: Any = PrivateAttr(
+        default=None
+    )  # simulated engines only: numeric design inputs (actor ideology, signs)
 
 
 class OptionOut(Contract):

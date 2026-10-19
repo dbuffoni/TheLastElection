@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import numpy as np
-
 from tle.contracts.models import Predicate
 from tle.params import Params
 from tle.systems.population import age_band

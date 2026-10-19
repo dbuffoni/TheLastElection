@@ -45,7 +45,7 @@ def generate(reg: Registry) -> str:
     out.append("        flat = to_flat(self, include_derived=False)")
     out.append("        for k, v in overrides.items():")
     out.append("            if k not in flat:")
-    out.append('                raise KeyError(f"unknown or derived parameter \'{k}\'")')
+    out.append("                raise KeyError(f\"unknown or derived parameter '{k}'\")")
     out.append("            flat[k] = v")
     out.append("        return from_flat(flat)")
     out.append("\n\nGROUP_OF = {")

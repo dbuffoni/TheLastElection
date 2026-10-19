@@ -23,7 +23,9 @@ class GameRng:
 
     def __init__(self, seed: int):
         self.seed = int(seed)
-        self._gen = np.random.Generator(np.random.PCG64(np.random.SeedSequence([self.seed & 0xFFFFFFFF, 0xA11CE])))
+        self._gen = np.random.Generator(
+            np.random.PCG64(np.random.SeedSequence([self.seed & 0xFFFFFFFF, 0xA11CE]))
+        )
 
     # -- state -----------------------------------------------------------------------------
     def get_state(self) -> str:
@@ -44,8 +46,14 @@ class GameRng:
         """Independent stream keyed by ``(seed, keys)``; does not touch the main stream."""
         r = GameRng.__new__(GameRng)
         r.seed = self.seed
-        ss = np.random.SeedSequence([self.seed & 0xFFFFFFFF, 0xC41D, *[_key_to_int(k) & 0xFFFFFFFF for k in keys],
-                                     *[(_key_to_int(k) >> 32) & 0xFFFFFFFF for k in keys]])
+        ss = np.random.SeedSequence(
+            [
+                self.seed & 0xFFFFFFFF,
+                0xC41D,
+                *[_key_to_int(k) & 0xFFFFFFFF for k in keys],
+                *[(_key_to_int(k) >> 32) & 0xFFFFFFFF for k in keys],
+            ]
+        )
         r._gen = np.random.Generator(np.random.PCG64(ss))
         return r
 

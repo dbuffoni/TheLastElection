@@ -9,7 +9,6 @@ from typing import Any, Protocol, runtime_checkable
 
 import numpy as np
 from pydantic import BaseModel
-
 from tle.core.rng import GameRng
 
 
@@ -41,12 +40,14 @@ class LabelContext:
         return {
             "age_band": ("minor", "young", "adult", "elderly")[int(self.age_band[i])],
             "class": ("low", "middle", "high")[int(self.social_class[i])],
-            "trade": int(self.trade[i]), "circle": int(self.circle[i]),
+            "trade": int(self.trade[i]),
+            "circle": int(self.circle[i]),
             "temperament": [int(x) - 3 for x in self.T[i]],
             "character": [int(x) - 3 for x in self.C[i]],
             "ideology": [int(x) - 3 for x in self.I[i]],
             "opinion": [int(x) - 3 for x in self.O[i]],
-            "fear": int(self.fear[i]), "redistributive_risk": int(self.risk[i]),
+            "fear": int(self.fear[i]),
+            "redistributive_risk": int(self.risk[i]),
         }
 
 
@@ -107,8 +108,13 @@ class Engine(Protocol):
     def call(self, task: str, inp: BaseModel, rng: GameRng) -> BaseModel: ...
 
     def choose_reaction_many(
-        self, ctx: LabelContext, actor: ActorCtx, news: Any, options: list[Any],
-        features: OptionFeatures, rng: GameRng,
+        self,
+        ctx: LabelContext,
+        actor: ActorCtx,
+        news: Any,
+        options: list[Any],
+        features: OptionFeatures,
+        rng: GameRng,
     ) -> np.ndarray: ...
 
     def choose_activity_many(self, ctx: LabelContext, rng: GameRng) -> np.ndarray: ...

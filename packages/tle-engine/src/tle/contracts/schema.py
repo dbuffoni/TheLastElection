@@ -10,8 +10,21 @@ from pydantic import BaseModel
 
 from .tasks import TASKS
 
-FORBIDDEN_KEYS = {"format", "pattern", "minimum", "maximum", "exclusiveMinimum", "exclusiveMaximum",
-                  "minLength", "maxLength", "minItems", "maxItems", "multipleOf", "default", "title"}
+FORBIDDEN_KEYS = {
+    "format",
+    "pattern",
+    "minimum",
+    "maximum",
+    "exclusiveMinimum",
+    "exclusiveMaximum",
+    "minLength",
+    "maxLength",
+    "minItems",
+    "maxItems",
+    "multipleOf",
+    "default",
+    "title",
+}
 
 
 def _expand_vocab(name: str, vocab: dict[str, list[str]]) -> list[str]:

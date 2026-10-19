@@ -5,7 +5,6 @@ are reduced to the council and the resistance of the population."""
 from __future__ import annotations
 
 import numpy as np
-
 from tle.core.prims import express, rate
 from tle.core.rng import GameRng
 from tle.params import Params
@@ -14,8 +13,10 @@ from tle.world.catalogs import Catalogs
 from tle.world.state import World
 
 MOTION, JUDICIAL = 0, 1
-PHASE_EVENTS = (("motion_filed", "motion_debate", "motion_vote"),
-                ("judicial_investigation", "judicial_hearing", "judicial_verdict"))
+PHASE_EVENTS = (
+    ("motion_filed", "motion_debate", "motion_vote"),
+    ("judicial_investigation", "judicial_hearing", "judicial_verdict"),
+)
 
 
 def theta_up(p: Params, level: int, n_levels: int) -> float:
@@ -71,25 +72,46 @@ def threats_step(w: World, cat: Catalogs, p: Params, dt: float, rng: GameRng) ->
     opp_council = float(np.mean(E[council, 0] < -1 / 3)) if len(council) else 0.0
     law = cat.pillar_ids().index("law")
     eroded = float(w.pillar_level[law] > 0 or w.pillar_level[cat.pillar_ids().index("civil")] > 0)
-    drivers = (opp_council, eroded * (indicators.resistance(w, p, law, ad) + 0.5 * float(np.mean(E[ad, 0] < -1 / 3))))
+    drivers = (
+        opp_council,
+        eroded * (indicators.resistance(w, p, law, ad) + 0.5 * float(np.mean(E[ad, 0] < -1 / 3))),
+    )
     for t in (MOTION, JUDICIAL):
         if w.threat_phase[t] == 0:
             k = rate(p.events.g_p, dt) * (1.0 if drivers[t] > 0.3 else -0.3)
-            w.threat_p[t] = float(np.clip(w.threat_p[t] + k * (1.0 - w.threat_p[t] if k > 0 else w.threat_p[t]), 0, 1))
+            w.threat_p[t] = float(
+                np.clip(w.threat_p[t] + k * (1.0 - w.threat_p[t] if k > 0 else w.threat_p[t]), 0, 1)
+            )
             if w.threat_p[t] >= p.threats.theta_outcome:
                 w.threat_phase[t] = 1
-                w.threat_next[t] = w.day + p.threats.delay_min + (p.threats.delay_max - p.threats.delay_min) * float(rng.random())
+                w.threat_next[t] = (
+                    w.day
+                    + p.threats.delay_min
+                    + (p.threats.delay_max - p.threats.delay_min) * float(rng.random())
+                )
                 out.append({"threat": t, "event": PHASE_EVENTS[t][0], "phase": 1})
         elif w.day >= w.threat_next[t]:
             ph = int(w.threat_phase[t])
             if ph < 3:
                 w.threat_phase[t] = ph + 1
-                w.threat_next[t] = w.day + p.threats.delay_min + (p.threats.delay_max - p.threats.delay_min) * float(rng.random())
+                w.threat_next[t] = (
+                    w.day
+                    + p.threats.delay_min
+                    + (p.threats.delay_max - p.threats.delay_min) * float(rng.random())
+                )
                 out.append({"threat": t, "event": PHASE_EVENTS[t][ph], "phase": ph + 1})
             else:
                 against = float(np.mean(E[council, 0] < 0)) if len(council) else 0.0
                 removed = against >= p.pillars.q_maj
-                out.append({"threat": t, "event": PHASE_EVENTS[t][2], "phase": 3, "vote_against": against, "removed": removed})
+                out.append(
+                    {
+                        "threat": t,
+                        "event": PHASE_EVENTS[t][2],
+                        "phase": 3,
+                        "vote_against": against,
+                        "removed": removed,
+                    }
+                )
                 w.threat_phase[t] = 0
                 w.threat_p[t] = 0.2
                 if removed:

@@ -41,7 +41,9 @@ class Pillar(_M):
 class EventType(_M):
     id: str
     actors: list[str]  # mayor | faction | influencer | class | custodian | exogenous | threat | system
-    requires: list[str] = Field(default_factory=list)  # preconditions on labels, evaluated by the events system
+    requires: list[str] = Field(
+        default_factory=list
+    )  # preconditions on labels, evaluated by the events system
     target: str = "none"  # mayor | pillar | actor | none
     pillar: str | None = None  # target pillar id; "custodian" means the custodian's own pillar
     attacks: int = 0  # +1 erodes the target pillar, -1 defends it, 0 neutral
@@ -52,10 +54,14 @@ class EventType(_M):
     econ: float = 0.0  # signed economic effect (bipolar value)
     tec: float = 0.0
     cul: float = 0.0
-    t_C: list[float] = Field(default_factory=lambda: [float('nan')] * 3)  # character design direction (NaN = masked)
+    t_C: list[float] = Field(
+        default_factory=lambda: [float("nan")] * 3
+    )  # character design direction (NaN = masked)
     weight: float = 1.0
     category: str = ""  # exogenous categories: crime | disaster | discovery | cultural | crisis
-    predicate_kinds: list[str] = Field(default_factory=list)  # how exogenous involvement is drawn: circle | class | trade | age_band | all
+    predicate_kinds: list[str] = Field(
+        default_factory=list
+    )  # how exogenous involvement is drawn: circle | class | trade | age_band | all
     domain: str = "institutions"
     published: bool = True
 

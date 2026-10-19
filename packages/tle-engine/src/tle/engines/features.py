@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import numpy as np
-
 from tle.contracts.models import OptionFeatureOut
 from tle.contracts.vocab import bip_value_of, stance_value, uni_value_of
 
@@ -23,8 +22,13 @@ def features_to_arrays(feats: list[OptionFeatureOut]) -> OptionFeatures:
         e_r[k] = bip_value_of(f.e_r)
         F[k] = uni_value_of(f.F)
         stance[k] = [
-            stance_value(f.stance_mayor), stance_value(f.stance_pillar_1), stance_value(f.stance_pillar_2),
-            stance_value(f.stance_pillar_3), stance_value(f.stance_pillar_4), stance_value(f.stance_pillar_5),
-            stance_value(f.stance_actor), stance_value(f.stance_target),
+            stance_value(f.stance_mayor),
+            stance_value(f.stance_pillar_1),
+            stance_value(f.stance_pillar_2),
+            stance_value(f.stance_pillar_3),
+            stance_value(f.stance_pillar_4),
+            stance_value(f.stance_pillar_5),
+            stance_value(f.stance_actor),
+            stance_value(f.stance_target),
         ]
     return OptionFeatures(t_I=t_I, t_C=t_C, e_r=e_r, F=F, stance=stance)

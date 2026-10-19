@@ -20,8 +20,7 @@ def find_root(start: Path | None = None) -> Path:
         if (cand / "config" / "params").is_dir():
             return cand
     raise FileNotFoundError(
-        "config/params not found above the current directory; run from inside the repository "
-        "or set TLE_ROOT"
+        "config/params not found above the current directory; run from inside the repository or set TLE_ROOT"
     )
 
 
@@ -34,7 +33,7 @@ def repo_root() -> Path:
 
 @dataclass
 class Registry:
-    specs: "OrderedDict[str, ParamSpec]" = field(default_factory=OrderedDict)
+    specs: OrderedDict[str, ParamSpec] = field(default_factory=OrderedDict)
 
     def __getitem__(self, k: str) -> ParamSpec:
         return self.specs[k]
@@ -45,7 +44,7 @@ class Registry:
     def __iter__(self):
         return iter(self.specs.values())
 
-    def groups(self) -> "OrderedDict[str, list[ParamSpec]]":
+    def groups(self) -> OrderedDict[str, list[ParamSpec]]:
         g: OrderedDict[str, list[ParamSpec]] = OrderedDict()
         for s in self.specs.values():
             g.setdefault(s.group, []).append(s)
@@ -72,8 +71,22 @@ def load_registry(root: Path | None = None) -> Registry:
 
 
 # the order of groups in the generated model: a stable, human-meaningful one
-GROUP_ORDER = ["time", "labels", "vectors", "ties", "factions", "capital", "influencers", "community",
-               "economy", "pillars", "threats", "events", "demography", "technical"]
+GROUP_ORDER = [
+    "time",
+    "labels",
+    "vectors",
+    "ties",
+    "factions",
+    "capital",
+    "influencers",
+    "community",
+    "economy",
+    "pillars",
+    "threats",
+    "events",
+    "demography",
+    "technical",
+]
 
 
 def ordered_specs(reg: Registry) -> list[ParamSpec]:

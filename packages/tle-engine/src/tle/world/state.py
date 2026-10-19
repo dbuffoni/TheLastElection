@@ -13,7 +13,6 @@ from dataclasses import MISSING, dataclass, field, fields
 from typing import Any
 
 import numpy as np
-
 from tle.core.digest import combine, hash_arrays
 from tle.core.rng import GameRng
 
@@ -164,7 +163,11 @@ class World:
         arrays = {k: getattr(self, k) for k in self._array_fields()}
         meta = {f.name: getattr(self, f.name) for f in fields(self) if f.name not in arrays}
         buf = io.BytesIO()
-        np.savez_compressed(buf, __meta__=np.frombuffer(json.dumps(meta, default=_json_default).encode(), dtype=np.uint8), **arrays)
+        np.savez_compressed(
+            buf,
+            __meta__=np.frombuffer(json.dumps(meta, default=_json_default).encode(), dtype=np.uint8),
+            **arrays,
+        )
         return buf.getvalue()
 
     @classmethod
@@ -186,8 +189,24 @@ class World:
 
     # ---- digest (per state group) ----------------------------------------------------------------
     GROUPS = {
-        "citizens": ("alive", "age", "T", "C", "I", "B", "O", "Ob", "r", "r0", "cls", "trade", "circle",
-                     "councillor", "last_s1", "couple"),
+        "citizens": (
+            "alive",
+            "age",
+            "T",
+            "C",
+            "I",
+            "B",
+            "O",
+            "Ob",
+            "r",
+            "r0",
+            "cls",
+            "trade",
+            "circle",
+            "councillor",
+            "last_s1",
+            "couple",
+        ),
         "bonds": ("bsrc", "bdst", "btype", "bkin", "bw", "bstable", "blast"),
         "factions": ("fac_alive", "fac_mu", "fac_S", "fac_m", "fac_member"),
         "influencers": ("inf_on", "inf_K"),

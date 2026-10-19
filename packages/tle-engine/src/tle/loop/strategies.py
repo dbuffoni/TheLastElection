@@ -6,28 +6,49 @@ from __future__ import annotations
 from collections.abc import Callable
 from dataclasses import dataclass
 
-import numpy as np
-
 from tle.contracts import models as m
 from tle.contracts.vocab import MASK, uni_name
 from tle.core.rng import GameRng
-from tle.systems.predicate import match
 from tle.world.catalogs import Catalogs
 from tle.world.state import World
 
 from .turn import PlayerInput
 
-PILLAR_DOMAIN = {"pluralism": "institutions", "law": "institutions", "press": "press", "property": "economy", "civil": "security"}
+PILLAR_DOMAIN = {
+    "pluralism": "institutions",
+    "law": "institutions",
+    "press": "press",
+    "property": "economy",
+    "civil": "security",
+}
 
 
-def structured(pillar: str, agg: int, domain: str | None = None, econ: str = MASK, text: str | None = None, **pred) -> PlayerInput:
-    base = dict(age_band="any", social_class="any", trade="any", circle="any", faction="any", influencer="any",
-                ideology_extreme="any", role="any")
+def structured(
+    pillar: str, agg: int, domain: str | None = None, econ: str = MASK, text: str | None = None, **pred
+) -> PlayerInput:
+    base = dict(
+        age_band="any",
+        social_class="any",
+        trade="any",
+        circle="any",
+        faction="any",
+        influencer="any",
+        ideology_extreme="any",
+        role="any",
+    )
     base.update(pred)
     cd = m.ClassifyDecreeOut(
-        pillar=pillar, domain=domain or PILLAR_DOMAIN.get(pillar, "worship"), aggressiveness=uni_name(agg),
-        predicate=m.Predicate(**base), tec_effect=MASK, cul_effect=MASK, econ_effect=econ, threat="none",
-        transfer=None, revocation=None)
+        pillar=pillar,
+        domain=domain or PILLAR_DOMAIN.get(pillar, "worship"),
+        aggressiveness=uni_name(agg),
+        predicate=m.Predicate(**base),
+        tec_effect=MASK,
+        cul_effect=MASK,
+        econ_effect=econ,
+        threat="none",
+        transfer=None,
+        revocation=None,
+    )
     label = (text or f"{pillar} level {agg}")[:50]
     return PlayerInput(decree=label, structure=cd)
 
@@ -72,7 +93,9 @@ def _gradual(w, cat, rng):
 
 def _populist(w, cat, rng):
     if w.turn % 3 != 2 or w.K < 0.3:
-        return structured("none", 1, domain="worship", econ="positive", text="Public festival and bonus for all")
+        return structured(
+            "none", 1, domain="worship", econ="positive", text="Public festival and bonus for all"
+        )
     return _gradual(w, cat, rng)
 
 
@@ -80,7 +103,12 @@ def _capture(w, cat, rng):
     pid, i = _next_pillar(w, cat, ["pluralism", "law", "press", "civil", "property"])
     if pid is None or w.K < 0.3:
         return PlayerInput()
-    return structured(pid, int(w.pillar_level[i]) + 1, text=f"capture {pid}", role="councillor" if pid == "pluralism" else "any")
+    return structured(
+        pid,
+        int(w.pillar_level[i]) + 1,
+        text=f"capture {pid}",
+        role="councillor" if pid == "pluralism" else "any",
+    )
 
 
 def _fear(w, cat, rng):
@@ -92,14 +120,21 @@ def _fear(w, cat, rng):
 
 def _clientelist(w, cat, rng):
     if w.turn % 2 == 0:
-        return structured("none", 2, domain="economy", econ="positive", social_class="low", text="Grants for the poor")
+        return structured(
+            "none", 2, domain="economy", econ="positive", social_class="low", text="Grants for the poor"
+        )
     return _gradual(w, cat, rng)
 
 
 STRATEGIES: dict[str, Strategy] = {
-    s.name: s for s in [
-        Strategy("random", _random), Strategy("assault", _assault), Strategy("gradual", _gradual),
-        Strategy("populist", _populist), Strategy("capture", _capture), Strategy("fear", _fear),
+    s.name: s
+    for s in [
+        Strategy("random", _random),
+        Strategy("assault", _assault),
+        Strategy("gradual", _gradual),
+        Strategy("populist", _populist),
+        Strategy("capture", _capture),
+        Strategy("fear", _fear),
         Strategy("clientelist", _clientelist),
     ]
 }

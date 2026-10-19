@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import numpy as np
-
 from tle.core.labels import UNIPOLAR_NAMES, quantize_unipolar
 from tle.core.prims import express
 from tle.params import Params

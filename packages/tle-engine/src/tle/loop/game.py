@@ -14,8 +14,16 @@ from .turn import PlayerInput, TurnPackage, step
 
 
 class Game:
-    def __init__(self, cat: Catalogs, params: Params | None = None, engines: Engines | None = None,
-                 scenario: str = "industrial_secular", seed: int = 0, n: int | None = None, world: World | None = None):
+    def __init__(
+        self,
+        cat: Catalogs,
+        params: Params | None = None,
+        engines: Engines | None = None,
+        scenario: str = "industrial_secular",
+        seed: int = 0,
+        n: int | None = None,
+        world: World | None = None,
+    ):
         self.cat = cat
         self.p = params or default_params()
         self.engines = engines or Engines(SimulatedEngine(cat, self.p), SimulatedEngine(cat, self.p))
@@ -34,7 +42,9 @@ class Game:
         return self.w.to_bytes()
 
     @classmethod
-    def load(cls, data: bytes, cat: Catalogs, params: Params | None = None, engines: Engines | None = None) -> Game:
+    def load(
+        cls, data: bytes, cat: Catalogs, params: Params | None = None, engines: Engines | None = None
+    ) -> Game:
         return cls(cat, params, engines, world=World.from_bytes(data))
 
 

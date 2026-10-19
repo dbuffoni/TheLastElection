@@ -54,7 +54,7 @@ extend-exclude = ["packages/tle-engine/src/tle/params/_generated.py"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP", "NPY"]
-ignore = ["E501", "B905"]
+ignore = ["E501", "B905", "E741", "B008", "B007"]  # I, O, T, C are the spec symbols; typer idiom
 
 [tool.mypy]
 python_version = "3.12"

@@ -8,7 +8,6 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 import numpy as np
-
 from tle.contracts import models as m
 from tle.contracts.vocab import uni_idx
 from tle.core.labels import quantize_bipolar, quantize_unipolar
@@ -40,34 +39,67 @@ def label_context(w: World, p: Params, ids: np.ndarray) -> LabelContext:
     O = quantize_bipolar(w.O[ids], w.lab_O[ids], eps)
     w.lab_O[ids] = O
     return LabelContext(
-        ids=ids, age_band=age_band(w.age[ids], p.demography.a_adult, p.demography.a_pens),
-        social_class=w.cls[ids].astype(np.int8), trade=w.trade[ids], circle=w.circle[ids],
-        T=quantize_bipolar(w.T[ids]), C=quantize_bipolar(w.C[ids]), I=quantize_bipolar(w.I[ids]),
-        O=O, fear=quantize_unipolar(w.fear[ids]),
+        ids=ids,
+        age_band=age_band(w.age[ids], p.demography.a_adult, p.demography.a_pens),
+        social_class=w.cls[ids].astype(np.int8),
+        trade=w.trade[ids],
+        circle=w.circle[ids],
+        T=quantize_bipolar(w.T[ids]),
+        C=quantize_bipolar(w.C[ids]),
+        I=quantize_bipolar(w.I[ids]),
+        O=O,
+        fear=quantize_unipolar(w.fear[ids]),
         risk=np.where(w.cls[ids] == 2, quantize_unipolar(np.clip(w.r[ids], 0, 1)), 0).astype(np.int8),
     )
 
 
 def run_event(
-    w: World, p: Params, engines: Engines, rng: GameRng, *, event_type: str, actor: dict[str, str],
-    actor_kind: str, intensity: str, involved: np.ndarray, hidden: dict, target: dict | None = None,
+    w: World,
+    p: Params,
+    engines: Engines,
+    rng: GameRng,
+    *,
+    event_type: str,
+    actor: dict[str, str],
+    actor_kind: str,
+    intensity: str,
+    involved: np.ndarray,
+    hidden: dict,
+    target: dict | None = None,
     parent: int | None = None,
 ) -> EventResult | None:
     """Run one event end to end and apply its effects to ``w``. Returns None if S2 fails (13.3)."""
     eid = w.next_event_id
     w.next_event_id += 1
     seed = m.EventSeed(
-        event_id=eid, day=int(w.day), parent=parent, parent_context="", actor=actor, event_type=event_type,
-        target=target or {}, intensity=intensity, involved_group=f"{len(involved)} citizens", characters=[],
-        can_found=False, n_options=p.events.K_opt)
+        event_id=eid,
+        day=int(w.day),
+        parent=parent,
+        parent_context="",
+        actor=actor,
+        event_type=event_type,
+        target=target or {},
+        intensity=intensity,
+        involved_group=f"{len(involved)} citizens",
+        characters=[],
+        can_found=False,
+        n_options=p.events.K_opt,
+    )
     inp = m.NarrateEventIn(seed=seed)
     inp._hidden = hidden
     out = engines.s2.call("narrate_event", inp, rng.child("narrate", eid))
     if out is None:
         return None
-    news = m.NewsItem(event_id=eid, title=out.title, text=out.text, event_type=event_type,
-                      intensity=intensity, actor_kind=actor_kind, target=str((target or {}).get("kind", "none")),
-                      tags=out.tags)
+    news = m.NewsItem(
+        event_id=eid,
+        title=out.title,
+        text=out.text,
+        event_type=event_type,
+        intensity=intensity,
+        actor_kind=actor_kind,
+        target=str((target or {}).get("kind", "none")),
+        tags=out.tags,
+    )
     # S1: extract the numeric features of every option
     feats = []
     for k, opt in enumerate(out.options):
@@ -76,9 +108,13 @@ def run_event(
         res = engines.s1.call("option_feature", oi, rng.child("feat", eid, k))
         feats.append(res)
     F = features_to_arrays(feats)
-    res = EventResult(eid, event_type, out.title, out.text, intensity, actor_kind, int(len(involved)), list(out.tags))
+    res = EventResult(
+        eid, event_type, out.title, out.text, intensity, actor_kind, int(len(involved)), list(out.tags)
+    )
     if len(involved) == 0:
-        w.events.append({"id": eid, "day": w.day, "type": event_type, "title": out.title, "intensity": intensity})
+        w.events.append(
+            {"id": eid, "day": w.day, "type": event_type, "title": out.title, "intensity": intensity}
+        )
         return res
     # S1: choose a reaction; beyond B_S1 involved, choose for a sample and let the rest copy the nearest sampled citizen
     creng = rng.child("choose", eid)
@@ -88,7 +124,9 @@ def run_event(
     else:
         sample = involved
     ctx = label_context(w, p, sample)
-    choice_s = engines.s1.choose_reaction_many(ctx, ActorCtx(kind=actor_kind), news, list(out.options), F, creng)
+    choice_s = engines.s1.choose_reaction_many(
+        ctx, ActorCtx(kind=actor_kind), news, list(out.options), F, creng
+    )
     if len(sample) < len(involved):
         rest = np.setdiff1d(involved, sample)
         ctx_r = label_context(w, p, rest)
@@ -100,9 +138,17 @@ def run_event(
         ids, choice = sample, choice_s
     apply_reactions(w, p, ids, choice, F, float(uni_idx(intensity)) / 6.0)
     res.option_counts = np.bincount(choice, minlength=F.K).tolist()
-    w.events.append({"id": eid, "day": w.day, "type": event_type, "title": out.title, "intensity": intensity,
-                     "involved": int(len(ids))})
-    del w.events[:-p.events.n_log * 10]
+    w.events.append(
+        {
+            "id": eid,
+            "day": w.day,
+            "type": event_type,
+            "title": out.title,
+            "intensity": intensity,
+            "involved": int(len(ids)),
+        }
+    )
+    del w.events[: -p.events.n_log * 10]
     return res
 
 

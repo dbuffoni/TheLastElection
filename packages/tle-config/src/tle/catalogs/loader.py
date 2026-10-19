@@ -5,9 +5,8 @@ from __future__ import annotations
 import tomllib
 from pathlib import Path
 
-from tle.world.catalogs import Catalogs
-
 from tle.registry.loader import repo_root
+from tle.world.catalogs import Catalogs
 
 CATALOG_FILES = ("trades", "domains", "pillars", "event_types", "activities", "scenarios")
 

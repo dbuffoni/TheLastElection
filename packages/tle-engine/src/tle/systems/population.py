@@ -4,7 +4,6 @@ trades, circles, affinity ties, council and custodians. Fully determined by (sce
 from __future__ import annotations
 
 import numpy as np
-
 from tle.contracts import models as m
 from tle.contracts.vocab import BIPOLAR
 from tle.core.rng import GameRng
@@ -29,8 +28,15 @@ def add_bonds(w: World, src, dst, btype: int, weight, stable=False, kin=0) -> No
     need = w.bn + k
     if need > len(w.bsrc):
         cap = max(need, 2 * len(w.bsrc))
-        for name, dt in (("bsrc", np.int32), ("bdst", np.int32), ("btype", np.int8), ("bkin", np.int8),
-                         ("bw", float), ("bstable", bool), ("blast", float)):
+        for name, dt in (
+            ("bsrc", np.int32),
+            ("bdst", np.int32),
+            ("btype", np.int8),
+            ("bkin", np.int8),
+            ("bw", float),
+            ("bstable", bool),
+            ("blast", float),
+        ):
             old = getattr(w, name)
             new = np.zeros(cap, dtype=old.dtype)
             new[: len(old)] = old
@@ -46,7 +52,9 @@ def add_bonds(w: World, src, dst, btype: int, weight, stable=False, kin=0) -> No
     w.bn = need
 
 
-def create_world(cat: Catalogs, p: Params, engines: Engines, scenario_id: str, seed: int, n: int | None = None) -> World:
+def create_world(
+    cat: Catalogs, p: Params, engines: Engines, scenario_id: str, seed: int, n: int | None = None
+) -> World:
     sc = cat.scenario(scenario_id)
     n = int(n if n is not None else p.time.N)
     rng = GameRng(seed)
@@ -70,15 +78,30 @@ def create_world(cat: Catalogs, p: Params, engines: Engines, scenario_id: str, s
     w.circle[:n] = rng.integers(0, n_circ, n)
 
     # labels: S2 describes, S1 classifies (the two-engine boundary)
-    gen = engines.s2.call("generate_citizens", m.GenerateCitizensIn(
-        scenario=scenario_id, number=n, ages=[int(a) for a in w.age[:n]], circles=[int(c) for c in w.circle[:n]],
-        parents=[{} for _ in range(n)]), rng.child("gen"))
+    gen = engines.s2.call(
+        "generate_citizens",
+        m.GenerateCitizensIn(
+            scenario=scenario_id,
+            number=n,
+            ages=[int(a) for a in w.age[:n]],
+            circles=[int(c) for c in w.circle[:n]],
+            parents=[{} for _ in range(n)],
+        ),
+        rng.child("gen"),
+    )
     prof_rng = rng.child("profile")
     for i in range(n):
         d = gen.citizens[i]
         w.names[i] = d.name
-        out = engines.s1.call("citizen_profile", m.CitizenProfileIn(description=d.description, anchor="average citizen"), prof_rng)
-        idx = [BIPOLAR.index(getattr(out, k)) for k in ("NS", "HA", "RD", "P", "SD", "CO", "ST", "I1", "I2", "I3")]
+        out = engines.s1.call(
+            "citizen_profile",
+            m.CitizenProfileIn(description=d.description, anchor="average citizen"),
+            prof_rng,
+        )
+        idx = [
+            BIPOLAR.index(getattr(out, k))
+            for k in ("NS", "HA", "RD", "P", "SD", "CO", "ST", "I1", "I2", "I3")
+        ]
         w.T[i] = (np.array(idx[0:4]) - 3) / 3.0
         w.C[i] = (np.array(idx[4:7]) - 3) / 3.0
         w.I[i] = (np.array(idx[7:10]) - 3) / 3.0
@@ -93,7 +116,7 @@ def create_world(cat: Catalogs, p: Params, engines: Engines, scenario_id: str, s
     order = np.argsort(r)
     cls = np.ones(n, np.int8)
     cls[order[: int(round(sc.q_low * n))]] = 0
-    cls[order[n - int(round(sc.q_high * n)):]] = 2
+    cls[order[n - int(round(sc.q_high * n)) :]] = 2
     w.cls[:n] = cls
     tids = cat.trade_ids()
     weights = np.array([t.weight * sc.trade_multipliers.get(t.id, 1.0) for t in cat.trades], dtype=float)

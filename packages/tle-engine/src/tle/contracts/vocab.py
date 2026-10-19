@@ -8,19 +8,48 @@ import numpy as np
 
 UNIPOLAR = ("null", "very low", "low", "medium", "high", "very high", "maximum")
 STANCE = ("opposition", "dissent", "mild dissent", "indifference", "mild support", "support", "adherence")
-BIPOLAR = ("very negative", "negative", "slightly negative", "neutral", "slightly positive", "positive", "very positive")
+BIPOLAR = (
+    "very negative",
+    "negative",
+    "slightly negative",
+    "neutral",
+    "slightly positive",
+    "positive",
+    "very positive",
+)
 MASK = "no effect"
 
 Unipolar = Literal["null", "very low", "low", "medium", "high", "very high", "maximum"]
-Stance = Literal["opposition", "dissent", "mild dissent", "indifference", "mild support", "support", "adherence"]
+Stance = Literal[
+    "opposition", "dissent", "mild dissent", "indifference", "mild support", "support", "adherence"
+]
 StanceOrMask = Literal[
-    "opposition", "dissent", "mild dissent", "indifference", "mild support", "support", "adherence", "no effect"
+    "opposition",
+    "dissent",
+    "mild dissent",
+    "indifference",
+    "mild support",
+    "support",
+    "adherence",
+    "no effect",
 ]
 Bipolar = Literal[
-    "very negative", "negative", "slightly negative", "neutral", "slightly positive", "positive", "very positive"
+    "very negative",
+    "negative",
+    "slightly negative",
+    "neutral",
+    "slightly positive",
+    "positive",
+    "very positive",
 ]
 BipolarOrMask = Literal[
-    "very negative", "negative", "slightly negative", "neutral", "slightly positive", "positive", "very positive",
+    "very negative",
+    "negative",
+    "slightly negative",
+    "neutral",
+    "slightly positive",
+    "positive",
+    "very positive",
     "no effect",
 ]
 

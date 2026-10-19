@@ -1,0 +1,12 @@
+# Full grid of two parameters: awareness of attacks versus fear. Answers "how much does fear shield the mayor?"
+[campaign]
+name = "grid_aware_fear"
+scenarios = ["mixed_polarised"]
+strategies = ["gradual"]
+seeds = [1, 2, 3]
+n = 200
+design = "grid"
+
+[grid]
+alpha_aware = [0.2, 0.35, 0.5]
+fear_decree = [0.1, 0.25, 0.5]

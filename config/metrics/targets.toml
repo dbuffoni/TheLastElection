@@ -1,0 +1,43 @@
+# Balance targets: bands the simulation should land in. PLACEHOLDERS to be set by design (Daniele) after the
+# first local runs; the lab's band loss reads this file. Each band: metric over runs of one strategy.
+# kind = "rate"  -> fraction of runs with outcome == value;  kind = "mean" -> mean of a per-run summary field.
+
+[[band]]
+id = "assault_removed"
+strategy = "assault"
+kind = "rate"
+value = "removed"
+lo = 0.60
+hi = 1.00
+status = "placeholder"
+note = "Reckless full assault should usually get the mayor removed."
+
+[[band]]
+id = "gradual_victory"
+strategy = "gradual"
+kind = "rate"
+value = "victory"
+lo = 0.15
+hi = 0.60
+status = "placeholder"
+note = "A patient, gradual player should be able to win, but not reliably."
+
+[[band]]
+id = "random_not_victory"
+strategy = "random"
+kind = "rate"
+value = "victory"
+lo = 0.00
+hi = 0.10
+status = "placeholder"
+note = "Random play should almost never dismantle democracy."
+
+[[band]]
+id = "populist_term_end_pillars"
+strategy = "populist"
+kind = "mean"
+value = "pillars_fallen"
+lo = 1.0
+hi = 4.5
+status = "placeholder"
+note = "Populists should make partial progress."

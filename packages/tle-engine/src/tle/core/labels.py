@@ -13,7 +13,13 @@ NEUTRAL = 3
 
 UNIPOLAR_NAMES = ("null", "very low", "low", "medium", "high", "very high", "maximum")
 STANCE_NAMES = (
-    "opposition", "dissent", "mild dissent", "indifference", "mild support", "support", "adherence",
+    "opposition",
+    "dissent",
+    "mild dissent",
+    "indifference",
+    "mild support",
+    "support",
+    "adherence",
 )
 NO_EFFECT = "no effect"  # mask value for extractions
 
@@ -21,8 +27,13 @@ NO_EFFECT = "no effect"  # mask value for extractions
 def bipolar_names(negative: str, positive: str) -> tuple[str, ...]:
     """Names of a bipolar axis: three degrees per pole plus neutral."""
     return (
-        f"very {negative}", negative, f"mildly {negative}", "neutral",
-        f"mildly {positive}", positive, f"very {positive}",
+        f"very {negative}",
+        negative,
+        f"mildly {negative}",
+        "neutral",
+        f"mildly {positive}",
+        positive,
+        f"very {positive}",
     )
 
 

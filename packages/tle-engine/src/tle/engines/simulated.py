@@ -3,17 +3,20 @@ respect the same contracts as the real models. They see only labels (fidelity pr
 
 from __future__ import annotations
 
-import re
-from collections import defaultdict
 from typing import Any
 
 import numpy as np
 from pydantic import BaseModel
-
 from tle.contracts import models as m
 from tle.contracts.tasks import TASKS
 from tle.contracts.vocab import (
-    BIPOLAR, MASK, STANCE, UNIPOLAR, bip_name, stance_name, uni_idx, uni_name,
+    BIPOLAR,
+    MASK,
+    STANCE,
+    bip_name,
+    stance_name,
+    uni_idx,
+    uni_name,
 )
 from tle.core.labels import bip_value, uni_value
 from tle.core.prims import dist
@@ -22,23 +25,70 @@ from tle.params import Params
 from tle.world.catalogs import Catalogs
 
 from .errors import UnclassifiableDecree
-from .features import features_to_arrays
 from .protocol import ActorCtx, ExecutionRecord, LabelContext, OptionFeatures
 
 DIRECTIONS = {
-    "religious": (1.0, 0.0, 0.0), "secular": (-1.0, 0.0, 0.0), "statist": (0.0, 1.0, 0.0),
-    "market": (0.0, -1.0, 0.0), "progressive": (0.0, 0.0, -1.0), "conservative": (0.0, 0.0, 1.0),
+    "religious": (1.0, 0.0, 0.0),
+    "secular": (-1.0, 0.0, 0.0),
+    "statist": (0.0, 1.0, 0.0),
+    "market": (0.0, -1.0, 0.0),
+    "progressive": (0.0, 0.0, -1.0),
+    "conservative": (0.0, 0.0, 1.0),
 }
 STANCE_LEVELS = (-3, -2, -1, 0, 1, 2, 3, -2, 2, 0)  # seven levels plus three repetitions with other strength
-FIRST_NAMES = ("Anna", "Marco", "Lucia", "Paolo", "Elena", "Luca", "Sara", "Giorgio", "Marta", "Enzo", "Irene",
-               "Carlo", "Livia", "Dario", "Nora", "Piero", "Ada", "Bruno", "Clara", "Fabio")
-SURNAMES = ("Rossi", "Bianchi", "Conti", "Greco", "Fabbri", "Moretti", "Riva", "Serra", "Villa", "Neri",
-            "Gallo", "Fontana", "Costa", "Marino", "Ferri", "Bruno")
+FIRST_NAMES = (
+    "Anna",
+    "Marco",
+    "Lucia",
+    "Paolo",
+    "Elena",
+    "Luca",
+    "Sara",
+    "Giorgio",
+    "Marta",
+    "Enzo",
+    "Irene",
+    "Carlo",
+    "Livia",
+    "Dario",
+    "Nora",
+    "Piero",
+    "Ada",
+    "Bruno",
+    "Clara",
+    "Fabio",
+)
+SURNAMES = (
+    "Rossi",
+    "Bianchi",
+    "Conti",
+    "Greco",
+    "Fabbri",
+    "Moretti",
+    "Riva",
+    "Serra",
+    "Villa",
+    "Neri",
+    "Gallo",
+    "Fontana",
+    "Costa",
+    "Marino",
+    "Ferri",
+    "Bruno",
+)
 
 
 def _any_pred(**kw: str) -> m.Predicate:
-    base = dict(age_band="any", social_class="any", trade="any", circle="any", faction="any",
-                influencer="any", ideology_extreme="any", role="any")
+    base = dict(
+        age_band="any",
+        social_class="any",
+        trade="any",
+        circle="any",
+        faction="any",
+        influencer="any",
+        ideology_extreme="any",
+        role="any",
+    )
     base.update(kw)
     return m.Predicate(**base)
 
@@ -47,22 +97,82 @@ PILLAR_KW = {
     "press": ("press", "newspaper", "journalist", "media", "gazette", "broadcast", "radio", "news"),
     "law": ("judge", "court", "magistrate", "law ", "trial", "justice", "tribunal"),
     "pluralism": ("election", "council", "opposition", "party", "vote", "candidate", "ballot"),
-    "property": ("tax", "property", "business", "market", "shop", "seize", "land", "levy", "licen", "tariff", "firm"),
-    "civil": ("police", "curfew", "arrest", "protest", "assembly", "patrol", "surveil", "militia", "security", "march", "rally"),
+    "property": (
+        "tax",
+        "property",
+        "business",
+        "market",
+        "shop",
+        "seize",
+        "land",
+        "levy",
+        "licen",
+        "tariff",
+        "firm",
+    ),
+    "civil": (
+        "police",
+        "curfew",
+        "arrest",
+        "protest",
+        "assembly",
+        "patrol",
+        "surveil",
+        "militia",
+        "security",
+        "march",
+        "rally",
+    ),
 }
-PILLAR_DOMAIN = {"pluralism": "institutions", "law": "institutions", "press": "press", "property": "economy", "civil": "security"}
-HIGH_KW = ("ban", "close", "abolish", "arrest", "seize", "dissolve", "outlaw", "shut", "jail", "forbid", "purge")
-MED_KW = ("restrict", "limit", "suspend", "cut", "fine", "require", "permit", "freeze", "tax", "levy", "control")
+PILLAR_DOMAIN = {
+    "pluralism": "institutions",
+    "law": "institutions",
+    "press": "press",
+    "property": "economy",
+    "civil": "security",
+}
+HIGH_KW = (
+    "ban",
+    "close",
+    "abolish",
+    "arrest",
+    "seize",
+    "dissolve",
+    "outlaw",
+    "shut",
+    "jail",
+    "forbid",
+    "purge",
+)
+MED_KW = (
+    "restrict",
+    "limit",
+    "suspend",
+    "cut",
+    "fine",
+    "require",
+    "permit",
+    "freeze",
+    "tax",
+    "levy",
+    "control",
+)
 LOW_KW = ("review", "inspect", "ask", "urge", "audit", "study", "invite", "request")
 POS_ECON = ("subsid", "bonus", "grant", "free", "relief", "reward", "pay raise", "build")
 NEG_ECON = ("tax", "fine", "levy", "seize", "tariff")
 PRED_KW = [
-    (("journalist",), dict(trade="journalist")), (("judge", "magistrate"), dict(trade="magistrate")),
-    (("merchant", "shop"), dict(trade="merchant")), (("councillor", "council"), dict(role="councillor")),
-    (("police",), dict(trade="law_enforcement")), (("rich", "wealthy", "elite"), dict(social_class="high")),
-    (("poor",), dict(social_class="low")), (("youth", "young", "student"), dict(age_band="young")),
-    (("elder", "pensioner"), dict(age_band="elderly")), (("farmer",), dict(trade="farmer")),
-    (("worker",), dict(trade="worker")), (("priest", "clergy", "cleric"), dict(trade="cleric")),
+    (("journalist",), dict(trade="journalist")),
+    (("judge", "magistrate"), dict(trade="magistrate")),
+    (("merchant", "shop"), dict(trade="merchant")),
+    (("councillor", "council"), dict(role="councillor")),
+    (("police",), dict(trade="law_enforcement")),
+    (("rich", "wealthy", "elite"), dict(social_class="high")),
+    (("poor",), dict(social_class="low")),
+    (("youth", "young", "student"), dict(age_band="young")),
+    (("elder", "pensioner"), dict(age_band="elderly")),
+    (("farmer",), dict(trade="farmer")),
+    (("worker",), dict(trade="worker")),
+    (("priest", "clergy", "cleric"), dict(trade="cleric")),
     (("entrepreneur", "business owner"), dict(trade="entrepreneur")),
 ]
 
@@ -178,13 +288,19 @@ class SimulatedEngine:
                 I[1:] = rng.normal(0, 0.35, 2)
                 I = np.clip(np.rint(np.clip(I, -1, 1) * 3), -3, 3).astype(int)
             name = f"{FIRST_NAMES[int(rng.integers(0, len(FIRST_NAMES)))]} {SURNAMES[int(rng.integers(0, len(SURNAMES)))]}"
-            desc = "T=" + ",".join(map(str, T)) + ";C=" + ",".join(map(str, C)) + ";I=" + ",".join(map(str, I))
+            desc = (
+                "T=" + ",".join(map(str, T)) + ";C=" + ",".join(map(str, C)) + ";I=" + ",".join(map(str, I))
+            )
             drafts.append(m.CitizenDraft(name=name, description=desc))
         return m.GenerateCitizensOut(citizens=drafts)
 
     def _fb_generate_citizens(self, inp: m.GenerateCitizensIn, rng: GameRng) -> m.GenerateCitizensOut:
-        return m.GenerateCitizensOut(citizens=[
-            m.CitizenDraft(name=f"Citizen {i}", description="T=0,0,0,0;C=0,0,0;I=0,0,0") for i in range(inp.number)])
+        return m.GenerateCitizensOut(
+            citizens=[
+                m.CitizenDraft(name=f"Citizen {i}", description="T=0,0,0,0;C=0,0,0;I=0,0,0")
+                for i in range(inp.number)
+            ]
+        )
 
     def _t_citizen_profile(self, inp: m.CitizenProfileIn, rng: GameRng) -> m.CitizenProfileOut:
         parts = dict(kv.split("=") for kv in inp.description.split(";"))
@@ -194,12 +310,25 @@ class SimulatedEngine:
         allv = shift_label(np.array(T + C + I), rng, self.eps_t)
         names = [BIPOLAR[int(v)] for v in allv]
         trade = self.cat.trade_ids()[0]
-        return m.CitizenProfileOut(NS=names[0], HA=names[1], RD=names[2], P=names[3], SD=names[4], CO=names[5],
-                                   ST=names[6], I1=names[7], I2=names[8], I3=names[9], trade=trade)
+        return m.CitizenProfileOut(
+            NS=names[0],
+            HA=names[1],
+            RD=names[2],
+            P=names[3],
+            SD=names[4],
+            CO=names[5],
+            ST=names[6],
+            I1=names[7],
+            I2=names[8],
+            I3=names[9],
+            trade=trade,
+        )
 
     def _fb_citizen_profile(self, inp, rng) -> m.CitizenProfileOut:
         z = "neutral"
-        return m.CitizenProfileOut(NS=z, HA=z, RD=z, P=z, SD=z, CO=z, ST=z, I1=z, I2=z, I3=z, trade=self.cat.trade_ids()[0])
+        return m.CitizenProfileOut(
+            NS=z, HA=z, RD=z, P=z, SD=z, CO=z, ST=z, I1=z, I2=z, I3=z, trade=self.cat.trade_ids()[0]
+        )
 
     # ------------------------------------------------------------------ S1: classify_decree
     def _t_classify_decree(self, inp: m.ClassifyDecreeIn, rng: GameRng) -> m.ClassifyDecreeOut:
@@ -247,14 +376,27 @@ class SimulatedEngine:
             econ = bip_name(-0.33)
         transfer = None
         if "tax" in t or "levy" in t:
-            transfer = m.TransferOut(payers=_any_pred(**(pred or {"social_class": "high"})),
-                                     beneficiaries=_any_pred(social_class="low"), intensity=uni_name(max(1, agg)),
-                                     duration="one_off")
-        domain = PILLAR_DOMAIN.get(pillar, "economy" if (econ_pos or econ_neg) else "worship" if announce else "institutions")
+            transfer = m.TransferOut(
+                payers=_any_pred(**(pred or {"social_class": "high"})),
+                beneficiaries=_any_pred(social_class="low"),
+                intensity=uni_name(max(1, agg)),
+                duration="one_off",
+            )
+        domain = PILLAR_DOMAIN.get(
+            pillar, "economy" if (econ_pos or econ_neg) else "worship" if announce else "institutions"
+        )
         return m.ClassifyDecreeOut(
-            pillar=pillar, domain=domain, aggressiveness=uni_name(agg), predicate=_any_pred(**pred),
-            tec_effect=MASK, cul_effect=bip_name(0.33) if announce else MASK, econ_effect=econ, threat="none",
-            transfer=transfer, revocation=None)
+            pillar=pillar,
+            domain=domain,
+            aggressiveness=uni_name(agg),
+            predicate=_any_pred(**pred),
+            tec_effect=MASK,
+            cul_effect=bip_name(0.33) if announce else MASK,
+            econ_effect=econ,
+            threat="none",
+            transfer=transfer,
+            revocation=None,
+        )
 
     # ------------------------------------------------------------------ S1: rank_event_types
     def _t_rank_event_types(self, inp: m.RankEventTypesIn, rng: GameRng) -> m.RankEventTypesOut:
@@ -334,16 +476,33 @@ class SimulatedEngine:
             tC = [bip_name(sv * d) if d == d and abs(d) >= 1 / 6 else MASK for d in dir_C]
             adherent = bool(birth and not adherence_done and s == 3)
             adherence_done = adherence_done or adherent
-            feats.append(m.OptionFeatureOut(
-                t_I1=tI[0], t_I2=tI[1], t_I3=tI[2], t_C1=tC[0], t_C2=tC[1], t_C3=tC[2],
-                e_r=bip_name(econ) if econ != 0 else MASK, F=uni_name(Fk),
-                stance_mayor=stance_name(mayor_v) if mayor_v == mayor_v else MASK,
-                stance_pillar_1=st_pillars[0], stance_pillar_2=st_pillars[1], stance_pillar_3=st_pillars[2],
-                stance_pillar_4=st_pillars[3], stance_pillar_5=st_pillars[4],
-                stance_actor=st_actor, stance_target=MASK))
-            options.append(m.OptionOut(text=f"[{STANCE[s + 3]}] {et.id.replace('_', ' ')}", adherence=adherent))
+            feats.append(
+                m.OptionFeatureOut(
+                    t_I1=tI[0],
+                    t_I2=tI[1],
+                    t_I3=tI[2],
+                    t_C1=tC[0],
+                    t_C2=tC[1],
+                    t_C3=tC[2],
+                    e_r=bip_name(econ) if econ != 0 else MASK,
+                    F=uni_name(Fk),
+                    stance_mayor=stance_name(mayor_v) if mayor_v == mayor_v else MASK,
+                    stance_pillar_1=st_pillars[0],
+                    stance_pillar_2=st_pillars[1],
+                    stance_pillar_3=st_pillars[2],
+                    stance_pillar_4=st_pillars[3],
+                    stance_pillar_5=st_pillars[4],
+                    stance_actor=st_actor,
+                    stance_target=MASK,
+                )
+            )
+            options.append(
+                m.OptionOut(text=f"[{STANCE[s + 3]}] {et.id.replace('_', ' ')}", adherence=adherent)
+            )
         title = f"{seed.actor.get('name', actor_kind.title())}: {et.id.replace('_', ' ')}"
-        out = m.NarrateEventOut(title=title, text=f"{title}, {seed.intensity} intensity.", tags=tags, options=options)
+        out = m.NarrateEventOut(
+            title=title, text=f"{title}, {seed.intensity} intensity.", tags=tags, options=options
+        )
         out._annotation = feats
         return out
 
@@ -373,9 +532,24 @@ class SimulatedEngine:
 
     def _fb_option_feature(self, inp, rng):
         z = MASK
-        return m.OptionFeatureOut(t_I1=z, t_I2=z, t_I3=z, t_C1=z, t_C2=z, t_C3=z, e_r=z, F="null", stance_mayor=z,
-                                  stance_pillar_1=z, stance_pillar_2=z, stance_pillar_3=z, stance_pillar_4=z,
-                                  stance_pillar_5=z, stance_actor=z, stance_target=z)
+        return m.OptionFeatureOut(
+            t_I1=z,
+            t_I2=z,
+            t_I3=z,
+            t_C1=z,
+            t_C2=z,
+            t_C3=z,
+            e_r=z,
+            F="null",
+            stance_mayor=z,
+            stance_pillar_1=z,
+            stance_pillar_2=z,
+            stance_pillar_3=z,
+            stance_pillar_4=z,
+            stance_pillar_5=z,
+            stance_actor=z,
+            stance_target=z,
+        )
 
     # ------------------------------------------------------------------ pillar_level
     def _t_pillar_level(self, inp: m.PillarLevelIn, rng: GameRng) -> m.PillarLevelOut:
@@ -402,7 +576,9 @@ class SimulatedEngine:
     # ------------------------------------------------------------------ S2 service texts
     def _t_name_faction(self, inp: m.NameFactionIn, rng: GameRng) -> m.NameFactionOut:
         self._faction_counter += 1
-        return m.NameFactionOut(name=f"Movement {self._faction_counter}", label=f"movement-{self._faction_counter}")
+        return m.NameFactionOut(
+            name=f"Movement {self._faction_counter}", label=f"movement-{self._faction_counter}"
+        )
 
     def _fb_name_faction(self, inp, rng):
         return m.NameFactionOut(name="Movement", label="movement")
@@ -418,7 +594,9 @@ class SimulatedEngine:
     _fb_newspaper_articles = _t_newspaper_articles
 
     def _t_annual_edition(self, inp: m.TextIn, rng: GameRng) -> m.TextOut:
-        return m.TextOut(text=" | ".join(f"day {e.get('day', '?')}: {e.get('title', '')}" for e in inp.log[:10]))
+        return m.TextOut(
+            text=" | ".join(f"day {e.get('day', '?')}: {e.get('title', '')}" for e in inp.log[:10])
+        )
 
     _t_almanac = _t_annual_edition
     _fb_annual_edition = _t_annual_edition
@@ -438,25 +616,38 @@ class SimulatedEngine:
     def _fb_suggest_decree(self, inp, rng):
         return m.SuggestDecreeOut(decrees=[])
 
-    def _t_choose_influencer_response(self, inp: m.ChooseInfluencerResponseIn, rng: GameRng) -> m.ChooseInfluencerResponseOut:
+    def _t_choose_influencer_response(
+        self, inp: m.ChooseInfluencerResponseIn, rng: GameRng
+    ) -> m.ChooseInfluencerResponseOut:
         o_mayor = float(inp.context.get("opinion_mayor", 0.0))
         pref = {"accept": 1.0, "ignore": 0.0, "reject": -1.0}
-        best = max(inp.options, key=lambda o: -abs(pref.get(o.id, 0.0) - o_mayor) + self.tau * float(rng.gumbel()))
+        best = max(
+            inp.options, key=lambda o: -abs(pref.get(o.id, 0.0) - o_mayor) + self.tau * float(rng.gumbel())
+        )
         return m.ChooseInfluencerResponseOut(option=best.id)
 
     def _fb_choose_influencer_response(self, inp, rng):
         return m.ChooseInfluencerResponseOut(option="ignore")
 
     # ------------------------------------------------------------------ S1: choose_reaction (batch)
-    def choose_reaction_many(self, ctx: LabelContext, actor: ActorCtx, news: Any, options: list[Any],
-                             features: OptionFeatures, rng: GameRng) -> np.ndarray:
+    def choose_reaction_many(
+        self,
+        ctx: LabelContext,
+        actor: ActorCtx,
+        news: Any,
+        options: list[Any],
+        features: OptionFeatures,
+        rng: GameRng,
+    ) -> np.ndarray:
         """Utility model of 15.3: u = -d(s_hat, s_k) - lambda_HA * max(0, HA) * e_k + tau * Gumbel."""
         mcount = len(ctx)
         rec = self._rec("choose_reaction")
         rec.calls += mcount
         if mcount == 0:
             return np.zeros(0, dtype=int)
-        S = np.concatenate([features.stance[:, [6]], features.stance[:, [0]], features.stance[:, 1:6]], axis=1)  # (K,7): actor, mayor, pillars
+        S = np.concatenate(
+            [features.stance[:, [6]], features.stance[:, [0]], features.stance[:, 1:6]], axis=1
+        )  # (K,7): actor, mayor, pillars
         O_hat = bip_value(ctx.O)  # (m,6)
         mayor_hat = O_hat[:, 0]
         if actor.kind == "mayor" or actor.kind in ("threat", "system"):
@@ -473,8 +664,7 @@ class SimulatedEngine:
         npresent = np.maximum(1, present.sum(axis=1))  # (K,)
         diff = np.where(present[None, :, :], (s_hat[:, None, :] - np.nan_to_num(S)[None, :, :]) ** 2, 0.0)
         d = np.sqrt(diff.sum(axis=2)) / (2.0 * np.sqrt(npresent))[None, :]  # (m,K)
-        e = np.nanmax(np.where(present, np.abs(S), np.nan), axis=1) if present.any() else np.zeros(len(S))
-        e = np.nan_to_num(e)
+        e = np.max(np.where(present, np.abs(S), 0.0), axis=1)
         HA = np.maximum(0.0, bip_value(ctx.T[:, 1]))
         U = -d - self.lam_ha * HA[:, None] * e[None, :]
         if self.tau > 0:
@@ -490,7 +680,13 @@ class SimulatedEngine:
                 rec.fallbacks += int(fb.sum())
                 mv = np.abs(np.nan_to_num(features.stance[:, 0], nan=9.0))
                 choice = np.where(fb, int(mv.argmin()), choice)
-                self._warn.append({"task": "choose_reaction", "input": f"{int(fb.sum())} citizens", "response": "<malformed>"})
+                self._warn.append(
+                    {
+                        "task": "choose_reaction",
+                        "input": f"{int(fb.sum())} citizens",
+                        "response": "<malformed>",
+                    }
+                )
         else:
             rec.attempts += mcount
         return choice

@@ -7,10 +7,9 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 import numpy as np
-
 from tle.contracts import models as m
 from tle.contracts.vocab import bip_value_of, uni_idx, uni_name
-from tle.core.prims import count, express, lam, rate, relax
+from tle.core.prims import count, express, rate, relax
 from tle.core.rng import GameRng
 from tle.engines.errors import UnclassifiableDecree, validate_text
 from tle.engines.protocol import Engines
@@ -102,7 +101,9 @@ def step(w: World, cat: Catalogs, p: Params, engines: Engines, inp: PlayerInput 
     w.r = relax(w.r, w.r0, 365.0, dt, 0.0, 1.0)
     # economic vote: opinion of the mayor follows the change in own wealth
     dr = w.r - w.r_prev
-    w.O[:, 0] = np.clip(w.O[:, 0] + 3.0 * np.tanh(20.0 * dr) * p.events.persuade * (dt / p.time.dt_max), -1.0, 1.0)
+    w.O[:, 0] = np.clip(
+        w.O[:, 0] + 3.0 * np.tanh(20.0 * dr) * p.events.persuade * (dt / p.time.dt_max), -1.0, 1.0
+    )
     w.r_prev = w.r.copy()
 
     # 5. time advances; power block
@@ -138,8 +139,14 @@ def step(w: World, cat: Catalogs, p: Params, engines: Engines, inp: PlayerInput 
 def _handle_decree(w, cat, p, engines, rng, cd: m.ClassifyDecreeOut, text: str, pkg: TurnPackage) -> dict:
     agg = uni_idx(cd.aggressiveness)
     cost = p.events.cost_decree * (0.25 + agg / 6.0)
-    info = {"text": text, "pillar": cd.pillar, "domain": cd.domain, "aggressiveness": cd.aggressiveness,
-            "cost": round(cost, 4), "executed": False}
+    info = {
+        "text": text,
+        "pillar": cd.pillar,
+        "domain": cd.domain,
+        "aggressiveness": cd.aggressiveness,
+        "cost": round(cost, 4),
+        "executed": False,
+    }
     if cost > w.K:
         info["result"] = "insufficient_capital"
         w.stats["decree_failed"] = w.stats.get("decree_failed", 0) + 1
@@ -148,33 +155,54 @@ def _handle_decree(w, cat, p, engines, rng, cd: m.ClassifyDecreeOut, text: str, 
     w.last_player_day = w.day
     info["executed"] = True
     involved = np.flatnonzero(match(w, cat, p, cd.predicate))
-    event_type = f"decree_{cd.pillar}" if cd.pillar != "none" else DOMAIN_EVENT.get(cd.domain, "decree_announce")
+    event_type = (
+        f"decree_{cd.pillar}" if cd.pillar != "none" else DOMAIN_EVENT.get(cd.domain, "decree_announce")
+    )
     econ = bip_value_of(cd.econ_effect)
-    hidden = {"pillar_idx": cat.pillar_ids().index(cd.pillar) if cd.pillar != "none" else -1,
-              "attacks": 1 if cd.pillar != "none" else 0, "actor_sign": 1.0,
-              "econ": 0.0 if econ != econ else econ}
+    hidden = {
+        "pillar_idx": cat.pillar_ids().index(cd.pillar) if cd.pillar != "none" else -1,
+        "attacks": 1 if cd.pillar != "none" else 0,
+        "actor_sign": 1.0,
+        "econ": 0.0 if econ != econ else econ,
+    }
     # fear: a decree frightens in proportion to its aggressiveness (everyone it reaches)
     if cd.pillar != "none":
         w.fear[involved] = np.clip(w.fear[involved] + p.events.fear_decree * (agg / 6.0) ** 2, 0.0, 1.0)
-    res = run_event(w, p, engines, rng, event_type=event_type, actor={"kind": "mayor", "name": "The mayor"},
-                    actor_kind="mayor", intensity=cd.aggressiveness, involved=involved, hidden=hidden)
+    res = run_event(
+        w,
+        p,
+        engines,
+        rng,
+        event_type=event_type,
+        actor={"kind": "mayor", "name": "The mayor"},
+        actor_kind="mayor",
+        intensity=cd.aggressiveness,
+        involved=involved,
+        hidden=hidden,
+    )
     if res:
         pkg.news.append(res)
     # direct exposure: citizens judge the mayor by what the decree does to what they value
     if len(involved):
         if cd.pillar != "none":
             pi = cat.pillar_ids().index(cd.pillar)
-            stance = np.tanh(3.0 * (w.O[involved, 1 + pi] + 0.25))  # who accepts the erosion likes it, others do not
+            stance = np.tanh(
+                3.0 * (w.O[involved, 1 + pi] + 0.25)
+            )  # who accepts the erosion likes it, others do not
             target = np.where(stance >= 0, 1.0, -1.0)
             k = np.abs(stance) * p.events.alpha_react * (0.3 + agg / 6.0)
         else:
             target = np.ones(len(involved))
             k = np.full(len(involved), p.events.persuade * (0.5 + agg / 6.0))
         w.O[involved, 0] = np.clip(w.O[involved, 0] + k * (target - w.O[involved, 0]), -1.0, 1.0)
-    if cd.pillar != "none" and len(involved):  # awareness: an attack on a pillar is noticed, whatever the reactions
+    if cd.pillar != "none" and len(
+        involved
+    ):  # awareness: an attack on a pillar is noticed, whatever the reactions
         pi = cat.pillar_ids().index(cd.pillar)
         ai = 1 + pi
-        w.O[involved, ai] = np.clip(w.O[involved, ai] + p.events.alpha_aware * (agg / 6.0) * (-1.0 - w.O[involved, ai]), -1, 1)
+        w.O[involved, ai] = np.clip(
+            w.O[involved, ai] + p.events.alpha_aware * (agg / 6.0) * (-1.0 - w.O[involved, ai]), -1, 1
+        )
     if cd.pillar != "none":
         pi = cat.pillar_ids().index(cd.pillar)
         outcome, level = power.try_pillar_step(w, cat, p, pi, agg)
@@ -202,9 +230,18 @@ def _exogenous(w, cat, p, engines, rng, ad) -> EventResult | None:
     elif kind == "age_band":
         mask &= (w.age < 35) if rng.random() < 0.5 else (w.age >= 35)
     sign = 1.0 if rng.random() < 0.5 else -1.0
-    return run_event(w, p, engines, rng, event_type=et.id, actor={"kind": "exogenous", "name": et.id.replace("_", " ").title()},
-                     actor_kind="exogenous", intensity=intensity, involved=np.flatnonzero(mask),
-                     hidden={"actor_sign": sign, "pillar_idx": None, "attacks": 0, "econ": et.econ})
+    return run_event(
+        w,
+        p,
+        engines,
+        rng,
+        event_type=et.id,
+        actor={"kind": "exogenous", "name": et.id.replace("_", " ").title()},
+        actor_kind="exogenous",
+        intensity=intensity,
+        involved=np.flatnonzero(mask),
+        hidden={"actor_sign": sign, "pillar_idx": None, "attacks": 0, "econ": et.econ},
+    )
 
 
 def _contagion(w: World, p: Params, dt: float) -> None:
