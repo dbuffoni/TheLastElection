@@ -43,9 +43,13 @@ Evidence: `passive` strategy (the "no player" baseline of spec 17.2), seeds 1-9 
   Saturated share 0.0-4.6% (was 4-14%).
 - **Births**: `nu_child` 0.15 -> 0.05, crude birth rate 0.027 -> 0.010 (target 0.01); population drift -0.3%/year.
 - New `passive` strategy (empty player input). Tests that played `gradual` for 20 turns use `random` (gradual is removed earlier now).
-- **Not solved, to review**: with the corrected RNG the game outcomes moved: `fear`, `clientelist`, `populist` now reach victory
-  (before: removed or term end), `assault` and `gradual` are mostly removed; 6 of 12 passive seeds are removed by a council motion (2 of 9 before day 730)
-  (the mayor does nothing). Outcome bands in `config/balance/targets.toml` are still placeholders, so stage 3 must re-tune threats/capital.
+- **Outcome re-tune (stage 3 first pass)**: after the RNG fix `fear`/`populist`/`clientelist` won almost always and a passive mayor was
+  removed in 33-56% of seeds. Changed `g_p` 0.05 -> 0.025, `theta_outcome` 0.6 -> 0.8 (threat chains need real pressure),
+  `alpha_aware` 0.35 -> 0.5 (an attack on a pillar is noticed more), `theta_down` 0.35 -> 0.45. Search seeds 1-9 / validation 101-109:
+  assault removed 0.33 -> 0.56 / 0.67 (band 0.6-1.0), populist pillars fallen 4.8 -> 4.0 / 4.9 (band 1-4.5), random victory 0, passive removed
+  0.33-0.56 -> 0.11 / 0.00. Still short: gradual victory 0.00 / 0.11 (band 0.15-0.6; the gradual player stalls with no pillar fallen in
+  most seeds, gains slide back through demotion), `fear` and `clientelist` still win about 40% of the time. Bands are placeholders; the next
+  step is a Latin-hypercube search over `theta_0`, `theta_1`, `alpha_aware`, `g_p` with the gradual strategy's step size.
 
 ## Simplified in this slice (decisions to review against the spec)
 These are marked `slice v0` in `config/params/events.toml` (module `loop.*`).
