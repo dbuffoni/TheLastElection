@@ -1,0 +1,26 @@
+# Offices of the statistics office (spec 1.4).
+
+[[domains]]
+id = "institutions"
+name = "Institutions and Justice"
+
+[[domains]]
+id = "press"
+name = "Information and Press"
+
+[[domains]]
+id = "economy"
+name = "Economy and Labor"
+
+[[domains]]
+id = "worship"
+name = "Worship and Culture"
+
+[[domains]]
+id = "security"
+name = "Security and Public Order"
+
+[[domains]]
+id = "demographics"
+name = "Demographics and Migration"
+

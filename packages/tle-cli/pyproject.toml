@@ -1,0 +1,35 @@
+[project]
+name = "tle-cli"
+version = "0.1.0"
+description = "The `tle` command"
+requires-python = ">=3.12"
+dependencies = [
+    "tle-engine",
+    "tle-config",
+    "tle-models",
+    "tle-store",
+    "tle-lab",
+    "tle-game",
+    "tle-devtools",
+    "typer>=0.12",
+    "rich>=13"
+]
+
+[project.scripts]
+tle = "tle.cli.main:app"
+
+[tool.uv.sources]
+tle-engine = { workspace = true }
+tle-config = { workspace = true }
+tle-models = { workspace = true }
+tle-store = { workspace = true }
+tle-lab = { workspace = true }
+tle-game = { workspace = true }
+tle-devtools = { workspace = true }
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/tle"]

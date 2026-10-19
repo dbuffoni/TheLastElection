@@ -1,0 +1,194 @@
+# Parameter registry: group 'factions'. One table per hyperparameter (see docs/parameters.md).
+
+[rho_in]
+symbol      = "ρ_in"
+spec        = "8.2"
+description = "Founding radius"
+default     = 0.15
+range       = [0.08, 0.25]
+scale       = "linear"
+class       = "free"
+stage       = 3
+introduced  = 8
+module      = "systems.factions"
+status      = "provisional"
+rationale   = "About one S7 step on every axis"
+
+[rho_out]
+symbol      = "ρ_out"
+spec        = "8.2"
+description = "Radius beyond which commitment gain is zero"
+default     = 0.22
+scale       = "linear"
+class       = "derived"
+stage       = 0
+introduced  = 8
+module      = "systems.factions"
+status      = "provisional"
+formula     = "rho_in * 22.0 / 15.0"
+
+[rho_conf]
+symbol      = "ρ_conf"
+spec        = "8.2"
+description = "Conflict radius"
+default     = 0.37
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 8
+module      = "systems.factions"
+status      = "provisional"
+rationale   = "About two and a half radii"
+
+[N_min]
+symbol      = "N_min"
+spec        = "8.2"
+description = "Minimum faction size"
+default     = 6
+scale       = "int"
+class       = "derived"
+stage       = 0
+introduced  = 8
+module      = "systems.factions"
+status      = "provisional"
+formula     = "max(5, ceil(0.02 * N))"
+rationale   = "max(5, 2% of N)"
+
+[S_0]
+symbol      = "S_0"
+spec        = "8.2"
+description = "Initial faction strength"
+default     = 0.5
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 8
+module      = "systems.factions"
+status      = "provisional"
+
+[g_S]
+symbol      = "g_S"
+spec        = "8.2"
+description = "Faction strength gain per supporting event"
+default     = 0.2
+range       = [0.05, 0.5]
+scale       = "linear"
+class       = "free"
+stage       = 3
+introduced  = 8
+module      = "systems.factions"
+status      = "provisional"
+
+[h_S]
+symbol      = "h_S"
+spec        = "8.2"
+description = "Faction strength half-life (days)"
+default     = 60.0
+range       = [20, 200]
+scale       = "log"
+class       = "free"
+stage       = 3
+introduced  = 8
+module      = "systems.factions"
+status      = "provisional"
+rationale   = "Dies in ~140 days without support"
+
+[theta_death]
+symbol      = "θ_death"
+spec        = "8.2"
+description = "Faction death threshold"
+default     = 0.1
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 8
+module      = "systems.factions"
+status      = "provisional"
+
+[g_m]
+symbol      = "g_m"
+spec        = "8.2"
+description = "Commitment gain"
+default     = 0.25
+range       = [0.1, 0.5]
+scale       = "linear"
+class       = "free"
+stage       = 3
+introduced  = 8
+module      = "systems.factions"
+status      = "provisional"
+rationale   = "Two favorable exposures are enough to join"
+
+[G_m]
+symbol      = "G_m"
+spec        = "8.2"
+description = "Commitment grace (days)"
+default     = 30.0
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 8
+module      = "systems.factions"
+status      = "provisional"
+
+[h_m]
+symbol      = "h_m"
+spec        = "8.2"
+description = "Commitment half-life (days)"
+default     = 45.0
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 8
+module      = "systems.factions"
+status      = "provisional"
+
+[theta_m_in]
+symbol      = "θ_m,in"
+spec        = "8.2"
+description = "Membership entry threshold"
+default     = 0.3
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 8
+module      = "systems.factions"
+status      = "provisional"
+
+[theta_m_out]
+symbol      = "θ_m,out"
+spec        = "8.2"
+description = "Membership exit threshold"
+default     = 0.15
+scale       = "linear"
+class       = "derived"
+stage       = 0
+introduced  = 8
+module      = "systems.factions"
+status      = "provisional"
+formula     = "0.5 * theta_m_in"
+rationale   = "50% hysteresis"
+
+[h_c]
+symbol      = "h_c"
+spec        = "8.2"
+description = "Centroid inertia (days)"
+default     = 14.0
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 8
+module      = "systems.factions"
+status      = "provisional"
+
+[beta_fac]
+symbol      = "β_fac"
+spec        = "8.2"
+description = "Pull weight of a faction"
+default     = 0.8
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 8
+module      = "systems.factions"
+status      = "provisional"

@@ -1,0 +1,152 @@
+# Parameter registry: group 'economy'. One table per hyperparameter (see docs/parameters.md).
+
+[eta_tr]
+symbol      = "η_tr"
+spec        = "8.3"
+description = "Maximum levy of a one-off transfer"
+default     = 0.2
+range       = [0.05, 0.4]
+scale       = "linear"
+class       = "free"
+stage       = 4
+introduced  = 11
+module      = "systems.economy"
+status      = "provisional"
+rationale   = "A maximum extraordinary tax takes a fifth of the wealth"
+
+[nu_tr]
+symbol      = "ν_tr"
+spec        = "8.3"
+description = "Maximum daily rate of a rent"
+default     = 0.002
+range       = [0.0005, 0.005]
+scale       = "log"
+class       = "free"
+stage       = 4
+introduced  = 11
+module      = "systems.economy"
+status      = "provisional"
+
+[d_0]
+symbol      = "d_0"
+spec        = "8.3"
+description = "Base deadweight loss"
+default     = 0.1
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 11
+module      = "systems.economy"
+status      = "provisional"
+
+[d_1]
+symbol      = "d_1"
+spec        = "8.3"
+description = "Additional deadweight loss for concentration"
+default     = 0.3
+range       = [0.1, 0.5]
+scale       = "linear"
+class       = "free"
+stage       = 4
+introduced  = 11
+module      = "systems.economy"
+status      = "provisional"
+
+[h_rent]
+symbol      = "h_rent"
+spec        = "8.3"
+description = "Half-life of a rent below the creation level (days)"
+default     = 90.0
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 11
+module      = "systems.economy"
+status      = "provisional"
+
+[theta_rent]
+symbol      = "θ_rent"
+spec        = "8.3"
+description = "Rent closing threshold"
+default     = 0.05
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 11
+module      = "systems.economy"
+status      = "provisional"
+
+[kappa_ec]
+symbol      = "κ_ec"
+spec        = "8.3"
+description = "Step of the economic vote"
+default     = 2.0
+range       = [0.5, 4.0]
+scale       = "linear"
+class       = "free"
+stage       = 4
+introduced  = 11
+module      = "systems.economy"
+status      = "provisional"
+
+[kappa_y]
+symbol      = "κ_y"
+spec        = "8.3"
+description = "Rent received: gain"
+default     = 5.0
+range       = [1.0, 10.0]
+scale       = "linear"
+class       = "free"
+stage       = 4
+introduced  = 11
+module      = "systems.economy"
+status      = "provisional"
+
+[G_y]
+symbol      = "G_y"
+spec        = "8.3"
+description = "Rent received: grace (days)"
+default     = 30.0
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 11
+module      = "systems.economy"
+status      = "provisional"
+
+[h_y]
+symbol      = "h_y"
+spec        = "8.3"
+description = "Rent received: half-life (days)"
+default     = 90.0
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 11
+module      = "systems.economy"
+status      = "provisional"
+
+[theta_y_in]
+symbol      = "θ_y,in"
+spec        = "8.3"
+description = "Coalition entry threshold"
+default     = 0.3
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 11
+module      = "systems.economy"
+status      = "provisional"
+
+[theta_y_out]
+symbol      = "θ_y,out"
+spec        = "8.3"
+description = "Coalition exit threshold"
+default     = 0.15
+scale       = "linear"
+class       = "derived"
+stage       = 0
+introduced  = 11
+module      = "systems.economy"
+status      = "provisional"
+formula     = "0.5 * theta_y_in"

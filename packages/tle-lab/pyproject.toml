@@ -1,0 +1,29 @@
+[project]
+name = "tle-lab"
+version = "0.1.0"
+description = "Campaigns, analyzers, optimizer, balancing, journal, profiles"
+requires-python = ">=3.12"
+dependencies = [
+    "tle-engine",
+    "tle-config",
+    "tle-store",
+    "tle-models",
+    "numpy>=1.26",
+    "scipy>=1.11"
+]
+
+[project.optional-dependencies]
+search = ["optuna>=3.5", "SALib>=1.4"]
+
+[tool.uv.sources]
+tle-engine = { workspace = true }
+tle-config = { workspace = true }
+tle-store = { workspace = true }
+tle-models = { workspace = true }
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/tle"]

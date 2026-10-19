@@ -1,0 +1,190 @@
+# Parameter registry: group 'events'. One table per hyperparameter (see docs/parameters.md).
+
+[K_opt]
+symbol      = "K_opt"
+spec        = "8.4"
+description = "Reaction options per set"
+default     = 10
+scale       = "int"
+class       = "fixed"
+stage       = 0
+introduced  = 1
+module      = "engines.simulated"
+status      = "provisional"
+
+[g_p]
+symbol      = "g_p"
+spec        = "8.4"
+description = "Income of accumulated pressure (classes, custodians), per day"
+default     = 0.05
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 7
+module      = "systems.events"
+status      = "provisional"
+
+[h_p]
+symbol      = "h_p"
+spec        = "8.4"
+description = "Half-life of accumulated pressure (days)"
+default     = 30.0
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 7
+module      = "systems.events"
+status      = "provisional"
+
+[nu_tot]
+symbol      = "ν_tot"
+spec        = "8.4"
+description = "Global rate of endogenous events at full tension (per day)"
+default     = 0.3
+range       = [0.05, 0.6]
+scale       = "linear"
+class       = "free"
+stage       = 3
+introduced  = 7
+module      = "systems.events"
+status      = "provisional"
+
+[gamma]
+symbol      = "γ"
+spec        = "8.4"
+description = "Exponent of narrative pressure in the draw"
+default     = 2.0
+range       = [1.0, 4.0]
+scale       = "linear"
+class       = "free"
+stage       = 3
+introduced  = 7
+module      = "systems.events"
+status      = "provisional"
+
+[kappa_dis]
+symbol      = "κ_dis"
+spec        = "8.4"
+description = "Discharge of accumulated pressure"
+default     = 0.6
+range       = [0.2, 0.9]
+scale       = "linear"
+class       = "free"
+stage       = 3
+introduced  = 7
+module      = "systems.events"
+status      = "provisional"
+
+[kappa_echo]
+symbol      = "κ_echo"
+spec        = "8.4"
+description = "Echo toward the target"
+default     = 0.5
+range       = [0.1, 0.9]
+scale       = "linear"
+class       = "free"
+stage       = 3
+introduced  = 7
+module      = "systems.events"
+status      = "provisional"
+rationale   = "Chains of 2-4 events"
+
+[h_ref]
+symbol      = "h_ref"
+spec        = "8.4"
+description = "Refractoriness half-life (days)"
+default     = 14.0
+range       = [3, 60]
+scale       = "log"
+class       = "free"
+stage       = 3
+introduced  = 7
+module      = "systems.events"
+status      = "provisional"
+
+[nu_exo]
+symbol      = "ν_exo"
+spec        = "8.4"
+description = "Base exogenous rate, all categories (per day)"
+default     = 0.1
+range       = [0.03, 0.3]
+scale       = "linear"
+class       = "free"
+stage       = 3
+introduced  = 7
+module      = "systems.events"
+status      = "provisional"
+rationale   = "One every 10 days"
+
+[F_rout]
+symbol      = "F_rout"
+spec        = "8.4"
+description = "Strength of daily activities"
+default     = 0.3333
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 4
+module      = "systems.daily"
+status      = "provisional"
+rationale   = "S7 low"
+
+[n_news_0]
+symbol      = "n_news,0"
+spec        = "8.4"
+description = "News items per edition with a free press"
+default     = 3
+scale       = "int"
+class       = "fixed"
+stage       = 0
+introduced  = 7
+module      = "systems.news"
+status      = "provisional"
+
+[theta_hot]
+symbol      = "θ_hot"
+spec        = "8.4"
+description = "Salience that keeps the turn at one day"
+default     = 0.5
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 7
+module      = "loop.turn"
+status      = "provisional"
+
+[n_log]
+symbol      = "n_log"
+spec        = "8.4"
+description = "Recent event log size per citizen"
+default     = 20
+scale       = "int"
+class       = "fixed"
+stage       = 0
+introduced  = 13
+module      = "systems.news"
+status      = "draft"
+
+[beta_det]
+symbol      = "β_det"
+spec        = "8.4"
+description = "Salience bonus for determinant events"
+default     = 0.1667
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 7
+module      = "systems.news"
+status      = "provisional"
+
+[beta_may]
+symbol      = "β_may"
+spec        = "8.4"
+description = "Salience bonus when the mayor is actor or target"
+default     = 0.1667
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 7
+module      = "systems.news"
+status      = "provisional"

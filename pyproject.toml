@@ -1,0 +1,64 @@
+[project]
+name = "the-last-election"
+version = "0.1.0"
+description = "The Last Election: political simulation game driven by an agentic loop of language models"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "tle-engine", "tle-config", "tle-models", "tle-store", "tle-lab",
+    "tle-game", "tle-devtools", "tle-cli",
+]
+
+[dependency-groups]
+dev = [
+    "tle-testing",
+    "pytest>=8", "pytest-xdist>=3.5", "pytest-benchmark>=4", "hypothesis>=6",
+    "ruff>=0.5", "mypy>=1.10",
+]
+
+[tool.uv]
+package = false
+
+[tool.uv.workspace]
+members = ["packages/*"]
+
+[tool.uv.sources]
+tle-engine = { workspace = true }
+tle-config = { workspace = true }
+tle-models = { workspace = true }
+tle-store = { workspace = true }
+tle-lab = { workspace = true }
+tle-game = { workspace = true }
+tle-devtools = { workspace = true }
+tle-cli = { workspace = true }
+tle-testing = { workspace = true }
+
+[tool.pytest.ini_options]
+testpaths = ["packages", "tests"]
+addopts = "-ra --strict-markers -p no:cacheprovider"
+markers = [
+    "inc01: increment 1 - primitives, contracts, registries",
+    "inc02: increment 2 - citizens, run store",
+    "inc03: increment 3 - ties and experiment engine",
+    "inc04: increment 4 - dynamics, daily life",
+    "inc07: increment 7 - event pipeline",
+    "inc10: increment 10 - capital, decrees, player",
+    "inc12: increment 12 - pillars and threats",
+    "slow: long-running tests (full games)",
+]
+
+[tool.ruff]
+line-length = 110
+target-version = "py312"
+extend-exclude = ["packages/tle-engine/src/tle/params/_generated.py"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "NPY"]
+ignore = ["E501", "B905"]
+
+[tool.mypy]
+python_version = "3.12"
+ignore_missing_imports = true
+namespace_packages = true
+explicit_package_bases = true
+mypy_path = ["packages/tle-engine/src", "packages/tle-config/src", "packages/tle-models/src", "packages/tle-store/src", "packages/tle-lab/src", "packages/tle-game/src", "packages/tle-devtools/src", "packages/tle-cli/src", "packages/tle-testing/src"]

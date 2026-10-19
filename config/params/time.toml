@@ -1,0 +1,95 @@
+# Parameter registry: group 'time'. One table per hyperparameter (see docs/parameters.md).
+
+[T_cad]
+symbol      = "T_cad"
+spec        = "8.1"
+description = "Cadence of the proactive initiative (days)"
+default     = 7.0
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 1
+module      = "loop.turn"
+status      = "provisional"
+rationale   = "About 260 decisions in the term"
+
+[dt_max]
+symbol      = "Δt_max"
+spec        = "8.1"
+description = "Maximum turn duration (days)"
+default     = 7.0
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 1
+module      = "loop.turn"
+status      = "provisional"
+rationale   = "Never beyond the player's cadence"
+
+[N]
+symbol      = "N"
+spec        = "8.1"
+description = "Initial population"
+default     = 300
+range       = [150, 600]
+scale       = "int"
+class       = "fixed"
+stage       = 0
+introduced  = 2
+module      = "systems.population"
+status      = "provisional"
+rationale   = "Dozens of minimum-size factions at contained cost"
+
+[phi]
+symbol      = "φ"
+spec        = "8.1"
+description = "Share sampled for daily life per reference turn"
+default     = 0.1
+range       = [0.05, 0.2]
+scale       = "linear"
+class       = "free"
+stage       = 1
+introduced  = 4
+module      = "systems.daily"
+status      = "draft"
+rationale   = "About 30 S1 calls per turn"
+
+[T_max]
+symbol      = "T_max"
+spec        = "8.1"
+description = "Minimum S1 update guarantee (days)"
+default     = 60.0
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 4
+module      = "systems.daily"
+status      = "draft"
+rationale   = "Every citizen decides at least every two months"
+
+[horizon_days]
+symbol      = "T_term"
+spec        = "1.2"
+description = "Length of the term (days)"
+default     = 1825
+scale       = "int"
+class       = "fixed"
+stage       = 0
+introduced  = 10
+module      = "loop.game"
+status      = "draft"
+rationale   = "Five years"
+
+[T_warm]
+symbol      = "T_warm"
+spec        = "17.5"
+description = "Warm-up length (days)"
+default     = 180
+range       = [60, 365]
+scale       = "int"
+class       = "fixed"
+stage       = 0
+introduced  = 4
+module      = "loop.warmup"
+status      = "draft"
+rationale   = "Network and factions in equilibrium at day 0"

@@ -1,0 +1,153 @@
+# Parameter registry: group 'vectors'. One table per hyperparameter (see docs/parameters.md).
+
+[eta_I]
+symbol      = "η_I"
+spec        = "8.1"
+description = "Maximum ideological step per event"
+default     = 0.1
+range       = [0.03, 0.2]
+scale       = "linear"
+class       = "free"
+stage       = 2
+introduced  = 4
+module      = "systems.exposure"
+status      = "provisional"
+rationale   = "Seven concordant direct events halve the distance"
+
+[eta_C]
+symbol      = "η_C"
+spec        = "8.1"
+description = "Maximum character step per event"
+default     = 0.015
+range       = [0.001, 0.0164]
+scale       = "linear"
+class       = "free"
+stage       = 2
+introduced  = 4
+module      = "systems.exposure"
+status      = "provisional"
+rationale   = "Character must not saturate in five years"
+
+[eta_r]
+symbol      = "η_r"
+spec        = "8.1"
+description = "Wealth step"
+default     = 0.1
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 4
+module      = "systems.economy"
+status      = "provisional"
+rationale   = "Same scale as ideology"
+
+[eps_r]
+symbol      = "ε_r"
+spec        = "8.1"
+description = "Hysteresis on class rank (fraction of population)"
+default     = 0.03
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 2
+module      = "systems.population"
+status      = "provisional"
+rationale   = "3 percentage points"
+
+[eta_O]
+symbol      = "η_O"
+spec        = "8.1"
+description = "Maximum opinion step per event"
+default     = 0.6
+range       = [0.4, 0.8]
+scale       = "linear"
+class       = "free"
+stage       = 2
+introduced  = 6
+module      = "systems.exposure"
+status      = "provisional"
+rationale   = "A medium decree moves those involved by one S7 step"
+
+[h_I]
+symbol      = "h_I"
+spec        = "8.1"
+description = "Ideological half-life (days)"
+default     = 90.0
+range       = [30, 300]
+scale       = "log"
+class       = "free"
+stage       = 2
+introduced  = 4
+module      = "systems.exposure"
+status      = "provisional"
+rationale   = "A season"
+
+[h_O]
+symbol      = "h_O"
+spec        = "8.1"
+description = "Opinion half-life (days)"
+default     = 60.0
+range       = [20, 200]
+scale       = "log"
+class       = "free"
+stage       = 2
+introduced  = 6
+module      = "systems.exposure"
+status      = "provisional"
+rationale   = "Without new facts judgment fades in months"
+
+[h_b]
+symbol      = "h_b"
+spec        = "8.1"
+description = "Half-life of the moving ideological base (days)"
+default     = 730.0
+range       = [200, 2000]
+scale       = "log"
+class       = "free"
+stage       = 2
+introduced  = 4
+module      = "systems.exposure"
+status      = "provisional"
+rationale   = "The scar shifts the base by half in two years"
+
+[f_max]
+symbol      = "f_max"
+spec        = "8.1"
+description = "Maximum fear"
+default     = 0.9
+range       = [0.5, 0.99]
+scale       = "linear"
+class       = "free"
+stage       = 4
+introduced  = 6
+module      = "systems.indicators"
+status      = "provisional"
+rationale   = "Even under the harshest regime part of the dissent leaks"
+
+[alpha_ind]
+symbol      = "α_ind"
+spec        = "8.1"
+description = "Indirect attenuation"
+default     = 0.3
+range       = [0.1, 0.6]
+scale       = "linear"
+class       = "free"
+stage       = 2
+introduced  = 7
+module      = "systems.exposure"
+status      = "provisional"
+rationale   = "A perceived event weighs under a third of a lived one"
+
+[alpha_c]
+symbol      = "α_c"
+spec        = "8.1"
+description = "Contagion attenuation"
+default     = 0.5
+range       = [0.2, 0.8]
+scale       = "linear"
+class       = "free"
+stage       = 2
+introduced  = 4
+module      = "systems.exposure"
+status      = "provisional"
+rationale   = "A loved one's experience is worth half of one's own"

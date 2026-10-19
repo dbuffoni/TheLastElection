@@ -218,3 +218,11 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# The Last Election
+runs/*
+!runs/pinned/
+.claude/state/
+.claude/settings.local.json
+.venv/
+uv.lock.bak

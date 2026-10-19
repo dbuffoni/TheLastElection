@@ -1,0 +1,444 @@
+# Event-type catalog (spec 6.3, 12.2). Design signatures drive the simulated S2 narration (15.3). DRAFT: to be reviewed.
+
+[[event_types]]
+id = "decree_pluralism"
+actors = ["mayor"]
+target = "pillar"
+pillar = "pluralism"
+attacks = 1
+hostility = 0.3
+polarizing = true
+domain = "institutions"
+direction = "none"
+
+[[event_types]]
+id = "decree_law"
+actors = ["mayor"]
+target = "pillar"
+pillar = "law"
+attacks = 1
+hostility = 0.3
+polarizing = true
+domain = "institutions"
+direction = "none"
+
+[[event_types]]
+id = "decree_press"
+actors = ["mayor"]
+target = "pillar"
+pillar = "press"
+attacks = 1
+hostility = 0.3
+polarizing = true
+domain = "press"
+direction = "none"
+
+[[event_types]]
+id = "decree_property"
+actors = ["mayor"]
+target = "pillar"
+pillar = "property"
+attacks = 1
+hostility = 0.3
+polarizing = true
+domain = "economy"
+direction = "none"
+
+[[event_types]]
+id = "decree_civil"
+actors = ["mayor"]
+target = "pillar"
+pillar = "civil"
+attacks = 1
+hostility = 0.3
+polarizing = true
+domain = "security"
+direction = "none"
+
+[[event_types]]
+id = "decree_economy"
+actors = ["mayor"]
+target = "mayor"
+hostility = 0.0
+domain = "economy"
+direction = "none"
+econ = 0.5
+
+[[event_types]]
+id = "decree_culture"
+actors = ["mayor"]
+target = "mayor"
+hostility = 0.0
+domain = "worship"
+direction = "actor"
+cul = 0.5
+
+[[event_types]]
+id = "decree_security"
+actors = ["mayor"]
+target = "mayor"
+hostility = 0.2
+domain = "security"
+direction = "conservative"
+
+[[event_types]]
+id = "decree_announce"
+actors = ["mayor"]
+target = "mayor"
+hostility = 0.0
+domain = "institutions"
+direction = "none"
+published = true
+
+[[event_types]]
+id = "demonstration"
+actors = ["faction"]
+requires = ["strong", "hostile"]
+target = "mayor"
+hostility = 0.9
+polarizing = true
+can_found = true
+domain = "security"
+weight = 1.0
+t_C = [1.0, nan, nan]
+
+[[event_types]]
+id = "petition"
+actors = ["faction"]
+target = "mayor"
+hostility = 0.3
+domain = "institutions"
+weight = 1.2
+
+[[event_types]]
+id = "fundraising"
+actors = ["faction"]
+target = "none"
+hostility = 0.0
+domain = "economy"
+econ = 0.1
+weight = 0.6
+
+[[event_types]]
+id = "support_campaign"
+actors = ["faction"]
+requires = ["friendly"]
+target = "mayor"
+hostility = -0.8
+domain = "institutions"
+weight = 1.0
+
+[[event_types]]
+id = "faction_split"
+actors = ["faction"]
+requires = ["high_variance"]
+target = "none"
+hostility = 0.2
+polarizing = true
+can_found = true
+domain = "institutions"
+weight = 0.5
+
+[[event_types]]
+id = "faction_alliance"
+actors = ["faction"]
+requires = ["strong"]
+target = "none"
+hostility = 0.0
+domain = "institutions"
+weight = 0.5
+
+[[event_types]]
+id = "faction_appeal"
+actors = ["faction"]
+requires = ["weak_declining", "law_below_fall"]
+target = "pillar"
+pillar = "law"
+attacks = -1
+hostility = 0.1
+domain = "institutions"
+weight = 0.8
+
+[[event_types]]
+id = "statement"
+actors = ["influencer"]
+target = "mayor"
+hostility = 0.4
+domain = "press"
+weight = 1.5
+
+[[event_types]]
+id = "article"
+actors = ["influencer"]
+requires = ["press_free"]
+target = "mayor"
+hostility = 0.5
+domain = "press"
+weight = 1.0
+
+[[event_types]]
+id = "lawsuit"
+actors = ["influencer"]
+requires = ["hostile", "law_below_fall"]
+target = "pillar"
+pillar = "law"
+attacks = -1
+hostility = 0.8
+polarizing = true
+domain = "institutions"
+weight = 0.5
+
+[[event_types]]
+id = "endorsement"
+actors = ["influencer"]
+requires = ["friendly"]
+target = "mayor"
+hostility = -0.8
+domain = "press"
+weight = 1.0
+
+[[event_types]]
+id = "influencer_alliance"
+actors = ["influencer"]
+target = "none"
+hostility = 0.0
+domain = "institutions"
+weight = 0.4
+
+[[event_types]]
+id = "strike"
+actors = ["class"]
+requires = ["hostile", "not_upper"]
+target = "mayor"
+hostility = 0.8
+polarizing = true
+domain = "economy"
+econ = -0.3
+weight = 1.0
+t_C = [1.0, nan, nan]
+
+[[event_types]]
+id = "lockout"
+actors = ["class"]
+requires = ["hostile", "upper"]
+target = "mayor"
+hostility = 0.8
+domain = "economy"
+econ = -0.3
+weight = 1.0
+
+[[event_types]]
+id = "donation"
+actors = ["class"]
+requires = ["friendly", "upper"]
+target = "mayor"
+hostility = -0.7
+domain = "economy"
+econ = 0.3
+weight = 1.0
+
+[[event_types]]
+id = "elite_petition"
+actors = ["class"]
+requires = ["upper"]
+target = "mayor"
+hostility = 0.4
+domain = "institutions"
+weight = 1.0
+
+[[event_types]]
+id = "class_assembly"
+actors = ["class"]
+target = "none"
+hostility = 0.0
+domain = "institutions"
+weight = 0.5
+
+[[event_types]]
+id = "investigation"
+actors = ["custodian"]
+requires = ["pillar:press"]
+target = "pillar"
+pillar = "custodian"
+attacks = -1
+hostility = 0.7
+polarizing = true
+domain = "press"
+weight = 1.0
+
+[[event_types]]
+id = "ruling"
+actors = ["custodian"]
+requires = ["pillar:law"]
+target = "pillar"
+pillar = "custodian"
+attacks = -1
+hostility = 0.6
+domain = "institutions"
+weight = 1.0
+
+[[event_types]]
+id = "civic_mobilization"
+actors = ["custodian"]
+requires = ["pillar:civil"]
+target = "pillar"
+pillar = "custodian"
+attacks = -1
+hostility = 0.8
+polarizing = true
+domain = "security"
+weight = 1.0
+t_C = [1.0, nan, nan]
+
+[[event_types]]
+id = "council_resolution"
+actors = ["custodian"]
+requires = ["pillar:pluralism"]
+target = "pillar"
+pillar = "custodian"
+attacks = -1
+hostility = 0.6
+domain = "institutions"
+weight = 1.0
+
+[[event_types]]
+id = "property_protest"
+actors = ["custodian"]
+requires = ["pillar:property"]
+target = "pillar"
+pillar = "custodian"
+attacks = -1
+hostility = 0.6
+domain = "economy"
+econ = -0.1
+weight = 1.0
+
+[[event_types]]
+id = "crime"
+actors = ["exogenous"]
+category = "crime"
+predicate_kinds = ["circle", "all"]
+target = "none"
+hostility = 0.0
+domain = "security"
+econ = -0.1
+direction = "conservative"
+weight = 1.0
+t_C = [nan, -1.0, nan]
+
+[[event_types]]
+id = "disaster"
+actors = ["exogenous"]
+category = "disaster"
+predicate_kinds = ["circle", "trade"]
+target = "none"
+hostility = 0.0
+domain = "demographics"
+econ = -0.4
+direction = "none"
+weight = 1.0
+t_C = [nan, 1.0, nan]
+
+[[event_types]]
+id = "discovery"
+actors = ["exogenous"]
+category = "discovery"
+predicate_kinds = ["trade", "all"]
+target = "none"
+hostility = 0.0
+domain = "institutions"
+econ = 0.2
+tec = 0.5
+direction = "secular"
+weight = 1.0
+t_C = [1.0, nan, nan]
+
+[[event_types]]
+id = "cultural_event"
+actors = ["exogenous"]
+category = "cultural"
+predicate_kinds = ["circle", "age_band", "all"]
+target = "none"
+hostility = 0.0
+domain = "worship"
+cul = 0.5
+direction = "actor"
+weight = 1.0
+t_C = [nan, nan, 1.0]
+
+[[event_types]]
+id = "economic_crisis"
+actors = ["exogenous"]
+category = "crisis"
+predicate_kinds = ["class", "trade", "all"]
+target = "mayor"
+hostility = 0.3
+domain = "economy"
+econ = -0.5
+direction = "statist"
+weight = 1.0
+
+[[event_types]]
+id = "motion_filed"
+actors = ["threat"]
+target = "mayor"
+hostility = 1.0
+polarizing = true
+domain = "institutions"
+direction = "none"
+
+[[event_types]]
+id = "motion_debate"
+actors = ["threat"]
+target = "mayor"
+hostility = 1.0
+polarizing = true
+domain = "institutions"
+direction = "none"
+
+[[event_types]]
+id = "motion_vote"
+actors = ["threat"]
+target = "mayor"
+hostility = 1.0
+polarizing = true
+domain = "institutions"
+direction = "none"
+
+[[event_types]]
+id = "judicial_investigation"
+actors = ["threat"]
+target = "mayor"
+hostility = 1.0
+polarizing = true
+domain = "institutions"
+direction = "none"
+
+[[event_types]]
+id = "judicial_hearing"
+actors = ["threat"]
+target = "mayor"
+hostility = 1.0
+polarizing = true
+domain = "institutions"
+direction = "none"
+
+[[event_types]]
+id = "judicial_verdict"
+actors = ["threat"]
+target = "mayor"
+hostility = 1.0
+polarizing = true
+domain = "institutions"
+direction = "none"
+
+[[event_types]]
+id = "pillar_fall"
+actors = ["system"]
+target = "pillar"
+attacks = 1
+hostility = 0.5
+polarizing = true
+domain = "institutions"
+direction = "none"
+

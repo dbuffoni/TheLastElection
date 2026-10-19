@@ -1,0 +1,139 @@
+# Parameter registry: group 'demography'. One table per hyperparameter (see docs/parameters.md).
+
+[nu_b]
+symbol      = "ν_b"
+spec        = "8.4"
+description = "Population birth rate target (annual)"
+default     = 0.01
+scale       = "linear"
+class       = "fixed"
+stage       = 1
+introduced  = 5
+module      = "systems.demography"
+status      = "draft"
+rationale   = "Calibration target, not a rule"
+
+[nu_im]
+symbol      = "ν_im"
+spec        = "8.4"
+description = "Immigration for the community (annual, fraction of N)"
+default     = 0.01
+range       = [0.0, 0.03]
+scale       = "linear"
+class       = "free"
+stage       = 1
+introduced  = 5
+module      = "systems.demography"
+status      = "draft"
+
+[nu_em]
+symbol      = "ν_em"
+spec        = "8.4"
+description = "Base emigration per citizen (annual)"
+default     = 0.01
+range       = [0.0, 0.03]
+scale       = "linear"
+class       = "free"
+stage       = 1
+introduced  = 5
+module      = "systems.demography"
+status      = "draft"
+
+[theta_couple]
+symbol      = "θ_couple"
+spec        = "8.4"
+description = "Minimum tie intensity for couples"
+default     = 0.6
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 5
+module      = "systems.demography"
+status      = "draft"
+
+[a_adult]
+symbol      = "a_adult"
+spec        = "8.4"
+description = "Coming of age (years)"
+default     = 18
+scale       = "int"
+class       = "fixed"
+stage       = 0
+introduced  = 1
+module      = "systems.population"
+status      = "provisional"
+
+[a_pens]
+symbol      = "a_pens"
+spec        = "8.4"
+description = "Retirement age (years)"
+default     = 67
+scale       = "int"
+class       = "fixed"
+stage       = 0
+introduced  = 1
+module      = "systems.population"
+status      = "provisional"
+
+[a_fert]
+symbol      = "a_fert"
+spec        = "8.4"
+description = "Maximum fertile age (years)"
+default     = 45
+scale       = "int"
+class       = "fixed"
+stage       = 0
+introduced  = 1
+module      = "systems.demography"
+status      = "draft"
+
+[mu_30]
+symbol      = "μ_30"
+spec        = "8.4"
+description = "Annual mortality at 30 years (doubles every 8 years)"
+default     = 0.001
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 1
+module      = "systems.demography"
+status      = "provisional"
+rationale   = "Gompertz"
+
+[nu_couple]
+symbol      = "ν_couple"
+spec        = "8.4"
+description = "Couple formation (annual)"
+default     = 0.5
+range       = [0.1, 1.0]
+scale       = "linear"
+class       = "free"
+stage       = 1
+introduced  = 5
+module      = "systems.demography"
+status      = "draft"
+
+[delta_a_couple]
+symbol      = "Δa_couple"
+spec        = "8.4"
+description = "Maximum age difference in a couple (years)"
+default     = 10
+scale       = "int"
+class       = "fixed"
+stage       = 0
+introduced  = 5
+module      = "systems.demography"
+status      = "draft"
+
+[nu_child]
+symbol      = "ν_child"
+spec        = "8.4"
+description = "Birth frequency per fertile couple (annual)"
+default     = 0.15
+range       = [0.05, 0.3]
+scale       = "linear"
+class       = "free"
+stage       = 1
+introduced  = 5
+module      = "systems.demography"
+status      = "draft"

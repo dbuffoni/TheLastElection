@@ -1,0 +1,76 @@
+# Parameter registry: group 'community'. One table per hyperparameter (see docs/parameters.md).
+
+[eta_X]
+symbol      = "η_X"
+spec        = "8.3"
+description = "Step of the community indices"
+default     = 0.05
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 4
+module      = "systems.community"
+status      = "provisional"
+rationale   = "Annual scale"
+
+[h_X]
+symbol      = "h_X"
+spec        = "8.3"
+description = "Half-life of the community indices (days)"
+default     = 365.0
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 4
+module      = "systems.community"
+status      = "provisional"
+
+[h_kappa_TR]
+symbol      = "κ_TR"
+spec        = "8.3"
+description = "Technology -> secularism interaction half-life (days)"
+default     = 730.0
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 4
+module      = "systems.community"
+status      = "provisional"
+rationale   = "Background effect"
+
+[h_kappa_TW]
+symbol      = "κ_TW"
+spec        = "8.3"
+description = "Technology -> wealth interaction half-life (days)"
+default     = 730.0
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 4
+module      = "systems.community"
+status      = "provisional"
+rationale   = "Background effect"
+
+[kappa_CP]
+symbol      = "κ_CP"
+spec        = "8.3"
+description = "Culture -> questioning multiplier"
+default     = 0.5
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 4
+module      = "systems.community"
+status      = "provisional"
+
+[kappa_RC]
+symbol      = "κ_RC"
+spec        = "8.3"
+description = "Religiosity -> cohesion multiplier"
+default     = 0.4
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 4
+module      = "systems.community"
+status      = "provisional"
