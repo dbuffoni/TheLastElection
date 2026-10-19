@@ -1,0 +1,8 @@
+# Smallest useful campaign: every simulated player on every scenario, 3 seeds, 150 citizens.
+[campaign]
+name = "smoke"
+scenarios = ["industrial_secular", "rural_devout"]
+strategies = ["random", "assault", "gradual", "populist", "capture", "fear", "clientelist"]
+seeds = [1, 2, 3]
+n = 150
+design = "seeds"

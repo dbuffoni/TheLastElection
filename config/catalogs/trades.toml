@@ -1,0 +1,87 @@
+# Trade catalog (spec 4). 'student' and 'retiree' are assigned by age, not drawn. custodian = guards a pillar (5.17).
+
+[[trades]]
+id = "farmer"
+weight = 1.0
+custodian = false
+
+[[trades]]
+id = "worker"
+weight = 2.0
+custodian = false
+
+[[trades]]
+id = "craftsman"
+weight = 1.0
+custodian = false
+
+[[trades]]
+id = "merchant"
+weight = 1.0
+custodian = true
+
+[[trades]]
+id = "clerk"
+weight = 1.2
+custodian = false
+
+[[trades]]
+id = "professional"
+weight = 0.8
+custodian = false
+
+[[trades]]
+id = "entrepreneur"
+weight = 0.6
+custodian = true
+
+[[trades]]
+id = "teacher"
+weight = 0.7
+custodian = false
+
+[[trades]]
+id = "physician"
+weight = 0.3
+custodian = false
+
+[[trades]]
+id = "journalist"
+weight = 0.25
+custodian = true
+
+[[trades]]
+id = "magistrate"
+weight = 0.25
+custodian = true
+
+[[trades]]
+id = "public_official"
+weight = 0.6
+custodian = false
+
+[[trades]]
+id = "law_enforcement"
+weight = 0.5
+custodian = true
+
+[[trades]]
+id = "cleric"
+weight = 0.3
+custodian = false
+
+[[trades]]
+id = "student"
+weight = 0.0
+custodian = false
+
+[[trades]]
+id = "unemployed"
+weight = 0.4
+custodian = false
+
+[[trades]]
+id = "retiree"
+weight = 0.0
+custodian = false
+

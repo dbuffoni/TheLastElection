@@ -1,0 +1,215 @@
+# Pillars and level catalog (spec 5.11). DRAFT level names and requirements: design work (spec 12.1), to be reviewed.
+# Each level has a structured requirement (15.3): the decree event types that represent it and the minimum intensity index (0..6).
+
+[[pillars]]
+id = "pluralism"
+name = "Political pluralism and free elections"
+protects = "income of the no-confidence motion pressure"
+custodians = ["councillor"]
+threat = "motion"
+
+[[pillars.levels]]
+id = "pluralism_1"
+name = "Opposition meetings need authorization"
+event_types = ["decree_pluralism"]
+min_intensity = 1
+
+[[pillars.levels]]
+id = "pluralism_2"
+name = "Opposition candidate disqualified"
+event_types = ["decree_pluralism"]
+min_intensity = 2
+
+[[pillars.levels]]
+id = "pluralism_3"
+name = "Council seats redrawn in the mayor's favor"
+event_types = ["decree_pluralism"]
+min_intensity = 3
+
+[[pillars.levels]]
+id = "pluralism_4"
+name = "Elections postponed"
+event_types = ["decree_pluralism"]
+min_intensity = 4
+
+[[pillars.levels]]
+id = "pluralism_5"
+name = "Opposition lists banned"
+event_types = ["decree_pluralism"]
+min_intensity = 5
+
+[[pillars.levels]]
+id = "pluralism_6"
+name = "Single-list elections"
+event_types = ["decree_pluralism"]
+min_intensity = 6
+
+[[pillars]]
+id = "law"
+name = "Rule of law and independent judiciary"
+protects = "income of the judicial route pressure"
+custodians = ["magistrate"]
+threat = "judicial"
+
+[[pillars.levels]]
+id = "law_1"
+name = "Judges summoned by the mayor"
+event_types = ["decree_law"]
+min_intensity = 1
+
+[[pillars.levels]]
+id = "law_2"
+name = "Court budget frozen"
+event_types = ["decree_law"]
+min_intensity = 2
+
+[[pillars.levels]]
+id = "law_3"
+name = "Appeals against decrees barred"
+event_types = ["decree_law"]
+min_intensity = 3
+
+[[pillars.levels]]
+id = "law_4"
+name = "Hostile judges suspended"
+event_types = ["decree_law"]
+min_intensity = 4
+
+[[pillars.levels]]
+id = "law_5"
+name = "Magistrates appointed by the mayor"
+event_types = ["decree_law"]
+min_intensity = 5
+
+[[pillars.levels]]
+id = "law_6"
+name = "The mayor's decrees stand above the law"
+event_types = ["decree_law"]
+min_intensity = 6
+
+[[pillars]]
+id = "press"
+name = "Freedom of the press and information"
+protects = "news items per edition and hostile-news salience"
+custodians = ["journalist"]
+
+[[pillars.levels]]
+id = "press_1"
+name = "A journalist is removed from a broadcast"
+event_types = ["decree_press"]
+min_intensity = 1
+
+[[pillars.levels]]
+id = "press_2"
+name = "A newspaper is deprived of funding"
+event_types = ["decree_press"]
+min_intensity = 2
+
+[[pillars.levels]]
+id = "press_3"
+name = "Mandatory pre-publication review"
+event_types = ["decree_press"]
+min_intensity = 3
+
+[[pillars.levels]]
+id = "press_4"
+name = "A critical outlet is closed"
+event_types = ["decree_press"]
+min_intensity = 4
+
+[[pillars.levels]]
+id = "press_5"
+name = "Official gazette only"
+event_types = ["decree_press"]
+min_intensity = 5
+
+[[pillars.levels]]
+id = "press_6"
+name = "All independent media banned"
+event_types = ["decree_press"]
+min_intensity = 6
+
+[[pillars]]
+id = "property"
+name = "Property rights and economic freedom"
+protects = "cap on transfers"
+custodians = ["entrepreneur", "merchant"]
+
+[[pillars.levels]]
+id = "property_1"
+name = "A special levy on businesses"
+event_types = ["decree_property"]
+min_intensity = 1
+
+[[pillars.levels]]
+id = "property_2"
+name = "Licences revocable at will"
+event_types = ["decree_property"]
+min_intensity = 2
+
+[[pillars.levels]]
+id = "property_3"
+name = "Assets seized without compensation"
+event_types = ["decree_property"]
+min_intensity = 3
+
+[[pillars.levels]]
+id = "property_4"
+name = "Favoured firms receive monopolies"
+event_types = ["decree_property"]
+min_intensity = 4
+
+[[pillars.levels]]
+id = "property_5"
+name = "Every sale needs the mayor's approval"
+event_types = ["decree_property"]
+min_intensity = 5
+
+[[pillars.levels]]
+id = "property_6"
+name = "All property at the mayor's disposal"
+event_types = ["decree_property"]
+min_intensity = 6
+
+[[pillars]]
+id = "civil"
+name = "Civil liberties and control of security"
+protects = "fear of expressing dissent"
+custodians = ["law_enforcement"]
+
+[[pillars.levels]]
+id = "civil_1"
+name = "A curfew in one district"
+event_types = ["decree_civil"]
+min_intensity = 1
+
+[[pillars.levels]]
+id = "civil_2"
+name = "Public assembly needs a permit"
+event_types = ["decree_civil"]
+min_intensity = 2
+
+[[pillars.levels]]
+id = "civil_3"
+name = "Surveillance of citizens"
+event_types = ["decree_civil"]
+min_intensity = 3
+
+[[pillars.levels]]
+id = "civil_4"
+name = "Arrest without charge"
+event_types = ["decree_civil"]
+min_intensity = 4
+
+[[pillars.levels]]
+id = "civil_5"
+name = "A militia replaces the police"
+event_types = ["decree_civil"]
+min_intensity = 5
+
+[[pillars.levels]]
+id = "civil_6"
+name = "Total control of security"
+event_types = ["decree_civil"]
+min_intensity = 6
+

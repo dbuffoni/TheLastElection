@@ -1,0 +1,349 @@
+# Parameter registry: group 'ties'. One table per hyperparameter (see docs/parameters.md).
+
+[g_w]
+symbol      = "g_w"
+spec        = "8.2"
+description = "Tie gain per shared event"
+default     = 0.15
+range       = [0.05, 0.4]
+scale       = "linear"
+class       = "free"
+stage       = 1
+introduced  = 3
+module      = "systems.ties"
+status      = "provisional"
+rationale   = "From 0.1 to 0.5 in 4-5 shared events"
+
+[w_0]
+symbol      = "w_0"
+spec        = "8.2"
+description = "Initial intensity of a new tie"
+default     = 0.1
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 3
+module      = "systems.ties"
+status      = "provisional"
+rationale   = "An encounter is weak"
+
+[w_fam]
+symbol      = "w_fam"
+spec        = "8.2"
+description = "Initial intensity of a family tie"
+default     = 0.8
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 3
+module      = "systems.ties"
+status      = "provisional"
+rationale   = "Strong but not maximal"
+
+[theta_stab_in]
+symbol      = "θ_stab,in"
+spec        = "8.2"
+description = "Tie stabilization threshold"
+default     = 0.4
+range       = [0.25, 0.6]
+scale       = "linear"
+class       = "free"
+stage       = 1
+introduced  = 3
+module      = "systems.ties"
+status      = "provisional"
+rationale   = "Three shared events from w_0"
+
+[theta_stab_out]
+symbol      = "θ_stab,out"
+spec        = "8.2"
+description = "Tie destabilization threshold"
+default     = 0.25
+scale       = "linear"
+class       = "derived"
+stage       = 0
+introduced  = 3
+module      = "systems.ties"
+status      = "provisional"
+formula     = "0.625 * theta_stab_in"
+rationale   = "Hysteresis"
+
+[G_w]
+symbol      = "G_w"
+spec        = "8.2"
+description = "Grace before tie decay (days)"
+default     = 45.0
+range       = [15, 120]
+scale       = "linear"
+class       = "free"
+stage       = 1
+introduced  = 3
+module      = "systems.ties"
+status      = "provisional"
+rationale   = "Six cadences without contact"
+
+[h_w]
+symbol      = "h_w"
+spec        = "8.2"
+description = "Half-life of tie intensity for inactivity (days)"
+default     = 60.0
+range       = [20, 200]
+scale       = "log"
+class       = "free"
+stage       = 1
+introduced  = 3
+module      = "systems.ties"
+status      = "provisional"
+
+[theta_w_out]
+symbol      = "θ_w,out"
+spec        = "8.2"
+description = "Exit from the network"
+default     = 0.15
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 3
+module      = "systems.ties"
+status      = "provisional"
+rationale   = "Just above the value of a new tie"
+
+[B_bond]
+symbol      = "B_bond"
+spec        = "8.2"
+description = "Involved count beyond which event ties form only within a circle"
+default     = 30
+scale       = "int"
+class       = "fixed"
+stage       = 0
+introduced  = 3
+module      = "systems.ties"
+status      = "provisional"
+rationale   = "In a crowd only those who already associate become tied"
+
+[theta_riv]
+symbol      = "θ_riv"
+spec        = "8.2"
+description = "Minimum |stance| of opposite stances for a rivalry"
+default     = 0.6667
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 3
+module      = "systems.ties"
+status      = "provisional"
+rationale   = "A mild divergence creates no enemies"
+
+[h_tr]
+symbol      = "h_tr"
+spec        = "8.2"
+description = "Half-life of continuous pull (days)"
+default     = 180.0
+range       = [60, 720]
+scale       = "log"
+class       = "free"
+stage       = 2
+introduced  = 4
+module      = "systems.exposure"
+status      = "provisional"
+rationale   = "Families converge over the term"
+
+[beta_fam]
+symbol      = "β_fam"
+spec        = "8.2"
+description = "Pull weight of family ties"
+default     = 1.0
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 4
+module      = "systems.exposure"
+status      = "provisional"
+
+[beta_pol]
+symbol      = "β_pol"
+spec        = "8.2"
+description = "Pull weight of political ties"
+default     = 0.8
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 4
+module      = "systems.exposure"
+status      = "provisional"
+
+[beta_aff]
+symbol      = "β_aff"
+spec        = "8.2"
+description = "Pull weight of affinity ties"
+default     = 0.6
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 4
+module      = "systems.exposure"
+status      = "provisional"
+
+[beta_riv]
+symbol      = "β_riv"
+spec        = "8.2"
+description = "Repulsion weight of rivalries"
+default     = 0.6
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 4
+module      = "systems.exposure"
+status      = "provisional"
+
+[beta_pro]
+symbol      = "β_pro"
+spec        = "8.2"
+description = "Pull weight of professional ties"
+default     = 0.0
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 4
+module      = "systems.exposure"
+status      = "provisional"
+rationale   = "Acts only on the single event"
+
+[chi_fam]
+symbol      = "χ_fam"
+spec        = "8.2"
+description = "Contagion factor, family"
+default     = 1.0
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 4
+module      = "systems.exposure"
+status      = "provisional"
+
+[chi_aff]
+symbol      = "χ_aff"
+spec        = "8.2"
+description = "Contagion factor, affinity"
+default     = 0.8
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 4
+module      = "systems.exposure"
+status      = "provisional"
+
+[chi_pol]
+symbol      = "χ_pol"
+spec        = "8.2"
+description = "Contagion factor, political"
+default     = 0.8
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 4
+module      = "systems.exposure"
+status      = "provisional"
+
+[chi_pro]
+symbol      = "χ_pro"
+spec        = "8.2"
+description = "Contagion factor, professional"
+default     = 0.5
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 4
+module      = "systems.exposure"
+status      = "provisional"
+
+[chi_riv]
+symbol      = "χ_riv"
+spec        = "8.2"
+description = "Contagion factor, rivalry (repulsion)"
+default     = 0.6
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 4
+module      = "systems.exposure"
+status      = "provisional"
+
+[rho_tr]
+symbol      = "ρ_tr"
+spec        = "5.5"
+description = "Bounded-confidence radius (disabled when bounded_confidence = 0)"
+default     = 0.5
+range       = [0.1, 1.0]
+scale       = "linear"
+class       = "free"
+stage       = 2
+introduced  = 4
+module      = "systems.exposure"
+status      = "provisional"
+rationale   = "Candidate if bimodality collapses"
+
+[bounded_confidence]
+symbol      = "bc"
+spec        = "5.5"
+description = "Enable bounded-confidence pull (0/1)"
+default     = 0
+scale       = "int"
+class       = "fixed"
+stage       = 0
+introduced  = 4
+module      = "systems.exposure"
+status      = "provisional"
+rationale   = "Disabled by default"
+
+[routine_partners]
+symbol      = "routine_partners"
+spec        = "5.14"
+description = "Contacts each participant makes in one routine activity (slice v0)"
+default     = 3
+range       = [1, 8]
+scale       = "int"
+class       = "fixed"
+stage       = 1
+introduced  = 4
+module      = "systems.ties"
+status      = "provisional"
+
+[routine_step]
+symbol      = "routine_step"
+spec        = "5.14"
+description = "Ideological pull of a routine activity toward its design target, at full social weight (slice v0)"
+default     = 0.02
+range       = [0.0, 0.1]
+scale       = "linear"
+class       = "free"
+stage       = 2
+introduced  = 4
+module      = "systems.ties"
+status      = "provisional"
+
+[tie_preference]
+symbol      = "tie_preference"
+spec        = "5.14"
+description = "How much likelier an acquaintance is met than a stranger in a routine activity (slice v0)"
+default     = 30.0
+range       = [1.0, 200.0]
+scale       = "log"
+class       = "free"
+stage       = 1
+introduced  = 4
+module      = "systems.ties"
+status      = "provisional"
+
+[circle_homophily]
+symbol      = "circle_homophily"
+spec        = "1.5"
+description = "Share of the initial affinity ties that stay inside the citizen's circle (slice v0)"
+default     = 0.7
+range       = [0.0, 1.0]
+scale       = "linear"
+class       = "fixed"
+stage       = 1
+introduced  = 1
+module      = "systems.population"
+status      = "provisional"

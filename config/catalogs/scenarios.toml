@@ -1,0 +1,55 @@
+# Scenario catalog (spec 1.5). For the bimodal scenario axis1_mean is the absolute position of the two modes (+/-) and axis1_sd the sd of each mode.
+
+[[scenarios]]
+id = "industrial_secular"
+name = "Secular industrial town"
+axis1_mean = -0.5
+axis1_sd = 0.25
+bimodal = false
+wealth_mean = 0.6
+wealth_sd = 0.2
+cohesion_degree = 3.0
+cohesion_intensity = 0.4
+rivalries_per_citizen = 0.0
+tec = 0.7
+cul = 0.6
+q_high = 0.1
+q_low = 0.35
+age_shares = { minor = 0.17, young = 0.22, adult = 0.45, elderly = 0.16 }
+trade_multipliers = { worker = 1.8, clerk = 1.3, professional = 1.3, entrepreneur = 1.2, farmer = 0.2 }
+
+[[scenarios]]
+id = "rural_devout"
+name = "Devout rural town"
+axis1_mean = 0.6
+axis1_sd = 0.2
+bimodal = false
+wealth_mean = 0.25
+wealth_sd = 0.2
+cohesion_degree = 6.0
+cohesion_intensity = 0.6
+rivalries_per_citizen = 0.0
+tec = 0.3
+cul = 0.4
+q_high = 0.05
+q_low = 0.55
+age_shares = { minor = 0.22, young = 0.19, adult = 0.41, elderly = 0.18 }
+trade_multipliers = { farmer = 5.0, craftsman = 1.5, cleric = 2.0, worker = 0.6, professional = 0.5 }
+
+[[scenarios]]
+id = "mixed_polarised"
+name = "Mixed and polarized town"
+axis1_mean = 0.5
+axis1_sd = 0.33
+bimodal = true
+wealth_mean = 0.5
+wealth_sd = 0.2
+cohesion_degree = 2.0
+cohesion_intensity = 0.3
+rivalries_per_citizen = 1.0
+tec = 0.5
+cul = 0.5
+q_high = 0.12
+q_low = 0.4
+age_shares = { minor = 0.19, young = 0.21, adult = 0.44, elderly = 0.16 }
+

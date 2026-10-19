@@ -1,0 +1,65 @@
+# Parameter registry: group 'labels'. One table per hyperparameter (see docs/parameters.md).
+
+[eps]
+symbol      = "ε"
+spec        = "8.1"
+description = "Hysteresis margin of quantize"
+default     = 0.05
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 1
+module      = "core.labels"
+status      = "provisional"
+rationale   = "About a third of an S7 step"
+
+[h_agg]
+symbol      = "h_agg"
+spec        = "8.1"
+description = "Half-life of moving averages (days)"
+default     = 14.0
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 1
+module      = "systems.indicators"
+status      = "provisional"
+rationale   = "Compares with the last two cadences"
+
+[omega_citizen]
+symbol      = "ω_1"
+spec        = "8.1"
+description = "Aggregation weight of a citizen"
+default     = 1.0
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 1
+module      = "systems.indicators"
+status      = "provisional"
+
+[omega_elite]
+symbol      = "ω_3"
+spec        = "8.1"
+description = "Aggregation weight of an elite citizen"
+default     = 3.0
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 1
+module      = "systems.indicators"
+status      = "provisional"
+rationale   = "Elites weigh more than their number"
+
+[omega_inf]
+symbol      = "ω_5"
+spec        = "8.1"
+description = "Aggregation weight of an influencer"
+default     = 5.0
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 1
+module      = "systems.indicators"
+status      = "provisional"
+rationale   = "Influencers amplify"

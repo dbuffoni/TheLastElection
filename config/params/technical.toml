@@ -1,0 +1,102 @@
+# Parameter registry: group 'technical'. One table per hyperparameter (see docs/parameters.md).
+
+[n_lab]
+symbol      = "n_lab"
+spec        = "14"
+description = "Labels per S1 call"
+default     = 1
+scale       = "int"
+class       = "fixed"
+stage       = 0
+introduced  = 1
+module      = "engines.real"
+status      = "provisional"
+rationale   = "Safe fallback of one label per call"
+
+[n_retry]
+symbol      = "n_retry"
+spec        = "14"
+description = "Attempts before the fallback"
+default     = 2
+scale       = "int"
+class       = "fixed"
+stage       = 0
+introduced  = 1
+module      = "engines.real"
+status      = "provisional"
+
+[B_S1]
+symbol      = "B_S1"
+spec        = "14"
+description = "Involved count beyond which S1 works on a sample"
+default     = 40
+scale       = "int"
+class       = "fixed"
+stage       = 0
+introduced  = 7
+module      = "systems.events"
+status      = "provisional"
+
+[tau_sim]
+symbol      = "τ_sim"
+spec        = "14"
+description = "Noise of the simulated choice"
+default     = 0.15
+range       = [0.0, 0.5]
+scale       = "linear"
+class       = "free"
+stage       = 0
+introduced  = 7
+module      = "engines.simulated"
+status      = "provisional"
+rationale   = "Re-estimate on Jev's decisions"
+
+[lambda_HA]
+symbol      = "λ_HA"
+spec        = "14"
+description = "Aversion to extreme reactions in the simulated choice"
+default     = 0.2
+range       = [0.0, 0.6]
+scale       = "linear"
+class       = "free"
+stage       = 0
+introduced  = 7
+module      = "engines.simulated"
+status      = "provisional"
+
+[eps_t]
+symbol      = "ε_t"
+spec        = "14"
+description = "Ordinal noise of simulated S1 extraction"
+default     = 0.1
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 7
+module      = "engines.simulated"
+status      = "provisional"
+rationale   = "From reliability tests when available"
+
+[eps_err]
+symbol      = "ε_err"
+spec        = "14"
+description = "Simulated contract failures"
+default     = 0.02
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 1
+module      = "engines.simulated"
+status      = "provisional"
+
+[panel_every]
+symbol      = "panel_every"
+spec        = "5.1"
+description = "Days between citizen panel snapshots"
+default     = 30
+scale       = "int"
+class       = "fixed"
+stage       = 0
+introduced  = 2
+module      = "telemetry"
+status      = "provisional"

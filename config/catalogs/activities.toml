@@ -1,0 +1,52 @@
+# Daily activities (spec 5.14, 12.3). t_I: design target on the three ideological axes (omitted = masked).
+# Routine moves ideology and the community indices only, except activities with an explicit political stance (protest).
+
+[[activities]]
+id = "work"
+t_I = [nan, nan, nan]
+tec = 0.02
+cul = 0.0
+social_weight = 1.0
+professional = true
+
+[[activities]]
+id = "temple"
+t_I = [1.0, nan, 0.5]
+tec = 0.0
+cul = 0.03
+social_weight = 1.0
+professional = false
+
+[[activities]]
+id = "study"
+t_I = [-0.6, nan, -0.4]
+tec = 0.06
+cul = 0.04
+social_weight = 1.0
+professional = false
+
+[[activities]]
+id = "associations"
+t_I = [nan, nan, nan]
+tec = 0.0
+cul = 0.05
+social_weight = 1.5
+professional = false
+
+[[activities]]
+id = "leisure"
+t_I = [nan, nan, nan]
+tec = 0.0
+cul = 0.01
+social_weight = 1.0
+professional = false
+
+[[activities]]
+id = "protest"
+t_I = [nan, nan, nan]
+stance_mayor = -1.0
+tec = 0.0
+cul = 0.0
+social_weight = 2.0
+professional = false
+

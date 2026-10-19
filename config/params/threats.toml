@@ -1,0 +1,126 @@
+# Parameter registry: group 'threats'. One table per hyperparameter (see docs/parameters.md).
+
+[x_star_T]
+symbol      = "x*_T"
+spec        = "8.3"
+description = "Equilibrium threat pressure at full inflow"
+default     = 0.66
+range       = [0.4, 0.9]
+scale       = "linear"
+class       = "free"
+stage       = 4
+introduced  = 12
+module      = "systems.threats"
+status      = "provisional"
+
+[g_T]
+symbol      = "g_T"
+spec        = "8.3"
+description = "Threat pressure income (derived)"
+default     = 0.03
+scale       = "linear"
+class       = "derived"
+stage       = 0
+introduced  = 12
+module      = "systems.threats"
+status      = "provisional"
+formula     = "income_for_equilibrium(h_pT, x_star_T)"
+
+[w_M]
+symbol      = "w_M"
+spec        = "8.3"
+description = "Weight of custodians' discontent"
+default     = 0.6
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 12
+module      = "systems.threats"
+status      = "provisional"
+
+[w_H]
+symbol      = "w_H"
+spec        = "8.3"
+description = "Weight of faction hostility"
+default     = 0.4
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 12
+module      = "systems.threats"
+status      = "provisional"
+
+[nu_T]
+symbol      = "ν_T"
+spec        = "8.3"
+description = "Risk of starting a chain at full pressure (per day)"
+default     = 0.0333
+range       = [0.01, 0.1]
+scale       = "log"
+class       = "free"
+stage       = 4
+introduced  = 12
+module      = "systems.threats"
+status      = "provisional"
+rationale   = "One chain per month at max pressure"
+
+[gamma_T]
+symbol      = "γ_T"
+spec        = "8.3"
+description = "Exponent of the chain-start frequency"
+default     = 2.0
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 12
+module      = "systems.threats"
+status      = "provisional"
+
+[h_pT]
+symbol      = "h_pT"
+spec        = "8.3"
+description = "Threat pressure half-life (days)"
+default     = 45.0
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 12
+module      = "systems.threats"
+status      = "provisional"
+
+[delay_min]
+symbol      = "d_min"
+spec        = "8.3"
+description = "Minimum days between threat phases"
+default     = 7.0
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 12
+module      = "systems.threats"
+status      = "provisional"
+
+[delay_max]
+symbol      = "d_max"
+spec        = "8.3"
+description = "Maximum days between threat phases"
+default     = 21.0
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 12
+module      = "systems.threats"
+status      = "provisional"
+
+[theta_outcome]
+symbol      = "θ_outcome"
+spec        = "8.3"
+description = "Pressure needed for removal at the outcome"
+default     = 0.6
+range       = [0.4, 0.85]
+scale       = "linear"
+class       = "free"
+stage       = 4
+introduced  = 12
+module      = "systems.threats"
+status      = "provisional"

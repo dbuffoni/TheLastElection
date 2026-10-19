@@ -1,0 +1,10 @@
+# One-at-a-time sensitivity of the slice-v0 reaction parameters on the gradual and assault players.
+[campaign]
+name = "sensitivity_events"
+scenarios = ["industrial_secular"]
+strategies = ["gradual", "assault"]
+seeds = [1, 2, 3, 4]
+n = 200
+design = "oat"
+params = ["alpha_react", "alpha_aware", "fear_decree", "cost_decree", "k_contagion"]
+steps = 3          # values per parameter, spread over the registry range

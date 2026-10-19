@@ -1,0 +1,153 @@
+# Parameter registry: group 'capital'. One table per hyperparameter (see docs/parameters.md).
+
+[K_0]
+symbol      = "K_0"
+spec        = "8.2"
+description = "Initial political capital"
+default     = 0.3
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 10
+module      = "systems.capital"
+status      = "provisional"
+rationale   = "The new mayor has a small credit"
+
+[h_K]
+symbol      = "h_K"
+spec        = "8.2"
+description = "Political capital half-life (days)"
+default     = 60.0
+range       = [20, 200]
+scale       = "log"
+class       = "free"
+stage       = 4
+introduced  = 10
+module      = "systems.capital"
+status      = "provisional"
+
+[x_star_K]
+symbol      = "x*_K"
+spec        = "8.2"
+description = "Equilibrium capital at full support"
+default     = 0.8
+range       = [0.5, 0.95]
+scale       = "linear"
+class       = "free"
+stage       = 4
+introduced  = 10
+module      = "systems.capital"
+status      = "provisional"
+
+[g_0]
+symbol      = "g_0"
+spec        = "8.2"
+description = "Capital income at full support (derived)"
+default     = 0.0462
+scale       = "linear"
+class       = "derived"
+stage       = 0
+introduced  = 10
+module      = "systems.capital"
+status      = "provisional"
+formula     = "income_for_equilibrium(h_K, x_star_K)"
+rationale   = "4x the decay rate"
+
+[w_C]
+symbol      = "w_C"
+spec        = "8.2"
+description = "Weight of consensus"
+default     = 0.4
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 10
+module      = "systems.capital"
+status      = "provisional"
+
+[w_E]
+symbol      = "w_E"
+spec        = "8.2"
+description = "Weight of elite support"
+default     = 0.35
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 10
+module      = "systems.capital"
+status      = "provisional"
+
+[w_S]
+symbol      = "w_S"
+spec        = "8.2"
+description = "Weight of decree success"
+default     = 0.25
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 10
+module      = "systems.capital"
+status      = "provisional"
+
+[w_F]
+symbol      = "w_F"
+spec        = "8.2"
+description = "Weight of faction balance"
+default     = 0.2
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 10
+module      = "systems.capital"
+status      = "provisional"
+
+[c_0]
+symbol      = "c_0"
+spec        = "8.2"
+description = "Maximum cost of a decree"
+default     = 0.3
+range       = [0.1, 0.6]
+scale       = "linear"
+class       = "free"
+stage       = 4
+introduced  = 10
+module      = "systems.capital"
+status      = "provisional"
+rationale   = "At most three extreme universal decrees from full capital"
+
+[delta]
+symbol      = "δ"
+spec        = "8.2"
+description = "Maximum discount for erosion"
+default     = 0.5
+range       = [0.2, 0.8]
+scale       = "linear"
+class       = "free"
+stage       = 4
+introduced  = 10
+module      = "systems.capital"
+status      = "provisional"
+
+[kappa_D]
+symbol      = "κ_D"
+spec        = "8.2"
+description = "Deficit passage into threat pressure"
+default     = 1.0
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 10
+module      = "systems.capital"
+status      = "provisional"
+
+[kappa_def]
+symbol      = "κ_def"
+spec        = "8.2"
+description = "Effectiveness of defense"
+default     = 2.0
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 10
+module      = "systems.capital"
+status      = "provisional"

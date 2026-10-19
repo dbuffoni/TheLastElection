@@ -1,0 +1,138 @@
+# Parameter registry: group 'influencers'. One table per hyperparameter (see docs/parameters.md).
+
+[theta_z]
+symbol      = "θ_z"
+spec        = "8.2"
+description = "Influencer potential entry threshold"
+default     = 0.7
+range       = [0.5, 0.9]
+scale       = "linear"
+class       = "free"
+stage       = 3
+introduced  = 9
+module      = "systems.influencers"
+status      = "provisional"
+rationale   = "The most central and polarized 5-10%"
+
+[theta_share]
+symbol      = "θ_share"
+spec        = "8.2"
+description = "Minimum expected effective share"
+default     = 0.2
+range       = [0.1, 0.4]
+scale       = "linear"
+class       = "free"
+stage       = 3
+introduced  = 9
+module      = "systems.influencers"
+status      = "provisional"
+
+[K_inf_0]
+symbol      = "K_inf,0"
+spec        = "8.2"
+description = "Initial influence capital"
+default     = 0.4
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 9
+module      = "systems.influencers"
+status      = "provisional"
+
+[h_inf]
+symbol      = "h_inf"
+spec        = "8.2"
+description = "Influence capital half-life (days)"
+default     = 45.0
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 9
+module      = "systems.influencers"
+status      = "provisional"
+
+[x_star_inf]
+symbol      = "x*_inf"
+spec        = "8.2"
+description = "Equilibrium influence capital at full reach"
+default     = 0.8
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 9
+module      = "systems.influencers"
+status      = "provisional"
+
+[g_inf]
+symbol      = "g_inf"
+spec        = "8.2"
+description = "Influence capital income at full reach (derived)"
+default     = 0.0
+scale       = "linear"
+class       = "derived"
+stage       = 0
+introduced  = 9
+module      = "systems.influencers"
+status      = "provisional"
+formula     = "income_for_equilibrium(h_inf, x_star_inf)"
+rationale   = "4x the decay"
+
+[theta_K_out]
+symbol      = "θ_K,out"
+spec        = "8.2"
+description = "Influencer exit threshold"
+default     = 0.2
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 9
+module      = "systems.influencers"
+status      = "provisional"
+
+[D_inf]
+symbol      = "D_inf"
+spec        = "8.2"
+description = "Minimum dwell as influencer (days)"
+default     = 30.0
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 9
+module      = "systems.influencers"
+status      = "provisional"
+
+[rho_0]
+symbol      = "ρ_0"
+spec        = "8.2"
+description = "Catchment radius at zero capital"
+default     = 0.15
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 9
+module      = "systems.influencers"
+status      = "provisional"
+
+[rho_1]
+symbol      = "ρ_1"
+spec        = "8.2"
+description = "Catchment radius growth with capital"
+default     = 0.15
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 9
+module      = "systems.influencers"
+status      = "provisional"
+
+[beta_inf]
+symbol      = "β_inf"
+spec        = "8.2"
+description = "Pull weight of an influencer"
+default     = 0.6
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 9
+module      = "systems.influencers"
+status      = "provisional"

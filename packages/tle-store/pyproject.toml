@@ -1,0 +1,24 @@
+[project]
+name = "tle-store"
+version = "0.1.0"
+description = "Telemetry observers, Arrow run store and read library"
+requires-python = ">=3.12"
+dependencies = [
+    "tle-engine",
+    "tle-config",
+    "pyarrow>=15",
+    "polars>=1.0",
+    "duckdb>=1.0",
+    "xxhash>=3.4"
+]
+
+[tool.uv.sources]
+tle-engine = { workspace = true }
+tle-config = { workspace = true }
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/tle"]
