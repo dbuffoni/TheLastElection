@@ -68,8 +68,9 @@ def run(
     cat = load_catalogs()
     ov = {k: float(v) for k, v in (o.split("=") for o in override)}
     p = default_params().with_overrides(ov) if ov else default_params()
-    from tle.models import build_engines, load_specs, with_overrides
+    from tle.models import build_engines, load_dotenv, load_specs, with_overrides
 
+    load_dotenv()
     specs = load_specs(engines_file)
     if engine != "simulated":  # legacy flags: one server for both engines
         specs = with_overrides(

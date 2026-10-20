@@ -5,6 +5,7 @@ hosted API, or a local server hosting Jev). Settings come from an optional TOML 
 from __future__ import annotations
 
 import os
+import re
 import tomllib
 from dataclasses import dataclass, replace
 from pathlib import Path
@@ -35,6 +36,24 @@ class EngineSpec:
     )
 
 
+def load_dotenv(path: Path = Path(".env")) -> None:
+    """Read KEY=VALUE lines of a local env file into the environment (existing variables win). The file stays local."""
+    if not path.is_file():
+        return
+    for line in path.read_text().splitlines():
+        line = line.strip()
+        if line and not line.startswith("#") and "=" in line:
+            k, v = line.split("=", 1)
+            os.environ.setdefault(k.strip(), v.strip().strip("\"'"))
+
+
+def _expand(v):
+    """``${VAR}`` and ``${VAR:-default}`` in string values of the engines file."""
+    if not isinstance(v, str):
+        return v
+    return re.sub(r"\$\{(\w+)(?::-([^}]*))?\}", lambda m: os.environ.get(m.group(1), m.group(2) or ""), v)
+
+
 def load_specs(path: Path | None = None) -> dict[str, EngineSpec]:
     """``[s1]`` and ``[s2]`` tables of an engines file; a missing file or table means simulated."""
     out = {"s1": EngineSpec(), "s2": EngineSpec()}
@@ -43,7 +62,7 @@ def load_specs(path: Path | None = None) -> dict[str, EngineSpec]:
     data = tomllib.loads(Path(path).read_text())
     for k in out:
         if k in data:
-            out[k] = EngineSpec(**data[k])
+            out[k] = EngineSpec(**{a: _expand(b) for a, b in data[k].items()})
     return out
 
 
@@ -66,7 +85,9 @@ def build_engines(
             built[name] = SimulatedEngine(cat, p) if name == "s2" else sim
             info[name] = {"kind": "simulated"}
             continue
-        key = os.environ.get(spec.api_key_env, "not-needed") if spec.api_key_env else "not-needed"
+        key = os.environ.get(spec.api_key_env, "") if spec.api_key_env else "not-needed"
+        if not key:
+            raise ValueError(f"{name}: set {spec.api_key_env} (in the environment or in the local .env file)")
         if spec.kind == "jev":
             from .jev import DEFAULT_URL, JevBackend
 

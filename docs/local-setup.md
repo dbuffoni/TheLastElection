@@ -36,6 +36,11 @@ question. Tasks it cannot express (lists, free text) fall back to the simulated 
 `structured = false` in the file turns off strict `json_schema` for servers that do not support it (answers are still validated
 and retried). `api_key_env` names an environment variable that holds a key. The run manifest records which model served each engine.
 
+## OpenRouter for both engines
+`cp .env.example .env`, put your key in `OPENROUTER_API_KEY` (the `.env` file is git-ignored and stays local) and pick the
+models in `TLE_S1_MODEL` / `TLE_S2_MODEL`. Then `uv run tle run --engines config/engines.openrouter.toml --n 60 --cache runs/cache.jsonl`.
+S1 uses the Jev decision endpoint, S2 the chat-completions endpoint. Values in the engines file may use `${VAR}` or `${VAR:-default}`.
+
 ## Cost model
 Per turn the pipeline makes: 1 narration + K_opt(10) option extractions per event, plus one reaction choice per involved citizen
 (capped by `B_S1` = 40, the rest copy the nearest sampled citizen) and one daily-life choice per active citizen. Start with

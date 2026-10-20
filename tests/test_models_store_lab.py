@@ -215,3 +215,17 @@ def test_jev_backend_turns_contracts_into_questions():
 
     with pytest.raises(JevUnsupported):
         be.build("TASK: rank_event_types\nd\n\nINPUT:\n{}\n", e.schema("rank_event_types"))
+
+
+def test_engines_file_expands_environment_variables(tmp_path, monkeypatch):
+    from tle.models import load_dotenv, load_specs
+
+    (tmp_path / ".env").write_text("TLE_X_MODEL=from-env\n# c\n")
+    monkeypatch.delenv("TLE_X_MODEL", raising=False)
+    load_dotenv(tmp_path / ".env")
+    f = tmp_path / "e.toml"
+    f.write_text(
+        '[s1]\nkind = "jev"\nmodel = "${TLE_X_MODEL:-fallback}"\nbase_url = "${TLE_X_URL:-http://u}"\n'
+    )
+    s = load_specs(f)["s1"]
+    assert s.model == "from-env" and s.base_url == "http://u"
