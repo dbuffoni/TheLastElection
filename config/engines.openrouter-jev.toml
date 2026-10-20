@@ -1,0 +1,15 @@
+# S1 (Jev) and S2 (narrator) both on OpenRouter, configured from environment variables (see .env.example).
+# Use: uv run tle run --engines config/engines.openrouter.toml --n 60 --cache runs/cache.jsonl
+
+[s1]
+kind            = "jev"
+base_url        = "${TLE_S1_URL:-https://openrouter.ai/api/alpha/decisions}"
+model           = "${TLE_S1_MODEL:-typesafe/jev-1.14}"
+api_key_env     = "OPENROUTER_API_KEY"
+max_concurrency = 16
+
+[s2]
+kind        = "openai_compat"
+base_url    = "${TLE_S2_URL:-https://openrouter.ai/api/v1}"
+model       = "${TLE_S2_MODEL:-meta-llama/llama-3.3-70b-instruct}"
+api_key_env = "OPENROUTER_API_KEY"
