@@ -35,3 +35,12 @@ promote values by editing `config/params/technical.toml` after reading the repor
   support in 74% of the cases; the labels of the citizen explain little. This is a property of the real pipeline (prompt and
   option order), not of the mock, so the mock defaults were **not** moved to the fit: balance on a pipeline that ignores the
   citizen would be balance on a bug. Improving the S1 prompt (the citizen's labels first, shuffled options) comes first.
+
+## Second step: the S1 prompt (Jev) and what is still to verify
+The first bootstrap showed that Jev saw citizens as bare integers (`temperament: [0, 2, 0, 0]`) and an option list in a fixed order.
+`tle.models.prompts.describe_citizen` now turns the context into words (what each axis and each number means), and the Jev backend
+(a) puts the citizen in the state as words, (b) shuffles the options per request with a deterministic seed, (c) tells the model to pick what
+*this* citizen would pick and not the first or the most supportive option. The same description is used for chat-completions prompts.
+This is covered by a unit test with a fake transport. **It has not been measured against the real model yet**: the OpenRouter key used for the first
+bootstrap reached its daily budget. To measure it, record again (`tle run --engines config/engines.openrouter.toml --record ...`) and compare with
+`tle mocks fit`: the share of first-option choices (54% before) and the likelihood gain of the context-dependent utility should move.

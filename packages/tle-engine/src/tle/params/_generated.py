@@ -41,12 +41,12 @@ class VectorsParams:
     h_O: float = 60.0  # h_O: Opinion half-life (days)
     h_b: float = 730.0  # h_b: Half-life of the moving ideological base (days)
     f_max: float = 0.9  # f_max: Maximum fear
-    alpha_ind: float = 0.3  # α_ind: Indirect attenuation
+    alpha_ind: float = 0.366  # α_ind: Indirect attenuation
     alpha_c: float = 0.5  # α_c: Contagion attenuation
     sd_C_init: float = 0.3  # sd_C_init: Spread of character at generation (bipolar units, before label noise)
     C_max: float = 0.9  # C_max: Bound of character reachable by events (below 1: events alone never saturate it)
-    sigma_I: float = 0.115  # sigma_I: Idiosyncratic ideological drift of adults (bipolar units per sqrt(year))
-    h_O_council: float = 15.0  # h_O_council: Half-life of the opinion of the mayor of a councillor toward the alignment base (party discipline)
+    sigma_I: float = 0.126  # sigma_I: Idiosyncratic ideological drift of adults (bipolar units per sqrt(year))
+    h_O_council: float = 38.9  # h_O_council: Half-life of the opinion of the mayor of a councillor toward the alignment base (party discipline)
 
 @dataclass(frozen=True)
 class TiesParams:
@@ -103,15 +103,15 @@ class FactionsParams:
 class CapitalParams:
     K_0: float = 0.3  # K_0: Initial political capital
     h_K: float = 60.0  # h_K: Political capital half-life (days)
-    x_star_K: float = 0.8  # x*_K: Equilibrium capital at full support
+    x_star_K: float = 0.7159  # x*_K: Equilibrium capital at full support
     g_0: float = 0.0462  # g_0: Capital income at full support (derived)
     w_C: float = 0.4  # w_C: Weight of consensus
     w_E: float = 0.35  # w_E: Weight of elite support
     w_S: float = 0.25  # w_S: Weight of decree success
     w_F: float = 0.2  # w_F: Weight of faction balance
-    c_0: float = 0.318  # c_0: Maximum cost of a decree
-    delta: float = 0.5  # δ: Maximum discount for erosion
-    kappa_D: float = 5.622  # κ_D: Deficit passage into threat pressure
+    c_0: float = 0.2247  # c_0: Maximum cost of a decree
+    delta: float = 0.3122  # δ: Maximum discount for erosion
+    kappa_D: float = 7.995  # κ_D: Deficit passage into threat pressure
     kappa_def: float = 2.0  # κ_def: Effectiveness of defense
 
 @dataclass(frozen=True)
@@ -127,7 +127,7 @@ class InfluencersParams:
     rho_0: float = 0.15  # ρ_0: Catchment radius at zero capital
     rho_1: float = 0.15  # ρ_1: Catchment radius growth with capital
     beta_inf: float = 0.6  # β_inf: Pull weight of an influencer
-    nu_inf: float = 0.008  # nu_inf: Rate per day at which an influencer at full capital acts (slice v0)
+    nu_inf: float = 0.00842  # nu_inf: Rate per day at which an influencer at full capital acts (slice v0)
     w_z_c: float = 0.5  # w_z_c: Weight of centrality in the influencer potential
     w_z_pi: float = 0.3  # w_z_pi: Weight of temperament P in the influencer potential
     w_z_r: float = 0.2  # w_z_r: Weight of wealth rank in the influencer potential
@@ -159,9 +159,9 @@ class EconomyParams:
 
 @dataclass(frozen=True)
 class PillarsParams:
-    theta_0: float = 0.255  # θ_0: Resistance tolerated at the first level
-    theta_1: float = 0.16  # θ_1: Reduction of tolerated resistance down to the fall
-    theta_down: float = 0.54  # θ_down: Resistance that causes demotion
+    theta_0: float = 0.2449  # θ_0: Resistance tolerated at the first level
+    theta_1: float = 0.1466  # θ_1: Reduction of tolerated resistance down to the fall
+    theta_down: float = 0.6165  # θ_down: Resistance that causes demotion
     n_council: int = 12  # n_council: Number of councillors
     q_maj: float = 0.6  # q_maj: Initial majority share of the council
     omega_cust: float = 5.0  # ω_cust: Weight of custodians in the resistance
@@ -169,16 +169,16 @@ class PillarsParams:
 
 @dataclass(frozen=True)
 class ThreatsParams:
-    x_star_T: float = 0.739  # x*_T: Equilibrium threat pressure at full inflow
+    x_star_T: float = 0.7338  # x*_T: Equilibrium threat pressure at full inflow
     g_T: float = 0.03  # g_T: Threat pressure income (derived)
-    w_M: float = 0.826  # w_M: Weight of custodians' discontent
+    w_M: float = 0.7016  # w_M: Weight of custodians' discontent
     w_H: float = 0.4  # w_H: Weight of faction hostility
-    nu_T: float = 0.295  # ν_T: Risk of starting a chain at full pressure (per day)
+    nu_T: float = 0.318  # ν_T: Risk of starting a chain at full pressure (per day)
     gamma_T: float = 2.0  # γ_T: Exponent of the chain-start frequency
     h_pT: float = 81.5  # h_pT: Threat pressure half-life (days)
-    delay_min: float = 7.0  # d_min: Minimum days between threat phases
+    delay_min: float = 4.515  # d_min: Minimum days between threat phases
     delay_max: float = 21.0  # d_max: Maximum days between threat phases
-    theta_outcome: float = 0.5  # θ_outcome: Pressure needed for removal at the outcome
+    theta_outcome: float = 0.4948  # θ_outcome: Pressure needed for removal at the outcome
 
 @dataclass(frozen=True)
 class EventsParams:
@@ -197,18 +197,18 @@ class EventsParams:
     n_log: int = 20  # n_log: Recent event log size per citizen
     beta_det: float = 0.1667  # β_det: Salience bonus for determinant events
     beta_may: float = 0.1667  # β_may: Salience bonus when the mayor is actor or target
-    alpha_react: float = 2.8  # alpha_react: Opinion pull per reaction at full intensity (slice v0)
-    alpha_direct: float = 0.61  # alpha_direct: Pull of the mayor's opinion per decree at full aggressiveness (slice v0)
+    alpha_react: float = 2.36  # alpha_react: Opinion pull per reaction at full intensity (slice v0)
+    alpha_direct: float = 0.846  # alpha_direct: Pull of the mayor's opinion per decree at full aggressiveness (slice v0)
     alpha_ideo: float = 0.08  # alpha_ideo: Ideology pull per reaction at full intensity (slice v0)
     k_wealth: float = 0.03  # k_wealth: Wealth shift per unit of economic effect and intensity (slice v0)
     h_fear: float = 60.0  # h_fear: Half-life of fear (days)
     fear_decree: float = 0.25  # fear_decree: Fear raised by a decree per unit of aggressiveness (slice v0)
     persuade: float = 0.12  # persuade: Opinion pull of a private message (slice v0)
-    k_contagion: float = 0.005  # k_contagion: Rate of opinion contagion through ties per day (slice v0)
+    k_contagion: float = 0.00479  # k_contagion: Rate of opinion contagion through ties per day (slice v0)
     cost_decree: float = 0.15  # cost_decree: Capital cost of a decree per unit of aggressiveness (slice v0)
     cost_message: float = 0.01  # cost_message: Capital cost of a private message (slice v0)
     nu_news_decree: float = 1.0  # nu_news_decree: Mayor-decree reaction spread: share of adults involved when the predicate is 'any'
-    alpha_aware: float = 0.579  # alpha_aware: Pull of an attacked pillar's acceptance toward rejection per unit of aggressiveness (slice v0)
+    alpha_aware: float = 0.5184  # alpha_aware: Pull of an attacked pillar's acceptance toward rejection per unit of aggressiveness (slice v0)
 
 @dataclass(frozen=True)
 class DemographyParams:
@@ -222,7 +222,7 @@ class DemographyParams:
     mu_30: float = 0.001  # μ_30: Annual mortality at 30 years (doubles every 8 years)
     nu_couple: float = 0.5  # ν_couple: Couple formation (annual)
     delta_a_couple: int = 10  # Δa_couple: Maximum age difference in a couple (years)
-    nu_child: float = 0.06  # ν_child: Birth frequency per fertile couple (annual)
+    nu_child: float = 0.061  # ν_child: Birth frequency per fertile couple (annual)
     share_coupled_init: float = 0.5  # share_coupled_init: Share of eligible adults paired in couples at generation (slice v0)
 
 @dataclass(frozen=True)
