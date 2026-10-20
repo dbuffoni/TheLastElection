@@ -149,3 +149,20 @@ def test_run_one_is_deterministic_and_campaign_summarises(tmp_path):
     df = run_campaign(c, tmp_path, workers=1, telemetry=False)
     assert len(df) == 4 and set(summary(df)["strategy"]) == {"gradual", "assault"}
     assert len(band_report(df, load_bands())) >= 1
+
+
+def test_engines_are_configured_separately(tmp_path):
+    from tle.models import build_engines, load_specs, with_overrides
+    from tle.params import default_params
+
+    f = tmp_path / "engines.toml"
+    f.write_text(
+        '[s1]\nkind = "openai_compat"\nbase_url = "http://jev:9/v1"\nmodel = "jev-x"\nstructured = false\n'
+    )
+    specs = with_overrides(load_specs(f), s2_kind="openai_compat", s2_model="narrator")
+    eng, info = build_engines(catalogs(), default_params(), specs)
+    assert info["s1"] == {"kind": "openai_compat", "model": "jev-x", "base_url": "http://jev:9/v1"}
+    assert info["s2"]["model"] == "narrator" and eng.s1.backend.structured is False
+    assert eng.s1.backend.base_url != eng.s2.backend.base_url or eng.s1.backend.model != eng.s2.backend.model
+    _, sim = build_engines(catalogs(), default_params(), load_specs(None))
+    assert sim == {"s1": {"kind": "simulated"}, "s2": {"kind": "simulated"}}

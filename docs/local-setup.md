@@ -21,6 +21,17 @@ uv run tle runs show <run_id> --table execution     # calls / attempts / fallbac
 `packages/tle-models/src/tle/models/prompts.py` or use a larger model. Failed answers retry `n_retry` times (parameter) and then
 fall back to the simulated engine's rule, so the game never stops.
 
+## S1 and S2 on different models
+S1 (the closed-vocabulary classifier, Jev or a Jev-compatible model) and S2 (the narrator) are configured separately.
+Copy `config/engines.toml`, set `kind = "openai_compat"`, `base_url` and `model` per engine, then:
+```bash
+uv run tle run --engines config/engines.toml --strategy gradual --n 60 --cache runs/cache.jsonl
+# or by flags, e.g. Jev on a local server and S2 still simulated
+uv run tle run --s1-engine openai_compat --s1-base-url http://localhost:8000/v1 --s1-model <jev-name> --n 60
+```
+`structured = false` in the file turns off strict `json_schema` for servers that do not support it (answers are still validated
+and retried). `api_key_env` names an environment variable that holds a key. The run manifest records which model served each engine.
+
 ## Cost model
 Per turn the pipeline makes: 1 narration + K_opt(10) option extractions per event, plus one reaction choice per involved citizen
 (capped by `B_S1` = 40, the rest copy the nearest sampled citizen) and one daily-life choice per active citizen. Start with

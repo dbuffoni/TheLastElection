@@ -42,17 +42,24 @@ def run(
     n: int = 300,
     runs_dir: Path = Path("runs"),
     telemetry: bool = True,
-    engine: str = typer.Option("simulated", help="simulated | openai_compat"),
-    base_url: str = typer.Option("http://localhost:8000/v1", help="openai_compat endpoint"),
-    model: str = typer.Option("local-model", help="openai_compat model name"),
+    engine: str = typer.Option("simulated", help="simulated | openai_compat (both engines)"),
+    base_url: str = typer.Option("http://localhost:8000/v1", help="openai_compat endpoint (both engines)"),
+    model: str = typer.Option("local-model", help="openai_compat model name (both engines)"),
+    engines_file: Path | None = typer.Option(
+        None, "--engines", help="TOML with one table per engine, s1 and s2 (see config/engines.toml)"
+    ),
+    s1_engine: str | None = typer.Option(None, help="S1 kind: simulated | openai_compat"),
+    s1_base_url: str | None = typer.Option(None, help="S1 endpoint, e.g. a local Jev server"),
+    s1_model: str | None = typer.Option(None, help="S1 model name"),
+    s2_engine: str | None = typer.Option(None, help="S2 kind: simulated | openai_compat"),
+    s2_base_url: str | None = typer.Option(None, help="S2 endpoint"),
+    s2_model: str | None = typer.Option(None, help="S2 model name"),
     cache: Path | None = typer.Option(None, help="response cache file for real engines"),
     report: bool = typer.Option(False, help="also write the HTML population report"),
     override: list[str] = typer.Option([], "--set", help="parameter override name=value (repeatable)"),
 ):
     """Play one game with a simulated player and write its telemetry."""
     from tle.catalogs.loader import load_catalogs
-    from tle.engines.protocol import Engines
-    from tle.engines.simulated import SimulatedEngine
     from tle.loop.game import Game, play
     from tle.loop.strategies import STRATEGIES
     from tle.params import default_params, to_flat
@@ -61,17 +68,30 @@ def run(
     cat = load_catalogs()
     ov = {k: float(v) for k, v in (o.split("=") for o in override)}
     p = default_params().with_overrides(ov) if ov else default_params()
-    sim = SimulatedEngine(cat, p)
-    if engine == "simulated":
-        eng = Engines(sim, SimulatedEngine(cat, p))
-    else:
-        from tle.models import CachedEngine, OpenAICompatBackend, RealEngine
+    from tle.models import build_engines, load_specs, with_overrides
 
-        be = OpenAICompatBackend(base_url=base_url, model=model)
-        real = RealEngine(be, cat.vocab(), fallback=sim, n_retry=p.technical.n_retry)
-        eng = Engines(
-            CachedEngine(real, cache) if cache else real, CachedEngine(real, cache) if cache else real
+    specs = load_specs(engines_file)
+    if engine != "simulated":  # legacy flags: one server for both engines
+        specs = with_overrides(
+            specs,
+            s1_kind=engine,
+            s2_kind=engine,
+            s1_base_url=base_url,
+            s2_base_url=base_url,
+            s1_model=model,
+            s2_model=model,
         )
+    specs = with_overrides(
+        specs,
+        s1_kind=s1_engine,
+        s1_base_url=s1_base_url,
+        s1_model=s1_model,
+        s2_kind=s2_engine,
+        s2_base_url=s2_base_url,
+        s2_model=s2_model,
+    )
+    eng, engine_info = build_engines(cat, p, specs, cache)
+    engine = "simulated" if all(v["kind"] == "simulated" for v in engine_info.values()) else "real"
     obs, store = [], None
     if telemetry:
         run_id = f"{scenario}-{strategy}-s{seed}"
@@ -85,6 +105,7 @@ def run(
                 "overrides": ov,
                 "n": n,
                 "engine": engine,
+                "engines": engine_info,
             },
             to_flat(p),
         )
