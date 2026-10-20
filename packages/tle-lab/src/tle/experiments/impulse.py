@@ -72,7 +72,9 @@ def impulse_test(
 ) -> ImpulseResult:
     """Run the test from the current state of ``game`` (normally right after the warm-up); ``game`` is not modified."""
     data = game.save()
-    treated, control = Game.load(data, game.cat, game.p), Game.load(data, game.cat, game.p)
+    # "one standard event and then nothing": no other event, so that the only difference is the event under test
+    quiet = game.p.with_overrides({"nu_exo": 0.0, "nu_fac": 0.0, "nu_found": 0.0, "nu_inf": 0.0})
+    treated, control = Game.load(data, game.cat, quiet), Game.load(data, game.cat, quiet)
     w = treated.w
     rng = GameRng(w.seed).child("impulse")
     ad = np.flatnonzero(w.adults(game.p.demography.a_adult))

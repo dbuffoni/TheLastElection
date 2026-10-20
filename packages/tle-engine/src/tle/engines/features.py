@@ -17,6 +17,9 @@ def features_to_arrays(feats: list[OptionFeatureOut]) -> OptionFeatures:
     F = np.zeros(K)
     stance = np.full((K, 8), np.nan)
     for k, f in enumerate(feats):
+        if f is None:  # the option could not be read (13.3): fully masked, medium strength
+            F[k] = 0.5
+            continue
         t_I[k] = [bip_value_of(f.t_I1), bip_value_of(f.t_I2), bip_value_of(f.t_I3)]
         t_C[k] = [bip_value_of(f.t_C1), bip_value_of(f.t_C2), bip_value_of(f.t_C3)]
         e_r[k] = bip_value_of(f.e_r)
