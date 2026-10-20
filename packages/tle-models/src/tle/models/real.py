@@ -46,7 +46,15 @@ class RealEngine:
             self._schemas[task] = export_schema(TASKS[task].output_model, self.vocab)
         return self._schemas[task]
 
+    @property
+    def concurrency(self) -> int:
+        return int(getattr(self.backend, "max_concurrency", 1))
+
     def call(self, task: str, inp: BaseModel, rng: GameRng) -> BaseModel | None:
+        if task == "classify_decree" and getattr(inp, "_structure", None) is not None:
+            return (
+                inp._structure
+            )  # a simulated player already structured the decree (15.5): nothing to ask the model
         spec = TASKS[task]
         system, user = render(task, inp)
         with self._lock:
@@ -121,7 +129,7 @@ class RealEngine:
 
     def _map(self, fn, n: int) -> list[int]:
         """Per-citizen calls; in parallel when the backend allows it (results keep their order)."""
-        workers = int(getattr(self.backend, "max_concurrency", 1))
+        workers = self.concurrency
         if workers <= 1 or n <= 1:
             return [fn(i) for i in range(n)]
         from concurrent.futures import ThreadPoolExecutor

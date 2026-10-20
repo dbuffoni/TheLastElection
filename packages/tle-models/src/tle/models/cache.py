@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import threading
 from pathlib import Path
 
 from pydantic import BaseModel
@@ -17,6 +18,7 @@ class CachedEngine:
         self.inner, self.name, self.path = inner, name, path
         self.store: dict[str, str] = {}
         self.hits = self.misses = 0
+        self._lock = threading.Lock()
         if path and path.exists():
             for line in path.read_text().splitlines():
                 k, v = json.loads(line)
@@ -36,10 +38,11 @@ class CachedEngine:
         self.misses += 1
         out = self.inner.call(task, inp, rng)
         if out is not None:
-            self.store[k] = out.model_dump_json()
-            if self.path:
-                with self.path.open("a") as f:
-                    f.write(json.dumps([k, self.store[k]]) + "\n")
+            with self._lock:
+                self.store[k] = out.model_dump_json()
+                if self.path:
+                    with self.path.open("a") as f:
+                        f.write(json.dumps([k, self.store[k]]) + "\n")
         return out
 
     def __getattr__(self, item):  # batched choices and accounting go straight to the inner engine

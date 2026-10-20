@@ -25,6 +25,18 @@ introduced  = 1
 module      = "engines.real"
 status      = "provisional"
 
+[B_gen]
+symbol      = "B_gen"
+spec        = "14"
+description = "Citizens described per S2 call when a real model writes them (a small model loses count on long lists)"
+default     = 8
+scale       = "int"
+class       = "fixed"
+stage       = 0
+introduced  = 3
+module      = "systems.population"
+status      = "provisional"
+
 [B_S1]
 symbol      = "B_S1"
 spec        = "14"

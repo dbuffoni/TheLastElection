@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import time
+import urllib.error
 import urllib.request
 from collections.abc import Callable
 from dataclasses import dataclass, field
@@ -78,6 +79,8 @@ class OpenAICompatBackend:
     timeout: float = 120.0
     name: str = "openai_compat"
     structured: bool = True
+    max_concurrency: int = 8  # parallel per-citizen requests
+    retries_429: int = 4  # rate-limited requests wait 1, 2, 4... seconds and try again
     transport: Transport = _urllib_transport
 
     def complete(self, system, user, schema, temperature=0.0, seed=None) -> Completion:
@@ -94,12 +97,19 @@ class OpenAICompatBackend:
                 "json_schema": {"name": "answer", "strict": True, "schema": schema},
             }
         t0 = time.perf_counter()
-        raw = self.transport(
-            self.base_url.rstrip("/") + "/chat/completions",
-            {"Content-Type": "application/json", "Authorization": f"Bearer {self.api_key}"},
-            json.dumps(payload).encode(),
-            self.timeout,
-        )
+        for k in range(self.retries_429 + 1):
+            try:
+                raw = self.transport(
+                    self.base_url.rstrip("/") + "/chat/completions",
+                    {"Content-Type": "application/json", "Authorization": f"Bearer {self.api_key}"},
+                    json.dumps(payload).encode(),
+                    self.timeout,
+                )
+                break
+            except urllib.error.HTTPError as e:
+                if e.code != 429 or k == self.retries_429:
+                    raise
+                time.sleep(2.0**k)
         data = json.loads(raw)
         usage = data.get("usage", {})
         return Completion(

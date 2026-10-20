@@ -108,6 +108,7 @@ def build_engines(
                 api_key=key,
                 timeout=spec.timeout,
                 structured=spec.structured,
+                max_concurrency=spec.max_concurrency,
                 name=f"openai_compat:{name}",
             )
         real = RealEngine(
