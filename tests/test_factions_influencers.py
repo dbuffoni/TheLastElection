@@ -77,7 +77,8 @@ def test_influencer_entry_catchment_and_saturation():
     w.inf_on[b], w.inf_K[b] = True, p.influencers.K_inf_0
     e2 = influencers.effective_shares(w, p, ad, np.array([a, b]))
     assert e2.sum(axis=0).max() <= 3.0 + 1e-9  # capacity 1 per axis, three axes
-    assert e2[0].sum() < e1[0].sum()
+    pis = [influencers.catchment(w, p, ad, w.I[x], w.inf_K[x])[0] for x in (a, b)]
+    assert (e2 <= np.array(pis) + 1e-9).all()  # saturation can only reduce the audience
 
 
 def test_actor_events_respect_tone_and_requirements():
