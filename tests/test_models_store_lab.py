@@ -93,10 +93,10 @@ def test_cache_replays_without_calling_the_model(tmp_path):
 def test_store_roundtrip_and_telemetry_is_a_pure_observer(tmp_path):
     g1 = small_game(2)
     store = RunStore(tmp_path, "r1", {"scenario": "x", "seed": 2}, {"a": 1}, flush_every=5)
-    play(g1, STRATEGIES["gradual"], 20, [TelemetryObserver(store)])
+    play(g1, STRATEGIES["random"], 20, [TelemetryObserver(store)])
     store.close()
     g2 = small_game(2)
-    play(g2, STRATEGIES["gradual"], 20)
+    play(g2, STRATEGIES["random"], 20)
     assert g1.w.digest() == g2.w.digest()  # telemetry off is bit-identical
     metrics = table("r1", "metrics", tmp_path)
     assert len(metrics) == 20 and "approval" in metrics.columns

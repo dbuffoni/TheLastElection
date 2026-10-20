@@ -136,7 +136,8 @@ def evaluate_targets(run: Run, specs: dict[str, MetricSpec] | None = None) -> pl
             )
             continue
         d, v = sub["day"].to_numpy(), sub[mid].to_numpy()
-        last = float(np.nanmean(v[-max(1, min(len(v), 5)) :]))
+        k = max(1, min(len(v), 5))
+        last = float(np.nanmean(v[:k] if t.at_after_days else v[-k:]))
         if t.kind == "drift_max":
             obs, ok = drift(d, v, t.window_days, s.scale_floor), None
             ok = bool(obs <= t.value) if obs == obs else None

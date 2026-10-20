@@ -11,8 +11,9 @@ description: Inspect run directories and campaign summaries (metrics, events, mi
 - In Python:
   ```python
   from tle.runs import table, sql
+
   table("industrial_secular-gradual-s1", "metrics", "runs")
-  sql("select scenario_id, avg(approval) from metrics group by 1")   # DuckDB over all runs; run_id column added
+  sql("select scenario_id, avg(approval) from metrics group by 1")  # DuckDB over all runs; run_id column added
   ```
 - Open runs (still writing) are readable up to the last flushed batch (`status.json` has the heartbeat).
 - Questions to ask of a run: when did capital collapse? which decree preceded a threat chain? did resistance track fear

@@ -151,3 +151,45 @@ introduced  = 4
 module      = "systems.exposure"
 status      = "provisional"
 rationale   = "A loved one's experience is worth half of one's own"
+
+[sd_C_init]
+symbol      = "sd_C_init"
+spec        = "17.2"
+description = "Spread of character at generation (bipolar units, before label noise)"
+default     = 0.3
+range       = [0.15, 0.5]
+scale       = "linear"
+class       = "free"
+stage       = 2
+introduced  = 3
+module      = "engines.simulated"
+status      = "provisional"
+rationale   = "Extreme character labels are rare; calibrated so that saturation stays below 5% (17.2)"
+
+[C_max]
+symbol      = "C_max"
+spec        = "17.2"
+description = "Bound of character reachable by events (below 1: events alone never saturate it)"
+default     = 0.9
+range       = [0.5, 1.0]
+scale       = "linear"
+class       = "free"
+stage       = 2
+introduced  = 3
+module      = "systems.reaction"
+status      = "provisional"
+rationale   = "Character is a slow trait; only generation can place a citizen at the extreme"
+
+[sigma_I]
+symbol      = "sigma_I"
+spec        = "17.3"
+description = "Idiosyncratic ideological drift of adults (bipolar units per sqrt(year))"
+default     = 0.13
+range       = [0.0, 0.4]
+scale       = "linear"
+class       = "free"
+stage       = 2
+introduced  = 3
+module      = "loop.turn"
+status      = "provisional"
+rationale   = "Personal experience moves individuals even when nothing happens in public life (mobility test, 17.3)"

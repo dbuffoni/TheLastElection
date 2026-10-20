@@ -96,6 +96,7 @@ def impulse_test(
             "econ": 0.0,
         },
     )
+    control.w.next_event_id = w.next_event_id  # same event ids afterwards, so every later draw is shared
     hop = _hops(w, involved)
     t_days, inv, oth, inv_i, oth_i = [], [], [], [], []
     by_hop_peak: dict[int, float] = {}

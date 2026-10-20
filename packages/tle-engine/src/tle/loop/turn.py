@@ -107,6 +107,11 @@ def step(
     w.B = relax(
         w.B, w.I, p.vectors.h_b, dt
     )  # ... and the base itself follows slowly: lived events leave a scar
+    drift = turn_rng.child("drift").normal(size=w.I.shape) * (p.vectors.sigma_I * (dt / 365.0) ** 0.5)
+    drift[~ad] = 0.0
+    w.I = np.clip(w.I + drift, -1.0, 1.0)  # personal experience: idiosyncratic ideological drift ...
+    w.B = np.clip(w.B + drift, -1.0, 1.0)  # ... which moves the base along, so it persists
+    w.O = relax(w.O, w.Ob, p.vectors.h_O, dt)  # opinions fade toward the personal baseline (h_O)
     w.fear = relax(w.fear, 0.0, p.events.h_fear, dt, 0.0, 1.0)
     w.r = relax(w.r, w.r0, 365.0, dt, 0.0, 1.0)
     # economic vote: opinion of the mayor follows the change in own wealth
@@ -209,7 +214,7 @@ def _handle_decree(w, cat, p, engines, rng, cd: m.ClassifyDecreeOut, text: str, 
                 3.0 * (w.O[involved, 1 + pi] + 0.25)
             )  # who accepts the erosion likes it, others do not
             target = np.where(stance >= 0, 1.0, -1.0)
-            k = np.abs(stance) * p.events.alpha_react * (0.3 + agg / 6.0)
+            k = np.abs(stance) * p.events.alpha_direct * (0.3 + agg / 6.0)
         else:
             target = np.ones(len(involved))
             k = np.full(len(involved), p.events.persuade * (0.5 + agg / 6.0))

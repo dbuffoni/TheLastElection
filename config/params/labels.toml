@@ -4,7 +4,7 @@
 symbol      = "ε"
 spec        = "8.1"
 description = "Hysteresis margin of quantize"
-default     = 0.05
+default     = 0.07
 scale       = "linear"
 class       = "fixed"
 stage       = 0

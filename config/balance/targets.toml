@@ -1,4 +1,4 @@
-# Balance targets: bands the simulation should land in. PLACEHOLDERS to be set by design (Daniele) after the
+# Balance targets: bands the simulation should land in. Confirmed by design (Daniele, 2026-10-20) after the
 # first local runs; the lab's band loss reads this file. Each band: metric over runs of one strategy.
 # kind = "rate"  -> fraction of runs with outcome == value;  kind = "mean" -> mean of a per-run summary field.
 
@@ -9,7 +9,7 @@ kind = "rate"
 value = "removed"
 lo = 0.60
 hi = 1.00
-status = "placeholder"
+status = "confirmed"
 note = "Reckless full assault should usually get the mayor removed."
 
 [[band]]
@@ -19,7 +19,7 @@ kind = "rate"
 value = "victory"
 lo = 0.15
 hi = 0.60
-status = "placeholder"
+status = "confirmed"
 note = "A patient, gradual player should be able to win, but not reliably."
 
 [[band]]
@@ -29,7 +29,7 @@ kind = "rate"
 value = "victory"
 lo = 0.00
 hi = 0.10
-status = "placeholder"
+status = "confirmed"
 note = "Random play should almost never dismantle democracy."
 
 [[band]]
@@ -39,5 +39,5 @@ kind = "mean"
 value = "pillars_fallen"
 lo = 1.0
 hi = 4.5
-status = "placeholder"
+status = "confirmed"
 note = "Populists should make partial progress."
