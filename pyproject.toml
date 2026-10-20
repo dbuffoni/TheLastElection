@@ -52,7 +52,7 @@ markers = [
 [tool.ruff]
 line-length = 110
 target-version = "py312"
-extend-exclude = ["packages/tle-engine/src/tle/params/_generated.py"]
+extend-exclude = ["packages/tle-engine/src/tle/params/_generated.py", "tools/calibration"]  # research scripts
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP", "NPY"]
