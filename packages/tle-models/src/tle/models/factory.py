@@ -29,8 +29,10 @@ class EngineSpec:
     structured: bool = (
         True  # False for servers without strict json_schema output (the validator and retries still apply)
     )
-    timeout: float = 120.0
+    timeout: float = 60.0
     temperature: float = 0.0
+    max_tokens: int = 2048  # cap on one answer's length (0 = the server's default)
+    batch_size: int = 10  # S1 items answered in one request (openai_compat only; 1 = one request per item)
     max_concurrency: int = (
         16  # parallel requests for per-citizen choices (jev; a vLLM server batches by itself)
     )
@@ -108,14 +110,20 @@ def build_engines(
                 api_key=key,
                 timeout=spec.timeout,
                 structured=spec.structured,
+                max_tokens=spec.max_tokens,
                 max_concurrency=spec.max_concurrency,
                 name=f"openai_compat:{name}",
             )
         real = RealEngine(
-            be, cat.vocab(), fallback=sim, n_retry=p.technical.n_retry, temperature=spec.temperature
+            be,
+            cat.vocab(),
+            fallback=sim,
+            n_retry=p.technical.n_retry,
+            temperature=spec.temperature,
+            batch=spec.batch_size if name == "s1" and spec.kind == "openai_compat" else 1,
         )
         built[name] = CachedEngine(real, cache) if cache else real
-        info[name] = {"kind": spec.kind, "model": spec.model, "base_url": spec.base_url}
+        info[name] = {"kind": spec.kind, "model": spec.model, "base_url": spec.base_url, "batch": real.batch}
     return Engines(built["s1"], built["s2"]), info
 
 

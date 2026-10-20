@@ -10,6 +10,7 @@ api_key_env = "OPENROUTER_API_KEY"
 
 [s2]
 kind        = "openai_compat"
+structured  = false   # free text under schema-constrained decoding can run away on some providers; answers are still validated
 base_url    = "${TLE_S2_URL:-https://openrouter.ai/api/v1}"
 model       = "${TLE_S2_MODEL:-meta-llama/llama-3.1-8b-instruct}"
 api_key_env = "OPENROUTER_API_KEY"

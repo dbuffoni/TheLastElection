@@ -161,7 +161,12 @@ def test_engines_are_configured_separately(tmp_path):
     )
     specs = with_overrides(load_specs(f), s2_kind="openai_compat", s2_model="narrator")
     eng, info = build_engines(catalogs(), default_params(), specs)
-    assert info["s1"] == {"kind": "openai_compat", "model": "jev-x", "base_url": "http://jev:9/v1"}
+    assert info["s1"] == {
+        "kind": "openai_compat",
+        "model": "jev-x",
+        "base_url": "http://jev:9/v1",
+        "batch": 10,
+    }
     assert info["s2"]["model"] == "narrator" and eng.s1.backend.structured is False
     assert eng.s1.backend.base_url != eng.s2.backend.base_url or eng.s1.backend.model != eng.s2.backend.model
     _, sim = build_engines(catalogs(), default_params(), load_specs(None))
@@ -229,3 +234,24 @@ def test_engines_file_expands_environment_variables(tmp_path, monkeypatch):
     )
     s = load_specs(f)["s1"]
     assert s.model == "from-env" and s.base_url == "http://u"
+
+
+def test_batch_answers_many_items_in_one_request_and_repairs_bad_items():
+    calls = []
+
+    def script(user):
+        calls.append(user)
+        if "BATCH" in user:
+            k = int(user.split("BATCH of ")[1].split()[0])
+            items = [{"activity": "work"} for _ in range(k)]
+            items[1] = {"activity": "not-an-activity"}  # one malformed item
+            return json.dumps({"items": items})
+        return json.dumps({"activity": "work"})
+
+    be = MockBackend({"choose_activity": script})
+    e = RealEngine(be, catalogs().vocab(), fallback=None, batch=4)
+    ins = [m.ChooseActivityIn(context={"i": i}) for i in range(6)]
+    out = e.call_batch("choose_activity", ins, [GameRng(i) for i in range(6)])
+    assert [o.activity for o in out] == ["work"] * 6
+    # 6 items -> 2 batch requests; the malformed item of each is asked again alone
+    assert sum("BATCH" in c for c in calls) == 2 and sum("BATCH" not in c for c in calls) == 2
