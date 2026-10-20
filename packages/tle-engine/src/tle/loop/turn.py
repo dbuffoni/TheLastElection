@@ -13,8 +13,9 @@ from tle.core.prims import count, express, rate, relax
 from tle.core.rng import GameRng
 from tle.engines.errors import UnclassifiableDecree, validate_text
 from tle.engines.protocol import Engines
+from tle.loop import actors
 from tle.params import Params
-from tle.systems import demography, indicators, power, ties
+from tle.systems import demography, factions, indicators, influencers, power, ties
 from tle.systems.predicate import match
 from tle.systems.reaction import EventResult, run_event
 from tle.world.catalogs import Catalogs
@@ -98,10 +99,17 @@ def step(
         if r:
             pkg.news.append(r)
 
+    for r_ in actors.generate(w, cat, p, engines, turn_rng.child("actors"), dt):
+        pkg.news.append(r_)
+
     # 4. contagion through ties, ideology drift, fear decay, wealth relaxation
     _contagion(w, p, dt)
     life = ties.daily_life(w, cat, p, engines, dt, turn_rng.child("life"))
     ties.ideology_pull(w, p, dt)
+    factions.pull(w, p, dt)
+    influencers.pull(w, p, dt)
+    factions.step(w, p, dt)
+    influencers.step(w, p, dt)
     w.stats["ties_dropped"] = w.stats.get("ties_dropped", 0) + ties.tie_dynamics(w, p, dt)
     w.I = relax(w.I, w.B, p.vectors.h_I, dt)  # ideology fades toward its base ...
     w.B = relax(
@@ -129,6 +137,7 @@ def step(
     w.turn += 1
     w.dt_prev = dt
     ind = indicators.compute(w, cat, p)
+    w.stats["fac_F"], w.stats["fac_H"] = factions.balance(w, p, express(w.O, w.fear))
     if not warmup:
         power.capital_step(w, p, dt, ind.get("support", 0.0))
         pkg.threats = power.threats_step(w, cat, p, dt, turn_rng.child("threats"))

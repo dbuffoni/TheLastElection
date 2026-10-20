@@ -288,3 +288,43 @@ spec = ["5.1"]
 unit = "share"
 stage = 1
 group = "network"
+
+[factions_alive]
+title = "Living factions"
+spec = ["5.7"]
+family = "continuous"
+unit = "factions"
+stage = 3
+group = "politics"
+
+[faction_member_share]
+title = "Adults who belong to at least one faction"
+spec = ["5.7"]
+family = "continuous"
+unit = "share"
+stage = 3
+group = "politics"
+
+[influencers_active]
+title = "Active influencers"
+spec = ["5.9"]
+family = "continuous"
+unit = "influencers"
+stage = 3
+group = "politics"
+
+[faction_balance]
+title = "Faction balance on political capital (F)"
+spec = ["5.8"]
+family = "continuous"
+unit = "signed share"
+stage = 3
+group = "politics"
+
+[faction_hostility]
+title = "Faction hostility feeding the threats (H)"
+spec = ["5.7"]
+family = "continuous"
+unit = "share"
+stage = 3
+group = "politics"

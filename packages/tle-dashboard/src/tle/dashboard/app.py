@@ -28,6 +28,7 @@ GROUPS = {
     "opinion": "Opinion, fear and silence",
     "wealth": "Wealth and classes",
     "network": "Social network",
+    "politics": "Factions and influencers",
 }
 MATRIX_METRICS = [
     "pop_size",

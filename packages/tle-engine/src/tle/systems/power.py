@@ -26,6 +26,9 @@ def theta_up(p: Params, level: int, n_levels: int) -> float:
 
 def capital_step(w: World, p: Params, dt: float, support: float) -> None:
     """Pattern B: capital grows toward 1 at the income g_0 scaled by the mayor's support."""
+    support = float(
+        np.clip(support + p.capital.w_F * w.stats.get("fac_F", 0.0), 0.0, 1.0)
+    )  # faction balance (5.8)
     income = p.capital.g_0 * (0.25 + 0.75 * support)
     w.K = float(w.K + (1.0 - w.K) * rate(income, dt))
 
@@ -73,7 +76,7 @@ def threats_step(w: World, cat: Catalogs, p: Params, dt: float, rng: GameRng) ->
     law = cat.pillar_ids().index("law")
     eroded = float(w.pillar_level[law] > 0 or w.pillar_level[cat.pillar_ids().index("civil")] > 0)
     drivers = (
-        opp_council,
+        opp_council + p.threats.w_H * w.stats.get("fac_H", 0.0),  # hostile factions add to the pressure (5.7)
         eroded * (indicators.resistance(w, p, law, ad) + 0.5 * float(np.mean(E[ad, 0] < -1 / 3))),
     )
     for t in (MOTION, JUDICIAL):

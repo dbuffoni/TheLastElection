@@ -81,6 +81,13 @@ def compute(w: World, p: Params, ref: PopRef | None = None) -> dict[str, float]:
     out["wealth_gini"] = gini(w.r[ad])
     for c, name in enumerate(("low", "middle", "high")):
         out[f"share_{name}"] = float(np.mean(w.cls[ad] == c))
+    out["factions_alive"] = float(w.fac_alive.sum())
+    out["faction_member_share"] = (
+        float(w.fac_member[ad][:, w.fac_alive].any(axis=1).mean()) if w.fac_alive.any() else 0.0
+    )
+    out["influencers_active"] = float((w.inf_on & ad).sum())
+    out["faction_balance"] = float(w.stats.get("fac_F", 0.0))
+    out["faction_hostility"] = float(w.stats.get("fac_H", 0.0))
     bn = w.bn
     out["degree_mean"] = float(bn / n) if n else nan
     out["stable_tie_share"] = float(w.bstable[:bn].mean()) if bn else 0.0
@@ -121,6 +128,11 @@ _ADULT_KEYS = (
         "share_low",
         "share_middle",
         "share_high",
+        "factions_alive",
+        "faction_member_share",
+        "influencers_active",
+        "faction_balance",
+        "faction_hostility",
         "degree_mean",
         "stable_tie_share",
         "tie_weight_mean",

@@ -16,6 +16,7 @@ from tle.core.rng import GameRng
 from tle.engines.features import features_to_arrays
 from tle.engines.protocol import ActorCtx, Engines, LabelContext, call_many
 from tle.params import Params
+from tle.systems import factions
 from tle.systems.population import age_band
 from tle.world.state import World
 
@@ -67,6 +68,9 @@ def run_event(
     hidden: dict,
     target: dict | None = None,
     parent: int | None = None,
+    can_found: bool = False,
+    actor_ideology: np.ndarray | None = None,
+    faction_slot: int | None = None,
 ) -> EventResult | None:
     """Run one event end to end and apply its effects to ``w``. Returns None if S2 fails (13.3)."""
     eid = w.next_event_id
@@ -82,7 +86,7 @@ def run_event(
         intensity=intensity,
         involved_group=f"{len(involved)} citizens",
         characters=[],
-        can_found=False,
+        can_found=can_found,
         n_options=p.events.K_opt,
     )
     inp = m.NarrateEventIn(seed=seed)
@@ -125,7 +129,7 @@ def run_event(
         sample = involved
     ctx = label_context(w, p, sample)
     choice_s = engines.s1.choose_reaction_many(
-        ctx, ActorCtx(kind=actor_kind), news, list(out.options), F, creng
+        ctx, ActorCtx(kind=actor_kind, ideology=actor_ideology), news, list(out.options), F, creng
     )
     if len(sample) < len(involved):
         rest = np.setdiff1d(involved, sample)
@@ -137,6 +141,12 @@ def run_event(
     else:
         ids, choice = sample, choice_s
     apply_reactions(w, p, ids, choice, F, float(uni_idx(intensity)) / 6.0)
+    if can_found and "faction_birth" in out.tags:
+        adh = [k for k, o in enumerate(out.options) if o.adherence]
+        if adh:
+            factions.found(w, p, engines, rng, news=news, option=adh[0], involved=ids, choice=choice, F=F)
+    if faction_slot is not None and w.fac_alive[faction_slot]:
+        factions.on_event(w, p, faction_slot, ids, choice, F)
     # indirect exposure (spec 8.1): adults outside the involved group hear of it through the news and react like a
     # random involved citizen, attenuated by alpha_ind
     rest_ad = np.setdiff1d(np.flatnonzero(w.adults(p.demography.a_adult)), ids)

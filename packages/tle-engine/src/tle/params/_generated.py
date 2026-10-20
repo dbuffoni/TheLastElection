@@ -94,6 +94,9 @@ class FactionsParams:
     theta_m_out: float = 0.15  # θ_m,out: Membership exit threshold
     h_c: float = 14.0  # h_c: Centroid inertia (days)
     beta_fac: float = 0.8  # β_fac: Pull weight of a faction
+    nu_found: float = 0.1  # nu_found: Rate per day at which a nascent movement stages a demonstration at full discontent (slice v0)
+    theta_found: float = 0.2  # theta_found: Share of adults opposed to the mayor above which nascent movements appear (slice v0)
+    nu_fac: float = 0.2  # nu_fac: Rate per day at which a faction at full strength acts (slice v0)
 
 @dataclass(frozen=True)
 class CapitalParams:
@@ -113,7 +116,7 @@ class CapitalParams:
 @dataclass(frozen=True)
 class InfluencersParams:
     theta_z: float = 0.7  # θ_z: Influencer potential entry threshold
-    theta_share: float = 0.2  # θ_share: Minimum expected effective share
+    theta_share: float = 0.3  # θ_share: Minimum expected effective share
     K_inf_0: float = 0.4  # K_inf,0: Initial influence capital
     h_inf: float = 45.0  # h_inf: Influence capital half-life (days)
     x_star_inf: float = 0.8  # x*_inf: Equilibrium influence capital at full reach
@@ -123,6 +126,11 @@ class InfluencersParams:
     rho_0: float = 0.15  # ρ_0: Catchment radius at zero capital
     rho_1: float = 0.15  # ρ_1: Catchment radius growth with capital
     beta_inf: float = 0.6  # β_inf: Pull weight of an influencer
+    nu_inf: float = 0.04  # nu_inf: Rate per day at which an influencer at full capital acts (slice v0)
+    w_z_c: float = 0.5  # w_z_c: Weight of centrality in the influencer potential
+    w_z_pi: float = 0.3  # w_z_pi: Weight of temperament P in the influencer potential
+    w_z_r: float = 0.2  # w_z_r: Weight of wealth rank in the influencer potential
+    reach_share: float = 0.1  # reach_share: Share of the population whose effective reach is worth the full income
 
 @dataclass(frozen=True)
 class CommunityParams:
@@ -325,6 +333,9 @@ GROUP_OF = {
     'theta_m_out': 'factions',
     'h_c': 'factions',
     'beta_fac': 'factions',
+    'nu_found': 'factions',
+    'theta_found': 'factions',
+    'nu_fac': 'factions',
     'K_0': 'capital',
     'h_K': 'capital',
     'x_star_K': 'capital',
@@ -348,6 +359,11 @@ GROUP_OF = {
     'rho_0': 'influencers',
     'rho_1': 'influencers',
     'beta_inf': 'influencers',
+    'nu_inf': 'influencers',
+    'w_z_c': 'influencers',
+    'w_z_pi': 'influencers',
+    'w_z_r': 'influencers',
+    'reach_share': 'influencers',
     'eta_X': 'community',
     'h_X': 'community',
     'h_kappa_TR': 'community',
