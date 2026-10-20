@@ -148,3 +148,124 @@ def table_html(df: pl.DataFrame, max_rows: int = 200, verdict_col: str | None = 
                 tds.append(f"<td>{html.escape(s)}</td>")
         rows.append(f"<tr>{''.join(tds)}</tr>")
     return f'{_CSS}<table class="tle-t"><tr>{head}</tr>{"".join(rows)}</table>'
+
+
+CLASS_COLORS = ["#3b6ea5", "#e0a100", "#d1495b"]  # low, middle, high
+
+
+def scatter_figure(panel: pl.DataFrame, x: str = "I1", y: str = "I2", title: str = "", width=420, height=380):
+    """Ideology scatter of one snapshot, coloured by class (citizen panel, spec 10.3)."""
+    p = figure(
+        width=width,
+        height=height,
+        title=title,
+        x_range=(-1.05, 1.05),
+        y_range=(-1.05, 1.05),
+        x_axis_label=x,
+        y_axis_label=y,
+    )
+    for c, col in enumerate(CLASS_COLORS):
+        d = panel.filter(pl.col("cls") == c)
+        if len(d):
+            p.scatter(
+                d[x].to_list(),
+                d[y].to_list(),
+                size=5,
+                color=col,
+                alpha=0.6,
+                legend_label=["low", "middle", "high"][c],
+            )
+    p.legend.location = "top_left"
+    p.legend.click_policy = "hide"
+    return p
+
+
+def histogram_figure(
+    values: Sequence[float],
+    title: str = "",
+    bins: int = 24,
+    lo: float = -1.0,
+    hi: float = 1.0,
+    width=420,
+    height=230,
+):
+    import numpy as np
+
+    h, e = np.histogram([v for v in values if _finite(v)], bins=bins, range=(lo, hi))
+    p = figure(width=width, height=height, title=title, tools="pan,wheel_zoom,reset")
+    p.quad(
+        top=h.tolist(),
+        bottom=0,
+        left=e[:-1].tolist(),
+        right=e[1:].tolist(),
+        fill_color=LINE,
+        line_color="white",
+        alpha=0.85,
+    )
+    return p
+
+
+def bar_figure(labels: Sequence, values: Sequence[float], title: str = "", width=420, height=230):
+    cats = [str(x) for x in labels]
+    p = figure(x_range=cats, width=width, height=height, title=title, tools="")
+    p.vbar(x=cats, top=list(values), width=0.8, color=LINE)
+    return p
+
+
+def curves_figure(
+    days: Sequence[float],
+    series: dict[str, Sequence[float]],
+    marks: dict[str, float] | None = None,
+    title: str = "",
+    width=520,
+    height=300,
+):
+    """Several curves over days with vertical marks (e.g. the half-life of the impulse test)."""
+    p = figure(width=width, height=height, title=title, x_axis_label="day since the impulse")
+    palette = ["#3b6ea5", "#d1495b", "#2a9d5c", "#8e7dbe"]
+    for (name, ys), col in zip(series.items(), palette):
+        p.line(
+            list(days),
+            [v if _finite(v) else float("nan") for v in ys],
+            color=col,
+            line_width=2,
+            legend_label=name,
+        )
+    for name, x in (marks or {}).items():
+        if _finite(x):
+            p.add_layout(Span(location=x, dimension="height", line_color="#888", line_dash="dashed"))
+    p.legend.location = "top_right"
+    return p
+
+
+def metric_png(
+    metrics: pl.DataFrame, metric: str, path, spec=None, verdict: str | None = None, command: str = ""
+) -> str:
+    """The same chart as ``metric_figure`` as a PNG, with its regeneration command in the footer (spec 10.4)."""
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    fig, ax = plt.subplots(figsize=(7, 3.6), dpi=130)
+    if metric in metrics.columns:
+        ax.plot(metrics["day"].to_list(), metrics[metric].to_list(), color=LINE, lw=1.8)
+    lo, hi = target_band(spec.target if spec is not None else None)
+    if lo is not None or hi is not None:
+        ax.axhspan(
+            lo if lo is not None else ax.get_ylim()[0],
+            hi if hi is not None else ax.get_ylim()[1],
+            color=VERDICT_COLORS["ok"],
+            alpha=0.12,
+        )
+    ax.set_title(spec.title if spec is not None else metric, fontsize=10)
+    ax.set_xlabel("day")
+    for s in ax.spines.values():
+        s.set_color(verdict_color(verdict))
+        s.set_linewidth(2.2 if verdict else 0.8)
+    if command:
+        fig.text(0.01, 0.01, command, fontsize=6, color="#666")
+    fig.tight_layout(rect=(0, 0.03, 1, 1))
+    fig.savefig(path)
+    plt.close(fig)
+    return str(path)

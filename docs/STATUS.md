@@ -58,8 +58,9 @@ Evidence: `passive` strategy (the "no player" baseline of spec 17.2), seeds 1-9 
 - **Dashboard** (`tle dash [--runs-dir runs] [--port 5006] [--live]`): packages `tle-viz` (Bokeh renderers, generic matrix, sparkline, tables) and
   `tle-dashboard` (Panel app). Views: run explorer (charts per metric group with target band, verdict frame and milestones, events around a day),
   run matrix (runs x metrics with sparklines and verdict frames), targets scorecard, outcomes per strategy/scenario, technical health (execution, warnings).
-  `--live` re-reads `runs/` every two seconds. Not yet: seed grid, parameter sweep and sensitivity matrices, stylized facts, impulse view,
-  citizen panel, network, calibration status, journal timeline, PNG export (`tle plot`), click-through between views.
+  `--live` re-reads `runs/` every two seconds. Also citizen panel (ideology scatter, histograms, mobility, class flows), network (degree distribution, tie mix), impulse view (runs the 17.3 test on demand),
+  calibration status (targets x runs) and `tle plot <run> <metric>` (PNG with its regeneration command). Not yet: seed grid, parameter sweep and sensitivity matrices,
+  stylized facts, journal timeline, click-through between views.
  (decisions to review against the spec)
 These are marked `slice v0` in `config/params/events.toml` (module `loop.*`).
 - Decrees act on the mayor's opinion through *direct exposure* only. Indirect (published news) and contagion-gated exposure are reduced to one tie-diffusion step on expressed opinion (`_contagion`).

@@ -56,6 +56,28 @@ def dash(
     raise typer.Exit(subprocess.call(cmd))
 
 
+@app.command("plot")
+def plot(
+    run: str,
+    metric: str,
+    out: Path = Path("plots"),
+    runs_dir: Path = Path("runs"),
+):
+    """Save a metric chart of one run as a PNG (target band, verdict frame, regeneration command in the footer)."""
+    from tle.analysis import population as pop
+    from tle.registry.metrics import load_metrics
+    from tle.runs import Run
+    from tle.viz import metric_png
+
+    r = Run(runs_dir / run)
+    spec = load_metrics().get(metric)
+    ver = {x["metric"]: x["verdict"] for x in pop.evaluate_targets(r).iter_rows(named=True)}
+    out.mkdir(parents=True, exist_ok=True)
+    path = out / f"{run}-{metric}.png"
+    cmd = f"uv run tle plot {run} {metric} --runs-dir {runs_dir}"
+    console.print(metric_png(r.metrics().df, metric, path, spec, ver.get(metric), cmd))
+
+
 @app.command()
 def run(
     strategy: str = "gradual",

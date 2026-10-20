@@ -46,13 +46,31 @@ def test_dashboard_app_builds_over_a_run_directory(tmp_path):
     _run(tmp_path)
     app = build_app(tmp_path, live=False)
     tabs = app[1]
-    assert [t for t in tabs._names] == [
+    assert list(tabs._names) == [
         "Run explorer",
         "Run matrix",
         "Targets",
         "Outcomes",
+        "Citizen panel",
+        "Network",
+        "Impulse",
+        "Calibration status",
         "Technical health",
     ]
-    app.get_root()  # renders every bound view of the first tab without error
+    for tab in tabs:  # every view renders over a real run without error
+        tab.get_root()
     empty = build_app(tmp_path / "none")  # no runs yet: the app still opens
     empty.get_root()
+
+
+def test_png_export_and_plot_command(tmp_path):
+    from tle.cli.main import app
+    from typer.testing import CliRunner
+
+    _run(tmp_path)
+    res = CliRunner().invoke(
+        app, ["plot", "r1", "pop_size", "--runs-dir", str(tmp_path), "--out", str(tmp_path / "p")]
+    )
+    assert res.exit_code == 0, res.output
+    png = tmp_path / "p" / "r1-pop_size.png"
+    assert png.read_bytes()[:4] == b"\x89PNG"

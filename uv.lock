@@ -3029,6 +3029,7 @@ dependencies = [
     { name = "tle-lab" },
     { name = "tle-models" },
     { name = "tle-store" },
+    { name = "tle-viz" },
     { name = "typer" },
 ]
 
@@ -3042,6 +3043,7 @@ requires-dist = [
     { name = "tle-lab", editable = "packages/tle-lab" },
     { name = "tle-models", editable = "packages/tle-models" },
     { name = "tle-store", editable = "packages/tle-store" },
+    { name = "tle-viz", editable = "packages/tle-viz" },
     { name = "typer", specifier = ">=0.12" },
 ]
 
@@ -3254,6 +3256,7 @@ version = "0.1.0"
 source = { editable = "packages/tle-viz" }
 dependencies = [
     { name = "bokeh" },
+    { name = "matplotlib" },
     { name = "polars" },
     { name = "tle-config" },
     { name = "tle-lab" },
@@ -3263,6 +3266,7 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "bokeh", specifier = ">=3.4" },
+    { name = "matplotlib", specifier = ">=3.8" },
     { name = "polars" },
     { name = "tle-config", editable = "packages/tle-config" },
     { name = "tle-lab", editable = "packages/tle-lab" },

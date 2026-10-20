@@ -11,6 +11,7 @@ dependencies = [
     "tle-lab",
     "tle-game",
     "tle-devtools",
+    "tle-viz",
     "typer>=0.12",
     "rich>=13"
 ]
@@ -24,6 +25,7 @@ tle-config = { workspace = true }
 tle-models = { workspace = true }
 tle-store = { workspace = true }
 tle-lab = { workspace = true }
+tle-viz = { workspace = true }
 tle-game = { workspace = true }
 tle-devtools = { workspace = true }
 
