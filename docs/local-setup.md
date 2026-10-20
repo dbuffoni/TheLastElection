@@ -43,11 +43,11 @@ S1 uses the Jev decision endpoint, S2 the chat-completions endpoint. Values in t
 
 ## Many items per request
 With `openai_compat` the S1 engine answers up to `batch_size` (default 10) independent items of the same task in one request:
-citizen profiles, per-citizen reactions and daily activities, option features. What the items share (the news and the options,
+citizen profiles, per-citizen reactions and daily activities, option features (with Jev: one request with one question per item and field, and the items in the state). What the items share (the news and the options,
 the anchor) is stated once; the answer is `{"items": [...]}` in the same order, validated item by item. An item the batch gets
 wrong is asked again alone, so it still gets the retries and the simulated fallback. Set `batch_size = 1` to turn it off.
 Requests have a hard deadline (`timeout`, 60 s) and a length cap (`max_tokens`, 2048): some providers loop under
-schema-constrained decoding of free text, so S2 runs with `structured = false` in `config/engines.openrouter.toml`.
+schema-constrained decoding of free text, so S2 has `max_tokens`, a 45 s deadline and a temperature of 0.7, and its prompts bound the length of every text.
 
 ## Cost model
 Per turn the pipeline makes: 1 narration + K_opt(10) option extractions per event, plus one reaction choice per involved citizen

@@ -132,7 +132,7 @@ class OpenAICompatBackend:
         data = json.loads(raw)
         usage = data.get("usage", {})
         return Completion(
-            text=data["choices"][0]["message"]["content"],
+            text=data["choices"][0]["message"].get("content") or "",
             in_tokens=usage.get("prompt_tokens", 0),
             out_tokens=usage.get("completion_tokens", 0),
             latency_s=time.perf_counter() - t0,

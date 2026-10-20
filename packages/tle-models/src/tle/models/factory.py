@@ -68,6 +68,14 @@ def load_specs(path: Path | None = None) -> dict[str, EngineSpec]:
     return out
 
 
+def catalog_hints(cat) -> dict[str, dict[str, str]]:
+    """Descriptions of the closed vocabularies, taken from the catalogs: a decision model needs to know what a value means."""
+    return {
+        "pillar": {"none": "No pillar of democracy is restricted", **{p.id: p.name for p in cat.pillars}},
+        "domain": {d.id: d.name for d in cat.domains},
+    }
+
+
 def _check(name: str, spec: EngineSpec) -> None:
     if spec.kind not in KINDS:
         raise ValueError(f"{name}: engine kind '{spec.kind}' must be one of {KINDS}")
@@ -120,7 +128,7 @@ def build_engines(
             fallback=sim,
             n_retry=p.technical.n_retry,
             temperature=spec.temperature,
-            batch=spec.batch_size if name == "s1" and spec.kind == "openai_compat" else 1,
+            batch=spec.batch_size if name == "s1" else 1,
         )
         built[name] = CachedEngine(real, cache) if cache else real
         info[name] = {"kind": spec.kind, "model": spec.model, "base_url": spec.base_url, "batch": real.batch}

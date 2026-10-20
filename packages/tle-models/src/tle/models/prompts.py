@@ -22,9 +22,20 @@ SYSTEM = {
 }
 
 
+# Extra constraints per task (small models repeat themselves without a length bound).
+NOTES = {
+    "generate_citizens": (
+        "Write exactly one entry per requested citizen, in order. Each description is ONE sentence of at most 25 words "
+        "(trade, temperament, political leanings); never repeat phrases."
+    ),
+    "narrate_event": "Keep every text under 60 words and every option under 20 words; never repeat phrases.",
+}
+
+
 def render(task: str, inp: BaseModel) -> tuple[str, str]:
     spec = TASKS[task]
-    user = f"TASK: {task}\n{spec.description}\n\nINPUT:\n{json.dumps(inp.model_dump(), ensure_ascii=False)}\n"
+    note = f"\n{NOTES[task]}" if task in NOTES else ""
+    user = f"TASK: {task}\n{spec.description}{note}\n\nINPUT:\n{json.dumps(inp.model_dump(), ensure_ascii=False)}\n"
     return SYSTEM[spec.engine], user
 
 
