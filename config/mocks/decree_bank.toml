@@ -1,0 +1,891 @@
+# Decrees labelled by a real S1 (tle mocks label-decrees). Bootstrap data of the simulated classifier.
+
+[[decrees]]
+text = "Close the town gazette"
+pillar = "press"
+domain = "press"
+aggressiveness = "high"
+tec_effect = "no effect"
+cul_effect = "negative"
+econ_effect = "no effect"
+predicate = { trade = "journalist" }
+
+[[decrees]]
+text = "Shut down critical newspapers"
+pillar = "press"
+domain = "press"
+aggressiveness = "very high"
+tec_effect = "no effect"
+cul_effect = "very negative"
+econ_effect = "no effect"
+predicate = { age_band = "adult", social_class = "high", trade = "public_official" }
+
+[[decrees]]
+text = "Journalists need a mayor's permit"
+pillar = "press"
+domain = "press"
+aggressiveness = "high"
+tec_effect = "no effect"
+cul_effect = "no effect"
+econ_effect = "no effect"
+predicate = { age_band = "adult", social_class = "low", trade = "journalist" }
+
+[[decrees]]
+text = "Newspapers must print the mayor's speech"
+pillar = "press"
+domain = "press"
+aggressiveness = "high"
+tec_effect = "no effect"
+cul_effect = "no effect"
+econ_effect = "no effect"
+predicate = { age_band = "adult", social_class = "high", trade = "journalist" }
+
+[[decrees]]
+text = "Ban reporting on the budget"
+pillar = "press"
+domain = "press"
+aggressiveness = "high"
+tec_effect = "no effect"
+cul_effect = "no effect"
+econ_effect = "no effect"
+predicate = { social_class = "high", trade = "journalist" }
+
+[[decrees]]
+text = "Fine papers that insult officials"
+pillar = "press"
+domain = "press"
+aggressiveness = "null"
+tec_effect = "no effect"
+cul_effect = "negative"
+econ_effect = "no effect"
+predicate = { age_band = "adult", social_class = "high", trade = "journalist" }
+
+[[decrees]]
+text = "Open a new town newspaper for the mayor"
+pillar = "none"
+domain = "press"
+aggressiveness = "low"
+tec_effect = "no effect"
+cul_effect = "no effect"
+econ_effect = "no effect"
+predicate = { age_band = "adult", social_class = "high", trade = "public_official" }
+
+[[decrees]]
+text = "Free press week with open interviews"
+pillar = "none"
+domain = "press"
+aggressiveness = "very low"
+tec_effect = "no effect"
+cul_effect = "positive"
+econ_effect = "no effect"
+predicate = { trade = "journalist" }
+
+[[decrees]]
+text = "Dissolve the council"
+pillar = "pluralism"
+domain = "institutions"
+aggressiveness = "high"
+tec_effect = "no effect"
+cul_effect = "no effect"
+econ_effect = "no effect"
+predicate = { social_class = "high", trade = "public_official" }
+
+[[decrees]]
+text = "Postpone the council elections"
+pillar = "pluralism"
+domain = "institutions"
+aggressiveness = "medium"
+tec_effect = "no effect"
+cul_effect = "no effect"
+econ_effect = "no effect"
+predicate = { social_class = "high", trade = "public_official" }
+
+[[decrees]]
+text = "Disqualify the opposition candidate"
+pillar = "pluralism"
+domain = "institutions"
+aggressiveness = "high"
+tec_effect = "no effect"
+cul_effect = "no effect"
+econ_effect = "no effect"
+predicate = { trade = "public_official" }
+
+[[decrees]]
+text = "Ban opposition meetings without a permit"
+pillar = "pluralism"
+domain = "security"
+aggressiveness = "high"
+tec_effect = "no effect"
+cul_effect = "no effect"
+econ_effect = "no effect"
+predicate = { social_class = "high", trade = "public_official" }
+
+[[decrees]]
+text = "Redraw the council seats in my favor"
+pillar = "pluralism"
+domain = "institutions"
+aggressiveness = "high"
+tec_effect = "no effect"
+cul_effect = "no effect"
+econ_effect = "no effect"
+predicate = { social_class = "high", trade = "public_official" }
+
+[[decrees]]
+text = "Allow two parties only"
+pillar = "pluralism"
+domain = "security"
+aggressiveness = "medium"
+tec_effect = "no effect"
+cul_effect = "no effect"
+econ_effect = "no effect"
+predicate = { trade = "magistrate" }
+
+[[decrees]]
+text = "The mayor chairs every council vote"
+pillar = "none"
+domain = "institutions"
+aggressiveness = "medium"
+tec_effect = "no effect"
+cul_effect = "no effect"
+econ_effect = "no effect"
+predicate = { social_class = "high", trade = "public_official" }
+
+[[decrees]]
+text = "Invite all parties to a town debate"
+pillar = "none"
+domain = "institutions"
+aggressiveness = "very low"
+tec_effect = "no effect"
+cul_effect = "no effect"
+econ_effect = "no effect"
+predicate = { trade = "public_official" }
+
+[[decrees]]
+text = "Judges answer to the mayor"
+pillar = "law"
+domain = "institutions"
+aggressiveness = "very low"
+tec_effect = "no effect"
+cul_effect = "no effect"
+econ_effect = "no effect"
+predicate = { social_class = "high", trade = "magistrate" }
+
+[[decrees]]
+text = "Remove the magistrate who ruled against me"
+pillar = "law"
+domain = "institutions"
+aggressiveness = "high"
+tec_effect = "no effect"
+cul_effect = "no effect"
+econ_effect = "no effect"
+predicate = { age_band = "adult", social_class = "high", trade = "magistrate" }
+
+[[decrees]]
+text = "Courts need mayoral approval to open cases"
+pillar = "law"
+domain = "institutions"
+aggressiveness = "high"
+tec_effect = "no effect"
+cul_effect = "no effect"
+econ_effect = "negative"
+predicate = { social_class = "high", trade = "magistrate" }
+
+[[decrees]]
+text = "The mayor can overturn any sentence"
+pillar = "law"
+domain = "institutions"
+aggressiveness = "very high"
+tec_effect = "no effect"
+cul_effect = "no effect"
+econ_effect = "no effect"
+predicate = { social_class = "high", trade = "public_official" }
+
+[[decrees]]
+text = "Create a loyal special court"
+pillar = "law"
+domain = "institutions"
+aggressiveness = "high"
+tec_effect = "no effect"
+cul_effect = "no effect"
+econ_effect = "no effect"
+predicate = { social_class = "high", trade = "magistrate" }
+
+[[decrees]]
+text = "Pay judges a bonus for fast trials"
+pillar = "law"
+domain = "institutions"
+aggressiveness = "medium"
+tec_effect = "no effect"
+cul_effect = "no effect"
+econ_effect = "slightly positive"
+predicate = { social_class = "high", trade = "magistrate" }
+
+[[decrees]]
+text = "Review the old court backlog"
+pillar = "none"
+domain = "institutions"
+aggressiveness = "low"
+tec_effect = "no effect"
+cul_effect = "no effect"
+econ_effect = "no effect"
+predicate = { trade = "magistrate" }
+
+[[decrees]]
+text = "Ban street protests"
+pillar = "civil"
+domain = "security"
+aggressiveness = "high"
+tec_effect = "no effect"
+cul_effect = "no effect"
+econ_effect = "no effect"
+predicate = { trade = "public_official" }
+
+[[decrees]]
+text = "Police may detain without a warrant"
+pillar = "civil"
+domain = "security"
+aggressiveness = "high"
+tec_effect = "no effect"
+cul_effect = "no effect"
+econ_effect = "no effect"
+predicate = { social_class = "high", trade = "law_enforcement" }
+
+[[decrees]]
+text = "Curfew for the whole town after eight"
+pillar = "civil"
+domain = "security"
+aggressiveness = "high"
+tec_effect = "no effect"
+cul_effect = "no effect"
+econ_effect = "negative"
+predicate = { trade = "public_official" }
+
+[[decrees]]
+text = "Fine anyone who criticizes the mayor"
+pillar = "civil"
+domain = "press"
+aggressiveness = "high"
+tec_effect = "no effect"
+cul_effect = "negative"
+econ_effect = "no effect"
+predicate = { trade = "public_official" }
+
+[[decrees]]
+text = "Arm the town guard and give it to me"
+pillar = "civil"
+domain = "security"
+aggressiveness = "very high"
+tec_effect = "no effect"
+cul_effect = "no effect"
+econ_effect = "no effect"
+predicate = { age_band = "adult", social_class = "high", trade = "law_enforcement" }
+
+[[decrees]]
+text = "Search any home without notice"
+pillar = "property"
+domain = "security"
+aggressiveness = "very high"
+tec_effect = "no effect"
+cul_effect = "very negative"
+econ_effect = "no effect"
+predicate = { trade = "law_enforcement" }
+
+[[decrees]]
+text = "Inspect the town guard budget"
+pillar = "none"
+domain = "security"
+aggressiveness = "low"
+tec_effect = "no effect"
+cul_effect = "no effect"
+econ_effect = "no effect"
+predicate = { social_class = "high", trade = "public_official" }
+
+[[decrees]]
+text = "Build a new police station"
+pillar = "none"
+domain = "security"
+aggressiveness = "medium"
+tec_effect = "no effect"
+cul_effect = "no effect"
+econ_effect = "slightly positive"
+predicate = { social_class = "high", trade = "public_official" }
+
+[[decrees]]
+text = "Seize idle land for the town"
+pillar = "property"
+domain = "economy"
+aggressiveness = "high"
+tec_effect = "no effect"
+cul_effect = "no effect"
+econ_effect = "slightly positive"
+predicate = { social_class = "high", trade = "public_official" }
+
+[[decrees]]
+text = "Take over the grain warehouse"
+pillar = "property"
+domain = "economy"
+aggressiveness = "high"
+tec_effect = "no effect"
+cul_effect = "no effect"
+econ_effect = "neutral"
+predicate = { social_class = "high", trade = "public_official" }
+
+[[decrees]]
+text = "Nationalize the largest mill"
+pillar = "property"
+domain = "economy"
+aggressiveness = "high"
+tec_effect = "no effect"
+cul_effect = "no effect"
+econ_effect = "neutral"
+predicate = { social_class = "high", trade = "public_official" }
+
+[[decrees]]
+text = "Merchants must sell at the mayor's price"
+pillar = "property"
+domain = "economy"
+aggressiveness = "high"
+tec_effect = "no effect"
+cul_effect = "no effect"
+econ_effect = "negative"
+predicate = { social_class = "middle", trade = "merchant" }
+
+[[decrees]]
+text = "Freeze all business licences"
+pillar = "property"
+domain = "economy"
+aggressiveness = "high"
+tec_effect = "no effect"
+cul_effect = "no effect"
+econ_effect = "very negative"
+predicate = { social_class = "high", trade = "public_official" }
+
+[[decrees]]
+text = "Open the market to concessions"
+pillar = "none"
+domain = "economy"
+aggressiveness = "medium"
+tec_effect = "no effect"
+cul_effect = "no effect"
+econ_effect = "positive"
+predicate = { trade = "merchant" }
+
+[[decrees]]
+text = "Cut taxes for farmers"
+pillar = "none"
+domain = "economy"
+aggressiveness = "medium"
+tec_effect = "no effect"
+cul_effect = "no effect"
+econ_effect = "slightly positive"
+predicate = { social_class = "low", trade = "farmer" }
+
+[[decrees]]
+text = "Tax the rich and pay the poor"
+pillar = "property"
+domain = "economy"
+aggressiveness = "high"
+tec_effect = "no effect"
+cul_effect = "no effect"
+econ_effect = "neutral"
+predicate = { trade = "public_official" }
+
+[[decrees]]
+text = "Levy a fee on the merchants"
+pillar = "property"
+domain = "economy"
+aggressiveness = "medium"
+tec_effect = "no effect"
+cul_effect = "no effect"
+econ_effect = "slightly negative"
+predicate = { social_class = "middle", trade = "merchant" }
+
+[[decrees]]
+text = "Grants for the poor"
+pillar = "none"
+domain = "economy"
+aggressiveness = "very low"
+tec_effect = "no effect"
+cul_effect = "no effect"
+econ_effect = "positive"
+predicate = { social_class = "low", trade = "public_official" }
+
+[[decrees]]
+text = "Subsidize the bakers"
+pillar = "none"
+domain = "economy"
+aggressiveness = "medium"
+tec_effect = "no effect"
+cul_effect = "no effect"
+econ_effect = "slightly positive"
+predicate = { social_class = "middle", trade = "craftsman" }
+
+[[decrees]]
+text = "Bonus for every public worker"
+pillar = "none"
+domain = "economy"
+aggressiveness = "medium"
+tec_effect = "no effect"
+cul_effect = "no effect"
+econ_effect = "slightly positive"
+predicate = { social_class = "middle", trade = "public_official" }
+
+[[decrees]]
+text = "Concessions for the mayor's friends"
+pillar = "law"
+domain = "institutions"
+aggressiveness = "low"
+tec_effect = "no effect"
+cul_effect = "no effect"
+econ_effect = "negative"
+predicate = { age_band = "adult", social_class = "high", trade = "public_official" }
+
+[[decrees]]
+text = "Give the harbour trade to my cousins"
+pillar = "property"
+domain = "economy"
+aggressiveness = "high"
+tec_effect = "no effect"
+cul_effect = "no effect"
+econ_effect = "neutral"
+predicate = { social_class = "high", trade = "merchant" }
+
+[[decrees]]
+text = "Free bread for the elderly"
+pillar = "none"
+domain = "demographics"
+aggressiveness = "very low"
+tec_effect = "no effect"
+cul_effect = "no effect"
+econ_effect = "slightly positive"
+predicate = { age_band = "elderly", social_class = "low", trade = "retiree" }
+
+[[decrees]]
+text = "Raise the wages of teachers"
+pillar = "none"
+domain = "economy"
+aggressiveness = "medium"
+tec_effect = "no effect"
+cul_effect = "no effect"
+econ_effect = "slightly positive"
+predicate = { age_band = "adult", social_class = "middle", trade = "teacher" }
+
+[[decrees]]
+text = "Revoke the grain monopoly"
+pillar = "none"
+domain = "economy"
+aggressiveness = "high"
+tec_effect = "no effect"
+cul_effect = "no effect"
+econ_effect = "positive"
+predicate = { trade = "merchant" }
+
+[[decrees]]
+text = "End the special licence of the mill owners"
+pillar = "property"
+domain = "economy"
+aggressiveness = "high"
+tec_effect = "no effect"
+cul_effect = "no effect"
+econ_effect = "negative"
+predicate = { social_class = "high", trade = "entrepreneur" }
+
+[[decrees]]
+text = "Open a new school"
+pillar = "none"
+domain = "institutions"
+aggressiveness = "low"
+tec_effect = "no effect"
+cul_effect = "no effect"
+econ_effect = "positive"
+predicate = { trade = "public_official" }
+
+[[decrees]]
+text = "Build a bridge over the river"
+pillar = "none"
+domain = "economy"
+aggressiveness = "medium"
+tec_effect = "positive"
+cul_effect = "no effect"
+econ_effect = "positive"
+predicate = { trade = "public_official" }
+
+[[decrees]]
+text = "Plant trees along the main road"
+pillar = "none"
+domain = "institutions"
+aggressiveness = "low"
+tec_effect = "no effect"
+cul_effect = "no effect"
+econ_effect = "no effect"
+predicate = { trade = "public_official" }
+
+[[decrees]]
+text = "Public festival on the town day"
+pillar = "none"
+domain = "institutions"
+aggressiveness = "very low"
+tec_effect = "no effect"
+cul_effect = "no effect"
+econ_effect = "no effect"
+predicate = { trade = "public_official" }
+
+[[decrees]]
+text = "Thank the volunteers who cleaned the square"
+pillar = "none"
+domain = "institutions"
+aggressiveness = "very low"
+tec_effect = "no effect"
+cul_effect = "no effect"
+econ_effect = "no effect"
+predicate = { social_class = "low", trade = "public_official" }
+
+[[decrees]]
+text = "Honor the fallen of the great flood"
+pillar = "none"
+domain = "worship"
+aggressiveness = "low"
+tec_effect = "no effect"
+cul_effect = "positive"
+econ_effect = "no effect"
+predicate = { social_class = "high", trade = "cleric" }
+
+[[decrees]]
+text = "Welcome the new families to the town"
+pillar = "none"
+domain = "demographics"
+aggressiveness = "very low"
+tec_effect = "no effect"
+cul_effect = "no effect"
+econ_effect = "no effect"
+predicate = { trade = "public_official" }
+
+[[decrees]]
+text = "Announce a day of prayer"
+pillar = "none"
+domain = "worship"
+aggressiveness = "low"
+tec_effect = "no effect"
+cul_effect = "slightly positive"
+econ_effect = "no effect"
+predicate = { trade = "cleric" }
+
+[[decrees]]
+text = "Build a new temple"
+pillar = "none"
+domain = "worship"
+aggressiveness = "medium"
+tec_effect = "no effect"
+cul_effect = "positive"
+econ_effect = "slightly positive"
+predicate = { social_class = "high", trade = "cleric" }
+
+[[decrees]]
+text = "Close the temple on market day"
+pillar = "pluralism"
+domain = "worship"
+aggressiveness = "high"
+tec_effect = "no effect"
+cul_effect = "negative"
+econ_effect = "slightly negative"
+predicate = { social_class = "high", trade = "merchant" }
+
+[[decrees]]
+text = "Ban the old festival"
+pillar = "civil"
+domain = "worship"
+aggressiveness = "high"
+tec_effect = "no effect"
+cul_effect = "negative"
+econ_effect = "negative"
+predicate = { trade = "public_official" }
+
+[[decrees]]
+text = "Require every child to study the mayor's book"
+pillar = "pluralism"
+domain = "institutions"
+aggressiveness = "high"
+tec_effect = "no effect"
+cul_effect = "no effect"
+econ_effect = "no effect"
+predicate = { age_band = "minor", trade = "public_official" }
+
+[[decrees]]
+text = "Fund the library"
+pillar = "none"
+domain = "institutions"
+aggressiveness = "low"
+tec_effect = "no effect"
+cul_effect = "positive"
+econ_effect = "slightly positive"
+predicate = { trade = "public_official" }
+
+[[decrees]]
+text = "Ask the council for a budget review"
+pillar = "none"
+domain = "economy"
+aggressiveness = "very low"
+tec_effect = "no effect"
+cul_effect = "no effect"
+econ_effect = "no effect"
+predicate = { social_class = "high", trade = "public_official" }
+
+[[decrees]]
+text = "Study a new water system"
+pillar = "none"
+domain = "economy"
+aggressiveness = "low"
+tec_effect = "slightly positive"
+cul_effect = "no effect"
+econ_effect = "no effect"
+predicate = { trade = "student" }
+
+[[decrees]]
+text = "Urge farmers to plant early"
+pillar = "none"
+domain = "economy"
+aggressiveness = "low"
+tec_effect = "no effect"
+cul_effect = "no effect"
+econ_effect = "slightly positive"
+predicate = { age_band = "adult", social_class = "low", trade = "farmer" }
+
+[[decrees]]
+text = "Invite merchants to a meeting"
+pillar = "none"
+domain = "economy"
+aggressiveness = "very low"
+tec_effect = "no effect"
+cul_effect = "no effect"
+econ_effect = "no effect"
+predicate = { social_class = "middle", trade = "merchant" }
+
+[[decrees]]
+text = "Audit the town accounts"
+pillar = "none"
+domain = "economy"
+aggressiveness = "medium"
+tec_effect = "no effect"
+cul_effect = "no effect"
+econ_effect = "no effect"
+predicate = { age_band = "adult", social_class = "high", trade = "public_official" }
+
+[[decrees]]
+text = "Dismiss the corrupt tax collector"
+pillar = "none"
+domain = "economy"
+aggressiveness = "high"
+tec_effect = "no effect"
+cul_effect = "no effect"
+econ_effect = "slightly positive"
+predicate = { social_class = "high", trade = "magistrate" }
+
+[[decrees]]
+text = "Expel the foreign traders"
+pillar = "civil"
+domain = "economy"
+aggressiveness = "high"
+tec_effect = "no effect"
+cul_effect = "no effect"
+econ_effect = "negative"
+predicate = { trade = "merchant" }
+
+[[decrees]]
+text = "Limit new arrivals to ten families a month"
+pillar = "civil"
+domain = "demographics"
+aggressiveness = "medium"
+tec_effect = "no effect"
+cul_effect = "no effect"
+econ_effect = "slightly negative"
+predicate = { trade = "public_official" }
+
+[[decrees]]
+text = "Welcome refugees from the north"
+pillar = "none"
+domain = "demographics"
+aggressiveness = "very low"
+tec_effect = "no effect"
+cul_effect = "no effect"
+econ_effect = "no effect"
+predicate = { trade = "public_official" }
+
+[[decrees]]
+text = "Ban unions"
+pillar = "civil"
+domain = "economy"
+aggressiveness = "high"
+tec_effect = "no effect"
+cul_effect = "no effect"
+econ_effect = "negative"
+predicate = { social_class = "low", trade = "worker" }
+
+[[decrees]]
+text = "Allow workers to strike"
+pillar = "none"
+domain = "economy"
+aggressiveness = "medium"
+tec_effect = "no effect"
+cul_effect = "no effect"
+econ_effect = "slightly negative"
+predicate = { social_class = "low", trade = "worker" }
+
+[[decrees]]
+text = "Fine strikers and jail their leaders"
+pillar = "press"
+domain = "security"
+aggressiveness = "high"
+tec_effect = "no effect"
+cul_effect = "no effect"
+econ_effect = "negative"
+predicate = { age_band = "adult", social_class = "high", trade = "law_enforcement" }
+
+[[decrees]]
+text = "Cut the council salaries"
+pillar = "none"
+domain = "economy"
+aggressiveness = "medium"
+tec_effect = "no effect"
+cul_effect = "no effect"
+econ_effect = "slightly positive"
+predicate = { social_class = "high", trade = "public_official" }
+
+[[decrees]]
+text = "Raise the councillors' pay"
+pillar = "none"
+domain = "institutions"
+aggressiveness = "medium"
+tec_effect = "no effect"
+cul_effect = "no effect"
+econ_effect = "slightly negative"
+predicate = { social_class = "high", trade = "public_official" }
+
+[[decrees]]
+text = "Make the mayor's office permanent"
+pillar = "none"
+domain = "institutions"
+aggressiveness = "medium"
+tec_effect = "no effect"
+cul_effect = "no effect"
+econ_effect = "no effect"
+predicate = { age_band = "adult", social_class = "high", trade = "public_official" }
+
+[[decrees]]
+text = "Stop all elections for five years"
+pillar = "pluralism"
+domain = "institutions"
+aggressiveness = "very high"
+tec_effect = "no effect"
+cul_effect = "no effect"
+econ_effect = "no effect"
+predicate = { social_class = "high", trade = "public_official" }
+
+[[decrees]]
+text = "Forbid criticism of the mayor's family"
+pillar = "press"
+domain = "press"
+aggressiveness = "high"
+tec_effect = "no effect"
+cul_effect = "negative"
+econ_effect = "no effect"
+predicate = { social_class = "high", trade = "public_official" }
+
+[[decrees]]
+text = "Rename the main square after the mayor"
+pillar = "none"
+domain = "institutions"
+aggressiveness = "low"
+tec_effect = "no effect"
+cul_effect = "neutral"
+econ_effect = "no effect"
+predicate = { age_band = "adult", social_class = "high", trade = "public_official" }
+
+[[decrees]]
+text = "Order citizens to report their neighbours"
+pillar = "civil"
+domain = "security"
+aggressiveness = "high"
+tec_effect = "no effect"
+cul_effect = "very negative"
+econ_effect = "no effect"
+predicate = { trade = "law_enforcement" }
+
+[[decrees]]
+text = "Close the university"
+pillar = "pluralism"
+domain = "institutions"
+aggressiveness = "high"
+tec_effect = "very negative"
+cul_effect = "very negative"
+econ_effect = "negative"
+predicate = { trade = "public_official" }
+
+[[decrees]]
+text = "Fund a free university"
+pillar = "none"
+domain = "institutions"
+aggressiveness = "medium"
+tec_effect = "no effect"
+cul_effect = "no effect"
+econ_effect = "positive"
+predicate = { social_class = "high", trade = "public_official" }
+
+[[decrees]]
+text = "Publish all council minutes"
+pillar = "none"
+domain = "institutions"
+aggressiveness = "medium"
+tec_effect = "no effect"
+cul_effect = "no effect"
+econ_effect = "no effect"
+predicate = { trade = "public_official" }
+
+[[decrees]]
+text = "Hide the budget from the public"
+pillar = "civil"
+domain = "economy"
+aggressiveness = "medium"
+tec_effect = "no effect"
+cul_effect = "no effect"
+econ_effect = "negative"
+predicate = { trade = "public_official" }
+
+[[decrees]]
+text = "Give magistrates a pay raise"
+pillar = "none"
+domain = "institutions"
+aggressiveness = "low"
+tec_effect = "no effect"
+cul_effect = "no effect"
+econ_effect = "slightly positive"
+predicate = { age_band = "adult", social_class = "high", trade = "magistrate" }
+
+[[decrees]]
+text = "Fire the head of the town guard"
+pillar = "none"
+domain = "security"
+aggressiveness = "high"
+tec_effect = "no effect"
+cul_effect = "no effect"
+econ_effect = "no effect"
+predicate = { age_band = "adult", social_class = "high", trade = "law_enforcement" }
+
+[[decrees]]
+text = "Appoint my brother as chief magistrate"
+pillar = "pluralism"
+domain = "institutions"
+aggressiveness = "high"
+tec_effect = "no effect"
+cul_effect = "no effect"
+econ_effect = "no effect"
+predicate = { social_class = "high", trade = "magistrate" }
+
+[[decrees]]
+text = "Appoint a neutral auditor"
+pillar = "none"
+domain = "institutions"
+aggressiveness = "low"
+tec_effect = "no effect"
+cul_effect = "no effect"
+econ_effect = "no effect"
+predicate = { trade = "public_official" }

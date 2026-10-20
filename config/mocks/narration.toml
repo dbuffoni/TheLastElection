@@ -1,0 +1,69 @@
+# Narration of the simulated S2 (text only: S2 never produces numbers the model uses). Placeholders: {actor}, {group}, {pillar}.
+# headline[event] = what the actor does; the body adds the tone of the intensity; reactions[level] = how a citizen may answer.
+
+[headline]
+decree_pluralism = ["{actor} reshapes how the town is governed", "{actor} signs a decree on the town's parties and seats"]
+decree_law = ["{actor} issues a decree on the courts", "{actor} lays down new rules for the judges"]
+decree_press = ["{actor} decrees new rules for the press", "{actor} turns to the town's newspapers"]
+decree_property = ["{actor} decrees on land, trade and licences", "{actor} changes the rules of the market"]
+decree_civil = ["{actor} decrees on order and the streets", "{actor} sets new limits for public life"]
+decree_economy = ["{actor} announces measures for the economy", "{actor} opens the purse of the town"]
+decree_culture = ["{actor} decrees on feasts and traditions", "{actor} speaks to the town's customs"]
+decree_security = ["{actor} announces measures on security", "{actor} orders the guard to act"]
+decree_announce = ["{actor} addresses the town", "{actor} makes an announcement from the town hall"]
+demonstration = ["{actor} fills the square with a demonstration", "{actor} marches to the town hall"]
+petition = ["{actor} hands in a petition", "{actor} gathers signatures for the mayor"]
+fundraising = ["{actor} raises funds for its cause", "{actor} holds a charity dinner"]
+support_campaign = ["{actor} campaigns in favor of the mayor", "{actor} praises the mayor in public"]
+faction_split = ["{actor} splits over its direction", "{actor} breaks into two camps"]
+faction_alliance = ["{actor} seals an alliance", "{actor} joins forces with another movement"]
+faction_appeal = ["{actor} appeals to the courts", "{actor} asks the judges to step in"]
+statement = ["{actor} makes a statement on the mayor", "{actor} speaks out in the square"]
+article = ["{actor} publishes a sharp article", "{actor} writes about the town hall"]
+lawsuit = ["{actor} files a lawsuit against the mayor", "{actor} takes the mayor to court"]
+endorsement = ["{actor} endorses the mayor", "{actor} backs the mayor publicly"]
+influencer_alliance = ["{actor} teams up with another voice of the town"]
+strike = ["{actor} stops work", "{actor} walks out"]
+lockout = ["{actor} shuts the doors of their shops", "{actor} locks out the workers"]
+donation = ["{actor} donates to the town", "{actor} funds a public work"]
+elite_petition = ["{actor} petition the mayor in private", "{actor} send a letter to the town hall"]
+class_assembly = ["{actor} gather in assembly", "{actor} hold a meeting to decide what to do"]
+investigation = ["{actor} opens an investigation", "{actor} starts looking into the town hall"]
+ruling = ["{actor} hands down a ruling", "{actor} rules on a disputed case"]
+civic_mobilization = ["{actor} mobilize to defend the town's institutions", "{actor} organise a civic vigil"]
+council_resolution = ["{actor} votes a resolution", "{actor} passes a motion in the chamber"]
+property_protest = ["{actor} protest against the new rules on property", "{actor} defend their shops and land"]
+crime = ["A wave of petty crime unsettles {group}", "Thefts worry {group}"]
+disaster = ["A storm damages homes of {group}", "A fire breaks out and {group} suffer"]
+discovery = ["A discovery raises hopes among {group}", "A new method spreads among {group}"]
+cultural_event = ["A festival lifts the spirits of {group}", "A cultural event gathers {group}"]
+economic_crisis = ["Prices climb and {group} feel the pinch", "A crisis hits the trades of {group}"]
+motion_filed = ["The council files a motion of no confidence", "A motion against the mayor reaches the chamber"]
+motion_debate = ["The council debates the motion against the mayor", "The chamber hears the case against the mayor"]
+motion_vote = ["The council votes on the mayor's fate", "The vote on the motion is called"]
+judicial_investigation = ["Magistrates open a case against the mayor", "An inquiry into the mayor begins"]
+judicial_hearing = ["Judges hear the case against the mayor", "The hearing on the mayor takes place"]
+judicial_verdict = ["The court announces its verdict on the mayor", "The judges pronounce on the mayor"]
+pillar_fall = ["A pillar of the town's freedoms falls", "{pillar} is no longer guarded"]
+
+[tone]
+# by intensity index 0..6
+body = [
+  "A quiet matter that few notice.",
+  "A small affair, talked about in a few homes.",
+  "It draws some attention in the market.",
+  "People discuss it in the square.",
+  "It splits opinion across the town.",
+  "It dominates conversation everywhere.",
+  "Nobody in town can ignore it.",
+]
+
+[reactions]
+# stance index 0 (opposition) .. 6 (adherence)
+"0" = ["Fight it openly", "Refuse to comply and say so", "Call on the neighbours to resist"]
+"1" = ["Object loudly", "Write to the council to complain", "Speak against it at the market"]
+"2" = ["Grumble but go along", "Voice doubts to friends", "Keep a wary distance"]
+"3" = ["Shrug and carry on", "Stay out of it", "Wait to see what happens"]
+"4" = ["Nod in approval", "Say a good word for it", "See some good in it"]
+"5" = ["Back it openly", "Speak up in its favor", "Encourage the neighbours to support it"]
+"6" = ["Join the movement", "Throw in with it for good", "Sign up and organise"]

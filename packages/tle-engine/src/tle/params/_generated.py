@@ -235,6 +235,8 @@ class TechnicalParams:
     eps_t: float = 0.1  # ε_t: Ordinal noise of simulated S1 extraction
     eps_err: float = 0.02  # ε_err: Simulated contract failures
     panel_every: int = 30  # panel_every: Days between citizen panel snapshots
+    w_actor_stance: float = 1.0  # w_actor_stance: Weight of the actor stance in the distance of the simulated choice
+    beta_support: float = 0.0  # beta_support: Preference of the simulated choice for options that side with the actor
 
 
 @dataclass(frozen=True)
@@ -447,6 +449,8 @@ GROUP_OF = {
     'eps_t': 'technical',
     'eps_err': 'technical',
     'panel_every': 'technical',
+    'w_actor_stance': 'technical',
+    'beta_support': 'technical',
 }
 
 DERIVED = ('theta_stab_out', 'rho_out', 'N_min', 'theta_m_out', 'g_0', 'g_inf', 'theta_y_out', 'g_T')

@@ -82,7 +82,7 @@ def _check(name: str, spec: EngineSpec) -> None:
 
 
 def build_engines(
-    cat, p, specs: dict[str, EngineSpec], cache: Path | None = None
+    cat, p, specs: dict[str, EngineSpec], cache: Path | None = None, record: Path | None = None
 ) -> tuple[Engines, dict[str, dict]]:
     """Engines for a game plus a description of each (kind/model/url) for the run manifest. A cache file is shared by
     the real engines (keys include the task and its input, so S1 and S2 never collide)."""
@@ -132,6 +132,10 @@ def build_engines(
         )
         built[name] = CachedEngine(real, cache) if cache else real
         info[name] = {"kind": spec.kind, "model": spec.model, "base_url": spec.base_url, "batch": real.batch}
+    if record is not None and specs["s1"].kind != "simulated":
+        from .recording import RecordingEngine
+
+        built["s1"] = RecordingEngine(built["s1"], record)
     return Engines(built["s1"], built["s2"]), info
 
 

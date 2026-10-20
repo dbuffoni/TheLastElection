@@ -114,6 +114,12 @@ class Catalogs(_M):
     trades: list[Trade]
     domains: list[Domain]
     scenarios: list[Scenario]
+    narration: dict = Field(
+        default_factory=dict
+    )  # templates of the simulated S2 (config/mocks/narration.toml)
+    decree_bank: list[dict] = Field(
+        default_factory=list
+    )  # decrees labelled by a real S1 (mock bootstrap data)
 
     # lookups are rebuilt lazily and are not part of the schema
     def pillar_ids(self) -> list[str]:

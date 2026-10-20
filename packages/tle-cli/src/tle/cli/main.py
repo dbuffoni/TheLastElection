@@ -34,6 +34,95 @@ def _show(df, title: str = "", max_rows: int = 60) -> None:
     console.print(t)
 
 
+mocks_app = typer.Typer(help="Mocks of S1 and S2: fit against a real model, decree bank.")
+app.add_typer(mocks_app, name="mocks")
+
+
+@mocks_app.command("fit")
+def mocks_fit(
+    records: list[Path],
+    out: Path = Path("config/mocks/s1_fit.toml"),
+):
+    """Fit lambda_HA, tau_sim and w_actor_stance of the simulated S1 on the choices recorded from a real S1."""
+    from tle.mocks import fit, load_reactions, write_toml
+
+    recs = load_reactions(records)
+    if not recs:
+        raise typer.BadParameter("no reaction records found (run with --record against a real S1)")
+    res = fit(recs)
+    write_toml(res, out)
+    t = Table(title=f"fit on {res['n_choices']} real choices in {res['events']} events")
+    for c in ("", "log-lik", "argmax agreement", "lambda_HA", "tau_sim", "w_actor_stance", "beta_support"):
+        t.add_column(c)
+    for k in ("before", "after"):
+        r = res[k]
+        t.add_row(
+            k,
+            f"{r['loglik']:.1f}",
+            f"{r['agreement']:.0%}",
+            *[f"{r['params'][x]:.3f}" for x in ("lambda_HA", "tau_sim", "w_actor_stance", "beta_support")],
+        )
+    console.print(t)
+    console.print(f"uniform choice would score {res['uniform_loglik']:.1f}; written to {out}")
+
+
+@mocks_app.command("eval")
+def mocks_eval(bank: Path = Path("config/mocks/decree_bank.toml")):
+    """Agreement of the simulated decree classifier with the real S1 labels of the bank (rules alone and with the bank)."""
+    import tomllib
+
+    from tle.mocks import evaluate_classifier
+
+    entries = tomllib.loads(bank.read_text())["decrees"]
+    t = Table(title=f"simulated classifier vs real S1 on {len(entries)} decrees")
+    for c in ("mode", "pillar", "domain", "aggressiveness ±1", "transfer detected", "unclassifiable"):
+        t.add_column(c)
+    for name, kw in (
+        ("rules only", dict(use_bank=False)),
+        ("rules + bank (leave one out)", dict(use_bank=True)),
+    ):
+        r = evaluate_classifier(entries, **kw)
+        t.add_row(
+            name,
+            f"{r['pillar']:.0%}",
+            f"{r['domain']:.0%}",
+            f"{r['aggressiveness_within_1']:.0%}",
+            f"{r['transfer_detected']:.0%}",
+            str(r["unclassifiable"]),
+        )
+    console.print(t)
+
+
+@mocks_app.command("label-decrees")
+def mocks_label(
+    battery: Path = Path("config/mocks/decree_battery.txt"),
+    engines_file: Path = Path("config/engines.openrouter.toml"),
+    out: Path = Path("config/mocks/decree_bank.toml"),
+):
+    """Label the decrees of the battery with the real S1 and write the bank the simulated classifier learns from."""
+    from tle.catalogs.loader import load_catalogs
+    from tle.contracts import models as m
+    from tle.core.rng import GameRng
+    from tle.engines.protocol import call_many
+    from tle.mocks import bank_entry, read_battery, write_bank
+    from tle.models import build_engines, load_dotenv, load_specs
+    from tle.params import default_params
+
+    load_dotenv()
+    cat, p = load_catalogs(), default_params()
+    eng, info = build_engines(cat, p, load_specs(engines_file))
+    texts = read_battery(battery)
+    outs = call_many(
+        eng.s1,
+        "classify_decree",
+        [m.ClassifyDecreeIn(text=t) for t in texts],
+        [GameRng(i) for i in range(len(texts))],
+    )
+    entries = [bank_entry(t, o) for t, o in zip(texts, outs) if o is not None]
+    write_bank(entries, out)
+    console.print(f"{len(entries)}/{len(texts)} decrees labelled by {info['s1']} -> {out}")
+
+
 @app.command("dash")
 def dash(
     runs_dir: Path = Path("runs"),
@@ -92,6 +181,13 @@ def run(
     engines_file: Path | None = typer.Option(
         None, "--engines", help="TOML with one table per engine, s1 and s2 (see config/engines.toml)"
     ),
+    record: Path | None = typer.Option(
+        None, help="write the S1 choices and decrees of a real model as JSON lines (mock fit)"
+    ),
+    warmup_real: bool = typer.Option(
+        False, help="run the warm-up on the real models too (slow); default: simulated"
+    ),
+    max_turns: int | None = typer.Option(None, help="stop after this many turns (trials with real models)"),
     s1_engine: str | None = typer.Option(None, help="S1 kind: simulated | openai_compat | jev"),
     s1_base_url: str | None = typer.Option(None, help="S1 endpoint, e.g. a local Jev server"),
     s1_model: str | None = typer.Option(None, help="S1 model name"),
@@ -112,6 +208,8 @@ def run(
     cat = load_catalogs()
     ov = {k: float(v) for k, v in (o.split("=") for o in override)}
     p = default_params().with_overrides(ov) if ov else default_params()
+    from tle.engines.protocol import Engines
+    from tle.engines.simulated import SimulatedEngine
     from tle.models import build_engines, load_dotenv, load_specs, with_overrides
 
     load_dotenv()
@@ -135,7 +233,7 @@ def run(
         s2_base_url=s2_base_url,
         s2_model=s2_model,
     )
-    eng, engine_info = build_engines(cat, p, specs, cache)
+    eng, engine_info = build_engines(cat, p, specs, cache, record)
     engine = "simulated" if all(v["kind"] == "simulated" for v in engine_info.values()) else "real"
     obs, store = [], None
     if telemetry:
@@ -155,10 +253,15 @@ def run(
             to_flat(p),
         )
         obs.append(TelemetryObserver(store))
+    warm = None
+    if (
+        engine != "simulated" and not warmup_real
+    ):  # the warm-up only settles ties and opinions: simulated engines do
+        warm = Engines(SimulatedEngine(cat, p), SimulatedEngine(cat, p))
     game = Game(
-        cat, p, eng, scenario=scenario, seed=seed, n=n, observers=obs
+        cat, p, eng, scenario=scenario, seed=seed, n=n, observers=obs, warmup_engines=warm
     )  # observers also record the warm-up
-    w = play(game, STRATEGIES[strategy], None, obs)
+    w = play(game, STRATEGIES[strategy], max_turns, obs)
     if store:
         store.close(w.outcome)
         if report:
