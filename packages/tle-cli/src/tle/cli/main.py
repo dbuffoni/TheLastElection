@@ -34,6 +34,28 @@ def _show(df, title: str = "", max_rows: int = 60) -> None:
     console.print(t)
 
 
+@app.command("dash")
+def dash(
+    runs_dir: Path = Path("runs"),
+    port: int = 5006,
+    live: bool = typer.Option(
+        False, "--live", help="watch runs/ and refresh every two seconds (open runs included)"
+    ),
+    show: bool = typer.Option(True, help="open the browser"),
+):
+    """Open the dashboard (Panel app over the run store). Needs the tle-dashboard package."""
+    import subprocess
+    import sys
+
+    cmd = [sys.executable, "-m", "tle.dashboard", "--runs-dir", str(runs_dir), "--port", str(port)]
+    if live:
+        cmd.append("--live")
+    if not show:
+        cmd.append("--no-show")
+    console.print(f"dashboard on http://localhost:{port}  (Ctrl-C to stop)")
+    raise typer.Exit(subprocess.call(cmd))
+
+
 @app.command()
 def run(
     strategy: str = "gradual",

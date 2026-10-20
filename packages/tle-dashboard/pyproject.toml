@@ -1,0 +1,19 @@
+[project]
+name = "tle-dashboard"
+version = "0.1.0"
+description = "Presentation only: Panel app, views and live mode over the run store"
+requires-python = ">=3.12"
+dependencies = ["tle-viz", "tle-store", "tle-lab", "tle-config", "panel>=1.4", "bokeh>=3.4", "watchfiles>=0.21"]
+
+[tool.uv.sources]
+tle-viz = { workspace = true }
+tle-store = { workspace = true }
+tle-lab = { workspace = true }
+tle-config = { workspace = true }
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/tle"]

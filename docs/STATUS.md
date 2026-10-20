@@ -52,7 +52,15 @@ Evidence: `passive` strategy (the "no player" baseline of spec 17.2), seeds 1-9 
   `clientelist` 0.08. All four placeholder bands pass; with 12 seeds the gradual margin is thin. Mobility, impulse and saturation unchanged
   (mobility now in band on 9/9 seeds since the passive mayor survives).
 
-## Simplified in this slice (decisions to review against the spec)
+## Session 4: real models and dashboard
+- **Real models** (PR #3): S1 and S2 configured separately (`config/engines*.toml`, `.env`), `jev` backend (TypeSafe decision model on OpenRouter), batched
+  S1 requests, deadlines, token caps. See `docs/local-setup.md`.
+- **Dashboard** (`tle dash [--runs-dir runs] [--port 5006] [--live]`): packages `tle-viz` (Bokeh renderers, generic matrix, sparkline, tables) and
+  `tle-dashboard` (Panel app). Views: run explorer (charts per metric group with target band, verdict frame and milestones, events around a day),
+  run matrix (runs x metrics with sparklines and verdict frames), targets scorecard, outcomes per strategy/scenario, technical health (execution, warnings).
+  `--live` re-reads `runs/` every two seconds. Not yet: seed grid, parameter sweep and sensitivity matrices, stylized facts, impulse view,
+  citizen panel, network, calibration status, journal timeline, PNG export (`tle plot`), click-through between views.
+ (decisions to review against the spec)
 These are marked `slice v0` in `config/params/events.toml` (module `loop.*`).
 - Decrees act on the mayor's opinion through *direct exposure* only. Indirect (published news) and contagion-gated exposure are reduced to one tie-diffusion step on expressed opinion (`_contagion`).
 - Only mayor and exogenous events run the full pipeline. Faction, influencer, class and custodian events exist in the catalog but are not generated yet.
@@ -62,7 +70,7 @@ These are marked `slice v0` in `config/params/events.toml` (module `loop.*`).
 - **Balance is not tuned.** With defaults most aggressive strategies get the mayor removed and passive ones reach term end; the target bands in `config/balance/targets.toml` are placeholders.
 
 ## Not built
-- Panel dashboard, `tle plot`, journal, `runs reindex/gc`, factions, influencers, economy, custodians, MCP server for the lab, in-process `local` model backend (see docs/local-setup.md), Optuna/SALib wrappers (extras declared, not wired), profile promotion/journal tooling, GPU-specific tuning.
+- `tle plot`, journal, `runs reindex/gc`, factions, influencers, economy, custodians, MCP server for the lab, in-process `local` model backend (see docs/local-setup.md), Optuna/SALib wrappers (extras declared, not wired), profile promotion/journal tooling, GPU-specific tuning.
 
 ## Suggested order for the next increments
 1. Factions + influencers (spec 5.x) and their event generators -> turn the unused event types on.
