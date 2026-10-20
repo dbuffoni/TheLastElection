@@ -29,6 +29,10 @@ uv run tle run --engines config/engines.toml --strategy gradual --n 60 --cache r
 # or by flags, e.g. Jev on a local server and S2 still simulated
 uv run tle run --s1-engine openai_compat --s1-base-url http://localhost:8000/v1 --s1-model <jev-name> --n 60
 ```
+`kind = "jev"` speaks TypeSafe's decision format (`POST .../api/alpha/decisions`, models such as `typesafe/jev-1.14`): the
+closed vocabularies of each S1 contract become `choice` questions and S2's options become the criteria of a per-citizen
+question. Tasks it cannot express (lists, free text) fall back to the simulated rule. Keep S2 on an LLM.
+
 `structured = false` in the file turns off strict `json_schema` for servers that do not support it (answers are still validated
 and retried). `api_key_env` names an environment variable that holds a key. The run manifest records which model served each engine.
 

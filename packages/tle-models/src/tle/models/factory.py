@@ -16,7 +16,7 @@ from .backends import OpenAICompatBackend
 from .cache import CachedEngine
 from .real import RealEngine
 
-KINDS = ("simulated", "openai_compat")
+KINDS = ("simulated", "openai_compat", "jev")
 
 
 @dataclass(frozen=True)
@@ -30,6 +30,9 @@ class EngineSpec:
     )
     timeout: float = 120.0
     temperature: float = 0.0
+    max_concurrency: int = (
+        16  # parallel requests for per-citizen choices (jev; a vLLM server batches by itself)
+    )
 
 
 def load_specs(path: Path | None = None) -> dict[str, EngineSpec]:
@@ -63,14 +66,29 @@ def build_engines(
             built[name] = SimulatedEngine(cat, p) if name == "s2" else sim
             info[name] = {"kind": "simulated"}
             continue
-        be = OpenAICompatBackend(
-            base_url=spec.base_url,
-            model=spec.model,
-            api_key=os.environ.get(spec.api_key_env, "not-needed") if spec.api_key_env else "not-needed",
-            timeout=spec.timeout,
-            structured=spec.structured,
-            name=f"openai_compat:{name}",
-        )
+        key = os.environ.get(spec.api_key_env, "not-needed") if spec.api_key_env else "not-needed"
+        if spec.kind == "jev":
+            from .jev import DEFAULT_URL, JevBackend
+
+            url = spec.base_url if spec.base_url != EngineSpec.base_url else DEFAULT_URL
+            model = spec.model if spec.model != EngineSpec.model else JevBackend.model
+            be = JevBackend(
+                base_url=url,
+                model=model,
+                api_key=key,
+                timeout=spec.timeout,
+                max_concurrency=spec.max_concurrency,
+            )
+            spec = replace(spec, base_url=url, model=model)
+        else:
+            be = OpenAICompatBackend(
+                base_url=spec.base_url,
+                model=spec.model,
+                api_key=key,
+                timeout=spec.timeout,
+                structured=spec.structured,
+                name=f"openai_compat:{name}",
+            )
         real = RealEngine(
             be, cat.vocab(), fallback=sim, n_retry=p.technical.n_retry, temperature=spec.temperature
         )

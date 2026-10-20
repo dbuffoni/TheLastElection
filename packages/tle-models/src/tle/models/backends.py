@@ -115,6 +115,10 @@ def make_backend(kind: str, **kw) -> Backend:
         return MockBackend(**kw)
     if kind == "openai_compat":
         return OpenAICompatBackend(**kw)
+    if kind == "jev":
+        from .jev import JevBackend
+
+        return JevBackend(**kw)
     if kind == "local":
         raise NotImplementedError(
             "the in-process 'local' backend is added on the GPU machine; "

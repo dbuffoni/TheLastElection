@@ -48,10 +48,10 @@ def run(
     engines_file: Path | None = typer.Option(
         None, "--engines", help="TOML with one table per engine, s1 and s2 (see config/engines.toml)"
     ),
-    s1_engine: str | None = typer.Option(None, help="S1 kind: simulated | openai_compat"),
+    s1_engine: str | None = typer.Option(None, help="S1 kind: simulated | openai_compat | jev"),
     s1_base_url: str | None = typer.Option(None, help="S1 endpoint, e.g. a local Jev server"),
     s1_model: str | None = typer.Option(None, help="S1 model name"),
-    s2_engine: str | None = typer.Option(None, help="S2 kind: simulated | openai_compat"),
+    s2_engine: str | None = typer.Option(None, help="S2 kind: simulated | openai_compat | jev"),
     s2_base_url: str | None = typer.Option(None, help="S2 endpoint"),
     s2_model: str | None = typer.Option(None, help="S2 model name"),
     cache: Path | None = typer.Option(None, help="response cache file for real engines"),

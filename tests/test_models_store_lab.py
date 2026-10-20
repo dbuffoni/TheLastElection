@@ -166,3 +166,52 @@ def test_engines_are_configured_separately(tmp_path):
     assert eng.s1.backend.base_url != eng.s2.backend.base_url or eng.s1.backend.model != eng.s2.backend.model
     _, sim = build_engines(catalogs(), default_params(), load_specs(None))
     assert sim == {"s1": {"kind": "simulated"}, "s2": {"kind": "simulated"}}
+
+
+def test_jev_backend_turns_contracts_into_questions():
+    from tle.models.jev import JevBackend
+
+    seen = []
+
+    def transport(url, headers, body, timeout):
+        req = json.loads(body)
+        seen.append((url, headers, req))
+        ans = {}
+        for k, q in req["questions"].items():
+            first = next(iter(q["criteria"]))
+            choice = "1" if k == "option" else ("press" if k == "pillar" else first)
+            ans[k] = {"type": "choice", "choice": choice, "confidence": 0.9, "probabilities": {choice: 1.0}}
+        return json.dumps({"answers": ans, "usage": {"input_tokens": 3, "output_tokens": 1}}).encode()
+
+    be = JevBackend(api_key="k", transport=transport)
+    e = RealEngine(be, catalogs().vocab(), fallback=None)
+    # per-citizen choice among the options S2 wrote
+    opts = [m.OptionIn(id=str(i), text=f"option {i}") for i in range(3)]
+    news = m.NewsItem(
+        event_id=1,
+        title="t",
+        text="x",
+        event_type="crime",
+        intensity="low",
+        actor_kind="exogenous",
+        target="none",
+        tags=[],
+    )
+    res = e.call(
+        "choose_reaction",
+        m.ChooseReactionIn(context={"age_band": "adult"}, news=news, options=opts),
+        GameRng(1),
+    )
+    assert res.option == "1"
+    url, headers, req = seen[0]
+    assert url.endswith("/decisions") and headers["Authorization"] == "Bearer k"
+    assert req["questions"]["option"]["criteria"] == {"0": "option 0", "1": "option 1", "2": "option 2"}
+    # a closed-vocabulary contract: one choice question per enum field, optional structures stay null
+    out = e.call("classify_decree", m.ClassifyDecreeIn(text="Close the gazette"), GameRng(1))
+    assert out is not None and out.pillar == "press" and out.transfer is None
+    # a task Jev cannot express (a list) is a permanent failure: the engine falls back instead of retrying
+    import pytest
+    from tle.models.jev import JevUnsupported
+
+    with pytest.raises(JevUnsupported):
+        be.build("TASK: rank_event_types\nd\n\nINPUT:\n{}\n", e.schema("rank_event_types"))
