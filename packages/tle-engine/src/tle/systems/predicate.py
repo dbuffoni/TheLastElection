@@ -22,7 +22,9 @@ def match(w: World, cat: Catalogs, p: Params, pred: Predicate) -> np.ndarray:
         mask &= w.cls == CLASSES.index(pred.social_class)
     if pred.trade != "any":
         mask &= w.trade == cat.trade_ids().index(pred.trade)
-    if pred.circle != "any":
+    if (
+        pred.circle.isdigit()
+    ):  # a free-text field: anything but a circle number means "any" (a model may invent values)
         mask &= w.circle == int(pred.circle)
     if pred.faction == "member":
         mask &= w.fac_member.any(axis=1)
@@ -32,8 +34,8 @@ def match(w: World, cat: Catalogs, p: Params, pred: Predicate) -> np.ndarray:
         mask &= w.inf_on
     elif pred.influencer == "non-influencer":
         mask &= ~w.inf_on
-    if pred.ideology_extreme != "any":
-        axis, side = pred.ideology_extreme.split(":")
+    axis, _, side = pred.ideology_extreme.partition(":")
+    if axis in ("1", "2", "3") and side in ("high", "low"):
         v = w.I[:, int(axis) - 1]
         mask &= (v >= 2 / 3) if side == "high" else (v <= -2 / 3)
     if pred.role == "councillor":

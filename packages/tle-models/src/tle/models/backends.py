@@ -8,8 +8,11 @@ from __future__ import annotations
 
 import json
 import time
+import urllib.error
 import urllib.request
 from collections.abc import Callable
+from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import TimeoutError as FutureTimeout
 from dataclasses import dataclass, field
 from typing import Any, Protocol
 
@@ -62,10 +65,22 @@ class MockBackend:
 Transport = Callable[[str, dict[str, str], bytes, float], bytes]
 
 
+_POOL = ThreadPoolExecutor(max_workers=128, thread_name_prefix="tle-http")
+
+
 def _urllib_transport(url: str, headers: dict[str, str], body: bytes, timeout: float) -> bytes:
-    req = urllib.request.Request(url, data=body, headers=headers, method="POST")
-    with urllib.request.urlopen(req, timeout=timeout) as resp:  # noqa: S310 (user-configured endpoint)
-        return resp.read()
+    """POST with a hard deadline: a socket timeout alone does not fire when a gateway keeps the connection alive
+    with keepalive bytes while the model never answers, so the request runs in a worker and is abandoned at the deadline."""
+
+    def post() -> bytes:
+        req = urllib.request.Request(url, data=body, headers=headers, method="POST")
+        with urllib.request.urlopen(req, timeout=timeout) as resp:  # noqa: S310 (user-configured endpoint)
+            return resp.read()
+
+    try:
+        return _POOL.submit(post).result(timeout=timeout)
+    except FutureTimeout as e:
+        raise TimeoutError(f"no answer within {timeout:g}s") from e
 
 
 @dataclass
@@ -75,9 +90,14 @@ class OpenAICompatBackend:
     base_url: str = "http://localhost:8000/v1"
     model: str = "local-model"
     api_key: str = "not-needed"
-    timeout: float = 120.0
+    timeout: float = 60.0
     name: str = "openai_compat"
     structured: bool = True
+    max_tokens: int = (
+        2048  # bounds a runaway generation (some providers loop under schema-constrained decoding)
+    )
+    max_concurrency: int = 8  # parallel per-citizen requests
+    retries_429: int = 4  # rate-limited requests wait 1, 2, 4... seconds and try again
     transport: Transport = _urllib_transport
 
     def complete(self, system, user, schema, temperature=0.0, seed=None) -> Completion:
@@ -86,6 +106,8 @@ class OpenAICompatBackend:
             "temperature": temperature,
             "messages": [{"role": "system", "content": system}, {"role": "user", "content": user}],
         }
+        if self.max_tokens:
+            payload["max_tokens"] = self.max_tokens
         if seed is not None:
             payload["seed"] = seed
         if schema is not None and self.structured:
@@ -94,16 +116,23 @@ class OpenAICompatBackend:
                 "json_schema": {"name": "answer", "strict": True, "schema": schema},
             }
         t0 = time.perf_counter()
-        raw = self.transport(
-            self.base_url.rstrip("/") + "/chat/completions",
-            {"Content-Type": "application/json", "Authorization": f"Bearer {self.api_key}"},
-            json.dumps(payload).encode(),
-            self.timeout,
-        )
+        for k in range(self.retries_429 + 1):
+            try:
+                raw = self.transport(
+                    self.base_url.rstrip("/") + "/chat/completions",
+                    {"Content-Type": "application/json", "Authorization": f"Bearer {self.api_key}"},
+                    json.dumps(payload).encode(),
+                    self.timeout,
+                )
+                break
+            except urllib.error.HTTPError as e:
+                if e.code != 429 or k == self.retries_429:
+                    raise
+                time.sleep(2.0**k)
         data = json.loads(raw)
         usage = data.get("usage", {})
         return Completion(
-            text=data["choices"][0]["message"]["content"],
+            text=data["choices"][0]["message"].get("content") or "",
             in_tokens=usage.get("prompt_tokens", 0),
             out_tokens=usage.get("completion_tokens", 0),
             latency_s=time.perf_counter() - t0,
@@ -115,6 +144,10 @@ def make_backend(kind: str, **kw) -> Backend:
         return MockBackend(**kw)
     if kind == "openai_compat":
         return OpenAICompatBackend(**kw)
+    if kind == "jev":
+        from .jev import JevBackend
+
+        return JevBackend(**kw)
     if kind == "local":
         raise NotImplementedError(
             "the in-process 'local' backend is added on the GPU machine; "

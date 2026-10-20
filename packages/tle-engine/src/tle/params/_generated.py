@@ -220,6 +220,7 @@ class DemographyParams:
 class TechnicalParams:
     n_lab: int = 1  # n_lab: Labels per S1 call
     n_retry: int = 2  # n_retry: Attempts before the fallback
+    B_gen: int = 8  # B_gen: Citizens described per S2 call when a real model writes them (a small model loses count on long lists)
     B_S1: int = 40  # B_S1: Involved count beyond which S1 works on a sample
     tau_sim: float = 0.15  # τ_sim: Noise of the simulated choice
     lambda_HA: float = 0.2  # λ_HA: Aversion to extreme reactions in the simulated choice
@@ -423,6 +424,7 @@ GROUP_OF = {
     'share_coupled_init': 'demography',
     'n_lab': 'technical',
     'n_retry': 'technical',
+    'B_gen': 'technical',
     'B_S1': 'technical',
     'tau_sim': 'technical',
     'lambda_HA': 'technical',
@@ -443,7 +445,7 @@ FORMULAS = {
     'theta_y_out': '0.5 * theta_y_in',
     'g_T': 'income_for_equilibrium(h_pT, x_star_T)',
 }
-INT_PARAMS = ('N', 'horizon_days', 'T_warm', 'B_bond', 'bounded_confidence', 'routine_partners', 'N_min', 'n_council', 'n_cust', 'K_opt', 'n_news_0', 'n_log', 'a_adult', 'a_pens', 'a_fert', 'delta_a_couple', 'n_lab', 'n_retry', 'B_S1', 'panel_every')
+INT_PARAMS = ('N', 'horizon_days', 'T_warm', 'B_bond', 'bounded_confidence', 'routine_partners', 'N_min', 'n_council', 'n_cust', 'K_opt', 'n_news_0', 'n_log', 'a_adult', 'a_pens', 'a_fert', 'delta_a_couple', 'n_lab', 'n_retry', 'B_gen', 'B_S1', 'panel_every')
 
 
 def to_flat(p: Params, include_derived: bool = True) -> dict[str, Any]:

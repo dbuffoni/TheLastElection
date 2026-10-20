@@ -1,0 +1,24 @@
+# Which model serves each engine. kind = "simulated" | "openai_compat". Use with: tle run --engines config/engines.toml
+# S1 is the fast classifier of closed vocabularies (Jev or a Jev-compatible model); S2 is the narrator.
+# Any server speaking the OpenAI chat-completions API works (vLLM, llama.cpp server, Ollama, LM Studio, hosted APIs).
+
+[s1]
+kind       = "simulated"
+# kind     = "jev"                        # TypeSafe decision format (OpenRouter /api/alpha/decisions or a compatible server)
+# base_url = "https://openrouter.ai/api/alpha/decisions"
+# model    = "typesafe/jev-1.14"
+# api_key_env = "OPENROUTER_API_KEY"
+# max_concurrency = 16                    # parallel per-citizen requests
+# --- or, any chat-completions server:
+# kind     = "openai_compat"
+# base_url = "http://localhost:8000/v1"
+# model    = "<served model name>"
+# structured = true                       # false if the server has no strict json_schema output
+# api_key_env = ""                        # name of an environment variable, never the key itself
+
+[s2]
+kind       = "simulated"
+# kind     = "openai_compat"
+# base_url = "https://openrouter.ai/api/v1"
+# model    = "<model id>"
+# api_key_env = "OPENROUTER_API_KEY"

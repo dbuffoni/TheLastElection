@@ -14,7 +14,7 @@ from tle.core.labels import quantize_bipolar, quantize_unipolar
 from tle.core.prims import PushBuffer, express
 from tle.core.rng import GameRng
 from tle.engines.features import features_to_arrays
-from tle.engines.protocol import ActorCtx, Engines, LabelContext
+from tle.engines.protocol import ActorCtx, Engines, LabelContext, call_many
 from tle.params import Params
 from tle.systems.population import age_band
 from tle.world.state import World
@@ -101,12 +101,12 @@ def run_event(
         tags=out.tags,
     )
     # S1: extract the numeric features of every option
-    feats = []
+    ins = []
     for k, opt in enumerate(out.options):
         oi = m.OptionFeatureIn(news=news, option_text=opt.text)
         oi._annotation = out._annotation[k] if out._annotation else None
-        res = engines.s1.call("option_feature", oi, rng.child("feat", eid, k))
-        feats.append(res)
+        ins.append(oi)
+    feats = call_many(engines.s1, "option_feature", ins, [rng.child("feat", eid, k) for k in range(len(ins))])
     F = features_to_arrays(feats)
     res = EventResult(
         eid, event_type, out.title, out.text, intensity, actor_kind, int(len(involved)), list(out.tags)
