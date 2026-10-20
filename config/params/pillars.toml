@@ -4,7 +4,7 @@
 symbol      = "θ_0"
 spec        = "8.3"
 description = "Resistance tolerated at the first level"
-default     = 0.2
+default     = 0.255
 range       = [0.15, 0.4]
 scale       = "linear"
 class       = "free"
