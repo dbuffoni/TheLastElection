@@ -328,3 +328,27 @@ family = "continuous"
 unit = "share"
 stage = 3
 group = "politics"
+
+[rents_active]
+title = "Active rents (persistent transfers)"
+spec = ["5.18"]
+family = "continuous"
+unit = "rents"
+stage = 3
+group = "politics"
+
+[coalition_share]
+title = "Adults in the extractive coalition"
+spec = ["5.18"]
+family = "continuous"
+unit = "share"
+stage = 3
+group = "politics"
+
+[extractiveness]
+title = "Extractiveness X (share of wealth gains from extractive rents)"
+spec = ["5.18"]
+family = "continuous"
+unit = "share"
+stage = 3
+group = "politics"

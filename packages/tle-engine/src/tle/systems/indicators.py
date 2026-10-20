@@ -6,6 +6,7 @@ import numpy as np
 from tle.core.labels import UNIPOLAR_NAMES, quantize_unipolar
 from tle.core.prims import express
 from tle.params import Params
+from tle.systems import custodians
 from tle.world.catalogs import Catalogs
 from tle.world.state import World
 
@@ -28,18 +29,20 @@ def compute(w: World, cat: Catalogs, p: Params) -> dict[str, float]:
         "cohesion": float(w.bw[: w.bn].mean()) if w.bn else 0.0,
     }
     for i, pid in enumerate(cat.pillar_ids()):
-        out[f"resistance_{pid}"] = resistance(w, p, i)
+        out[f"resistance_{pid}"] = resistance(w, p, i, cat=cat)
         out[f"level_{pid}"] = float(w.pillar_level[i])
     return out
 
 
-def resistance(w: World, p: Params, pillar: int, ad=None) -> float:
-    """R_p: share of adults whose expressed acceptance of the erosion of the pillar is below -1/3."""
+def resistance(w: World, p: Params, pillar: int, ad=None, cat=None) -> float:
+    """R_p (P12): weighted share of adults whose expressed acceptance of the erosion of the pillar is below -1/3;
+    the custodians of the pillar weigh ``omega_cust`` instead of 1 (5.17) when the catalog is given."""
     ad = w.adults(p.demography.a_adult) if ad is None else ad
     if not ad.any():
         return 0.0
     E = express(w.O[ad, 1 + pillar], w.fear[ad])
-    return float(np.mean(E < -1 / 3))
+    wt = custodians.weights(w, cat, p, pillar, ad)[ad] if cat is not None else np.ones(int(ad.sum()))
+    return float((wt * (E < -1 / 3)).sum() / wt.sum())
 
 
 def labels(w: World, ind: dict[str, float], eps: float) -> dict[str, str]:

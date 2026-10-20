@@ -5,10 +5,10 @@ are reduced to the council and the resistance of the population."""
 from __future__ import annotations
 
 import numpy as np
-from tle.core.prims import express, rate
+from tle.core.prims import express, rate, relax
 from tle.core.rng import GameRng
 from tle.params import Params
-from tle.systems import indicators
+from tle.systems import custodians, indicators
 from tle.world.catalogs import Catalogs
 from tle.world.state import World
 
@@ -42,7 +42,7 @@ def try_pillar_step(w: World, cat: Catalogs, p: Params, pillar: int, intensity_i
     nxt = pil.levels[level]
     if intensity_idx < nxt.min_intensity:
         return "too_mild", level
-    R = indicators.resistance(w, p, pillar)
+    R = indicators.resistance(w, p, pillar, cat=cat)
     if R < theta_up(p, level, len(pil.levels)):
         w.pillar_level[pillar] = level + 1
         if level + 1 == len(pil.levels):
@@ -59,33 +59,36 @@ def demotion_step(w: World, cat: Catalogs, p: Params, decreed_pillar: int | None
             continue
         if w.pillar_level[i] >= len(cat.pillars[i].levels) and w.pillar_fall_day[i] > 0:
             continue  # fallen pillars stay fallen
-        if indicators.resistance(w, p, i) >= p.pillars.theta_down:
+        if indicators.resistance(w, p, i, cat=cat) >= p.pillars.theta_down:
             w.pillar_level[i] -= 1
             down.append(i)
     return down
 
 
 def threats_step(w: World, cat: Catalogs, p: Params, dt: float, rng: GameRng) -> list[dict]:
-    """Pressure builds with discontent of the councillors (motion) and resistance on the law pillar
-    (judicial); at theta_outcome a three-phase chain starts; the last phase is a vote."""
+    """Active threats (5.12): the pressure of each threat grows with the expressed discontent of its custodians (the
+    council for the motion, the magistrates for the judicial route) and the hostility of factions, scaled by the
+    intactness of the linked pillar; a chain of three phases starts with frequency nu_T p^gamma; at the outcome the
+    mayor is removed only if the pressure reached theta_outcome AND more than half of the custodians dissent."""
     out: list[dict] = []
     ad = w.adults(p.demography.a_adult)
     E = express(w.O, w.fear)
-    council = np.flatnonzero((w.councillor != 0) & w.alive)
-    opp_council = float(np.mean(E[council, 0] < -1 / 3)) if len(council) else 0.0
-    law = cat.pillar_ids().index("law")
-    eroded = float(w.pillar_level[law] > 0 or w.pillar_level[cat.pillar_ids().index("civil")] > 0)
-    drivers = (
-        opp_council + p.threats.w_H * w.stats.get("fac_H", 0.0),  # hostile factions add to the pressure (5.7)
-        eroded * (indicators.resistance(w, p, law, ad) + 0.5 * float(np.mean(E[ad, 0] < -1 / 3))),
-    )
-    for t in (MOTION, JUDICIAL):
+    hostility = w.stats.get("fac_H", 0.0)
+    for t, name in ((MOTION, "motion"), (JUDICIAL, "judicial")):
+        pi = custodians.threat_pillar(cat, name)
+        cust = custodians.mask(w, cat, pi, ad) & w.alive
+        dissent = float(np.mean(E[cust, 0] <= -1 / 3)) if cust.any() else 0.0
+        phi = (
+            1.0 - float(w.pillar_level[pi]) / cat.pillars[pi].L
+        )  # an eroded pillar protects less (and weighs less)
+        g = p.threats.g_T * phi * (p.threats.w_M * dissent + p.threats.w_H * hostility)
+        pt = w.threat_p[t]
+        pt = pt + (1.0 - pt) * float(rate(g, dt))
+        w.threat_p[t] = float(relax(pt, 0.0, p.threats.h_pT, dt, 0.0, 1.0))
         if w.threat_phase[t] == 0:
-            k = rate(p.events.g_p, dt) * (1.0 if drivers[t] > 0.3 else -0.3)
-            w.threat_p[t] = float(
-                np.clip(w.threat_p[t] + k * (1.0 - w.threat_p[t] if k > 0 else w.threat_p[t]), 0, 1)
-            )
-            if w.threat_p[t] >= p.threats.theta_outcome:
+            if cust.any() and rng.child("trigger", t).random() < float(
+                rate(p.threats.nu_T * w.threat_p[t] ** p.threats.gamma_T, dt)
+            ):
                 w.threat_phase[t] = 1
                 w.threat_next[t] = (
                     w.day
@@ -104,22 +107,21 @@ def threats_step(w: World, cat: Catalogs, p: Params, dt: float, rng: GameRng) ->
                 )
                 out.append({"threat": t, "event": PHASE_EVENTS[t][ph], "phase": ph + 1})
             else:
-                against = float(np.mean(E[council, 0] < 0)) if len(council) else 0.0
-                removed = against >= p.pillars.q_maj
+                removed = bool(cust.any() and w.threat_p[t] >= p.threats.theta_outcome and dissent > 0.5)
                 out.append(
                     {
                         "threat": t,
                         "event": PHASE_EVENTS[t][2],
                         "phase": 3,
-                        "vote_against": against,
+                        "vote_against": dissent,
                         "removed": removed,
                     }
                 )
                 w.threat_phase[t] = 0
-                w.threat_p[t] = 0.2
                 if removed:
                     w.outcome, w.outcome_day = "removed", w.day
                 else:
+                    w.threat_p[t] *= 0.5  # dismissed
                     w.K = max(0.0, w.K - 0.15)
     w.stats["threat_events"] = w.stats.get("threat_events", 0) + len(out)
     return out

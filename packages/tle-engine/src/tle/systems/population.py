@@ -9,6 +9,7 @@ from tle.contracts.vocab import BIPOLAR
 from tle.core.rng import GameRng
 from tle.engines.protocol import Engines, call_many
 from tle.params import Params
+from tle.systems import custodians
 from tle.world.catalogs import AGE_BANDS, Catalogs
 from tle.world.state import B_AFF, B_FAM, KIN_PARENT, KIN_PARTNER, N_PILLARS, World, allocate
 
@@ -230,9 +231,8 @@ def create_world(
 
     # council: adults, half on the mayor's side
     adults = np.flatnonzero(w.adults(p.demography.a_adult))
-    nc = min(p.pillars.n_council, len(adults))
-    chosen = adults[rng.permutation(len(adults))[:nc]]
-    w.councillor[chosen] = np.where(np.arange(nc) % 2 == 0, 1, -1)
+    custodians.ensure_minimum(w, cat, p, adults, rng.child("cust"))
+    custodians.seat_council(w, p, adults, rng.child("council"))
 
     # initial state of the power block
     w.K = float(p.capital.c_0)

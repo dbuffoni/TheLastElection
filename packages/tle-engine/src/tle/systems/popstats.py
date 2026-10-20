@@ -88,6 +88,9 @@ def compute(w: World, p: Params, ref: PopRef | None = None) -> dict[str, float]:
     out["influencers_active"] = float((w.inf_on & ad).sum())
     out["faction_balance"] = float(w.stats.get("fac_F", 0.0))
     out["faction_hostility"] = float(w.stats.get("fac_H", 0.0))
+    out["rents_active"] = float(sum(1 for r in w.rents if r["I"] > 0))
+    out["coalition_share"] = float((w.coalition & ad).sum() / max(1, ad.sum()))
+    out["extractiveness"] = float(w.extractiveness)
     bn = w.bn
     out["degree_mean"] = float(bn / n) if n else nan
     out["stable_tie_share"] = float(w.bstable[:bn].mean()) if bn else 0.0
@@ -133,6 +136,9 @@ _ADULT_KEYS = (
         "influencers_active",
         "faction_balance",
         "faction_hostility",
+        "rents_active",
+        "coalition_share",
+        "extractiveness",
         "degree_mean",
         "stable_tie_share",
         "tie_weight_mean",

@@ -177,7 +177,7 @@ class ThreatsParams:
     h_pT: float = 45.0  # h_pT: Threat pressure half-life (days)
     delay_min: float = 7.0  # d_min: Minimum days between threat phases
     delay_max: float = 21.0  # d_max: Maximum days between threat phases
-    theta_outcome: float = 0.8  # θ_outcome: Pressure needed for removal at the outcome
+    theta_outcome: float = 0.6  # θ_outcome: Pressure needed for removal at the outcome
 
 @dataclass(frozen=True)
 class EventsParams:
