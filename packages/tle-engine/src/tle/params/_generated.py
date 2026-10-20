@@ -46,6 +46,7 @@ class VectorsParams:
     sd_C_init: float = 0.3  # sd_C_init: Spread of character at generation (bipolar units, before label noise)
     C_max: float = 0.9  # C_max: Bound of character reachable by events (below 1: events alone never saturate it)
     sigma_I: float = 0.115  # sigma_I: Idiosyncratic ideological drift of adults (bipolar units per sqrt(year))
+    h_O_council: float = 15.0  # h_O_council: Half-life of the opinion of the mayor of a councillor toward the alignment base (party discipline)
 
 @dataclass(frozen=True)
 class TiesParams:
@@ -293,6 +294,7 @@ GROUP_OF = {
     'sd_C_init': 'vectors',
     'C_max': 'vectors',
     'sigma_I': 'vectors',
+    'h_O_council': 'vectors',
     'g_w': 'ties',
     'w_0': 'ties',
     'w_fam': 'ties',

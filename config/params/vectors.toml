@@ -193,3 +193,17 @@ introduced  = 3
 module      = "loop.turn"
 status      = "provisional"
 rationale   = "Personal experience moves individuals even when nothing happens in public life (mobility test, 17.3)"
+
+[h_O_council]
+symbol      = "h_O_council"
+spec        = "5.17"
+description = "Half-life of the opinion of the mayor of a councillor toward the alignment base (party discipline)"
+default     = 15.0
+range       = [3.0, 120.0]
+scale       = "log"
+class       = "free"
+stage       = 3
+introduced  = 4
+module      = "loop.turn"
+status      = "provisional"
+rationale   = "A majority councillor stays loyal in the face of isolated facts; months of dissent move the base (5.17)"

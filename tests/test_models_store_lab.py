@@ -255,3 +255,55 @@ def test_batch_answers_many_items_in_one_request_and_repairs_bad_items():
     assert [o.activity for o in out] == ["work"] * 6
     # 6 items -> 2 batch requests; the malformed item of each is asked again alone
     assert sum("BATCH" in c for c in calls) == 2 and sum("BATCH" not in c for c in calls) == 2
+
+
+def test_jev_reaction_prompt_describes_the_citizen_and_does_not_fix_the_option_order():
+    from tle.models.jev import JevBackend
+    from tle.models.prompts import describe_citizen, render_batch
+
+    row = {
+        "age_band": "adult",
+        "class": "low",
+        "trade": 1,
+        "circle": 0,
+        "temperament": [0, 2, 0, 0],
+        "character": [0, 0, 0],
+        "ideology": [3, -2, 0],
+        "opinion": [-3, 0, 0, -2, 0, 0],
+        "fear": 0,
+        "redistributive_risk": 0,
+    }
+    d = describe_citizen(row)
+    assert (
+        d["ideology"]["religion"] == "strongly religious" and d["ideology"]["economy"] == "clearly pro-market"
+    )
+    assert (
+        d["opinion of the mayor"] == "strongly disapproves"
+        and d["views on weakening the pillars of democracy"]["free press"] == "clearly rejects"
+    )
+    news = m.NewsItem(
+        event_id=1,
+        title="t",
+        text="x",
+        event_type="decree_press",
+        intensity="high",
+        actor_kind="mayor",
+        target="press",
+        tags=[],
+    )
+    opts = [m.OptionIn(id=str(i), text=f"option {i}") for i in range(8)]
+    ins = [m.ChooseReactionIn(context=row, news=news, options=opts)] * 2
+    dumps = [i.model_dump() for i in ins]
+    shared = {k: v for k, v in dumps[0].items() if k in ("news", "options")}
+    items = [{"context": d_["context"]} for d_ in dumps]
+    _, user = render_batch("choose_reaction", shared, items)
+    be = JevBackend()
+    orders = []
+    for seed in (1, 2, 3):
+        body, _ = be.build(user, None, seed)
+        q = body["questions"]["i0:option"]
+        orders.append(list(q["criteria"]))
+        assert "THIS citizen" in q["instructions"] and "citizen" in body["state"]["items"][0]
+    assert (
+        sorted(orders[0]) == sorted(orders[1]) and len({tuple(o) for o in orders}) > 1
+    )  # same options, different order

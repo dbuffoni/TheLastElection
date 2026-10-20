@@ -15,7 +15,10 @@ import time
 from dataclasses import dataclass, field
 from typing import Any
 
+import numpy as np
+
 from .backends import Completion, Transport, _urllib_transport
+from .prompts import describe_citizen
 
 DEFAULT_URL = "https://openrouter.ai/api/alpha/decisions"
 NEUTRAL_STRING = {"threat": "none"}  # free-string fields that take a default (everything else: "any")
@@ -32,6 +35,29 @@ FIELD_HELP = {
     "activity": "Which daily activity would this citizen choose today?",
     "option": "Which reaction would this citizen choose?",
 }
+
+
+OPTION_RULE = (
+    "Pick the option that THIS citizen would choose given who they are (ideology, temperament, character, opinion of the "
+    "mayor, views on the pillars of democracy, fear). Do not pick an option because it is listed first or because it "
+    "supports the actor: citizens differ, and opponents of the actor pick opposing options."
+)
+
+
+def _shuffled(items: list, seed: int) -> list:
+    """Options in an order that depends on the request (deterministic): a decision model must not learn that the first
+    option is the usual answer."""
+    order = np.random.default_rng(seed & 0xFFFFFFFF).permutation(len(items))
+    return [items[i] for i in order]
+
+
+def _in_words(state: dict) -> dict:
+    """The context of a citizen as words (see ``describe_citizen``); other state is left as it is."""
+    c = state.get("context")
+    if isinstance(c, dict) and "temperament" in c:
+        state = {**state, "citizen": describe_citizen(c)}
+        state.pop("context")
+    return state
 
 
 class JevUnsupported(Exception):
@@ -93,29 +119,29 @@ class JevBackend:
     transport: Transport = _urllib_transport
 
     # -- request building ------------------------------------------------------------------------
-    def build(self, user: str, schema: dict | None) -> tuple[dict, Any]:
+    def build(self, user: str, schema: dict | None, seed: int = 0) -> tuple[dict, Any]:
         """Returns (request body, template used to rebuild the contract JSON from the answers)."""
         task = user.split("TASK:", 1)[1].split("\n", 1)[0].strip()
         desc = user.split("\n", 2)[1].strip()
         if "BATCH of" in user:
-            return self._build_batch(task, desc, user, schema)
-        state = json.loads(user.split("INPUT:\n", 1)[1])
-        questions, tpl = self._questions(task, desc, state, schema, "")
+            return self._build_batch(task, desc, user, schema, seed)
+        state = _in_words(json.loads(user.split("INPUT:\n", 1)[1]))
+        questions, tpl = self._questions(task, desc, dict(state), schema, "", seed)
         return {"model": self.model, "state": state, "questions": questions}, tpl
 
     def _questions(
-        self, task: str, desc: str, state: dict, schema: dict | None, prefix: str
+        self, task: str, desc: str, state: dict, schema: dict | None, prefix: str, seed: int = 0
     ) -> tuple[dict, Any]:
         """Questions for one item whose own part of the state is ``state``; ``prefix`` keeps keys apart in a batch."""
         if task in ("choose_reaction", "choose_influencer_response") and isinstance(
             state.get("options"), list
         ):
-            opts = state.pop("options")
+            opts = _shuffled(state.pop("options"), seed)
             key = prefix + "option"
             q = {
                 key: {
                     "type": "choice",
-                    "instructions": f"{FIELD_HELP['option']} {desc}",
+                    "instructions": f"{desc} {OPTION_RULE}",
                     "criteria": {str(o["id"]): o["text"] for o in opts},
                 }
             }
@@ -130,12 +156,15 @@ class JevBackend:
             q["instructions"] += f" Context: {desc}"
         return questions, tpl
 
-    def _build_batch(self, task: str, desc: str, user: str, schema: dict | None) -> tuple[dict, Any]:
+    def _build_batch(
+        self, task: str, desc: str, user: str, schema: dict | None, seed: int = 0
+    ) -> tuple[dict, Any]:
         """k independent items in one request: the state holds the shared part and the items, every question names its item."""
         shared = json.loads(user.split("SHARED (applies to every item):\n", 1)[1].split("\n\nITEMS", 1)[0])
         items = json.loads(
             user.split("(index = position, starting at 0):\n", 1)[1].split("\n\nAnswer with", 1)[0]
         )
+        items = [_in_words(it) for it in items]
         item_schema = dict(schema["properties"]["items"]["items"]) if schema else None
         if item_schema is not None and "$defs" in schema:
             item_schema["$defs"] = schema["$defs"]
@@ -146,9 +175,11 @@ class JevBackend:
             if (
                 task == "choose_reaction" and "options" in shared
             ):  # the options are shared: every item picks among them
-                qs, tpl = self._questions(task, desc, {"options": shared["options"]}, item_schema, f"i{j}:")
+                qs, tpl = self._questions(
+                    task, desc, {"options": shared["options"]}, item_schema, f"i{j}:", seed + 7919 * j
+                )
             else:
-                qs, tpl = self._questions(task, desc, dict(view), item_schema, f"i{j}:")
+                qs, tpl = self._questions(task, desc, dict(view), item_schema, f"i{j}:", seed + 7919 * j)
             for q in qs.values():
                 q["instructions"] += f" Answer for the item at index {j} of state.items."
             questions.update(qs)
@@ -157,7 +188,7 @@ class JevBackend:
         return {"model": self.model, "state": state, "questions": questions}, {"items": tpls}
 
     def complete(self, system, user, schema, temperature=0.0, seed=None) -> Completion:
-        body, tpl = self.build(user, schema)
+        body, tpl = self.build(user, schema, int(seed or 0))
         t0 = time.perf_counter()
         raw = self.transport(
             self.base_url,
