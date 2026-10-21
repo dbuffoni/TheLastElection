@@ -233,13 +233,15 @@ class TechnicalParams:
     n_retry: int = 2  # n_retry: Attempts before the fallback
     B_gen: int = 8  # B_gen: Citizens described per S2 call when a real model writes them (a small model loses count on long lists)
     B_S1: int = 40  # B_S1: Involved count beyond which S1 works on a sample
-    tau_sim: float = 0.37  # τ_sim: Noise of the simulated choice
-    lambda_HA: float = 0.05  # λ_HA: Aversion to extreme reactions in the simulated choice
+    tau_sim: float = 0.15  # τ_sim: Noise of the simulated choice
+    lambda_HA: float = 0.2  # λ_HA: Aversion to extreme reactions in the simulated choice
     eps_t: float = 0.1  # ε_t: Ordinal noise of simulated S1 extraction
     eps_err: float = 0.02  # ε_err: Simulated contract failures
     panel_every: int = 30  # panel_every: Days between citizen panel snapshots
-    w_actor_stance: float = 4.0  # w_actor_stance: Weight of the actor stance in the distance of the simulated choice
-    beta_support: float = 0.92  # beta_support: Preference of the simulated choice for options that side with the actor
+    w_actor_stance: float = 1.0  # w_actor_stance: Weight of the actor stance in the distance of the simulated choice
+    beta_support: float = 0.0  # beta_support: Preference of the simulated choice for options that side with the actor
+    support_gate: float = 0.0  # support_gate: Share of the preference for options that side with the actor that depends on the citizen already siding with it
+    w_pillar_stance: float = 1.0  # w_pillar_stance: Weight of the stances on the pillars in the distance of the simulated choice
 
 
 @dataclass(frozen=True)
@@ -457,6 +459,8 @@ GROUP_OF = {
     'panel_every': 'technical',
     'w_actor_stance': 'technical',
     'beta_support': 'technical',
+    'support_gate': 'technical',
+    'w_pillar_stance': 'technical',
 }
 
 DERIVED = ('theta_stab_out', 'rho_out', 'N_min', 'theta_m_out', 'g_0', 'g_inf', 'theta_y_out', 'g_T')

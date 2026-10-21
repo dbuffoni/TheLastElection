@@ -883,6 +883,7 @@ class SimulatedEngine:
         npresent = np.maximum(1, present.sum(axis=1))  # (K,)
         wd = np.ones(7)
         wd[0] = p.technical.w_actor_stance
+        wd[2:] = p.technical.w_pillar_stance  # what the citizen thinks of the pillars the event touches
         diff = np.where(
             present[None, :, :], wd * (s_hat[:, None, :] - np.nan_to_num(S)[None, :, :]) ** 2, 0.0
         )
@@ -890,10 +891,14 @@ class SimulatedEngine:
         e = np.max(np.where(present, np.abs(S), 0.0), axis=1)
         HA = np.maximum(0.0, bip_value(ctx.T[:, 1]))
         support = np.nan_to_num(S[:, 0], nan=0.0)  # preference for options that side with the actor
+        g = (
+            p.technical.support_gate
+        )  # who already sides with the actor likes to say so; who does not, does not
+        gate = (1.0 - g) + g * np.maximum(0.0, actor_hat)
         return (
             -d
             - p.technical.lambda_HA * HA[:, None] * e[None, :]
-            + p.technical.beta_support * support[None, :]
+            + p.technical.beta_support * gate[:, None] * support[None, :]
         )
 
     # ------------------------------------------------------------------ S1: choose_reaction (batch)

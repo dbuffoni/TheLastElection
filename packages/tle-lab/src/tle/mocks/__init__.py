@@ -14,13 +14,15 @@ from tle.engines.protocol import ActorCtx, LabelContext, OptionFeatures
 from tle.engines.simulated import SimulatedEngine
 from tle.params import default_params
 
-FIT_PARAMS = ("lambda_HA", "tau_sim", "w_actor_stance", "beta_support")
+FIT_PARAMS = ("lambda_HA", "tau_sim", "w_actor_stance", "beta_support", "support_gate", "w_pillar_stance")
 # structural priors keep the mechanisms alive: aversion to extremes and sensitivity to the actor never fit to zero
 BOUNDS = {
     "lambda_HA": (0.05, 1.5),
     "tau_sim": (0.02, 3.0),
     "w_actor_stance": (0.5, 4.0),
     "beta_support": (0.0, 3.0),
+    "support_gate": (0.0, 1.0),
+    "w_pillar_stance": (0.25, 10.0),
 }
 
 
