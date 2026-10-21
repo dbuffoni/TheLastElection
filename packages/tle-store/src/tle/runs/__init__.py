@@ -9,7 +9,7 @@ import polars as pl
 import pyarrow as pa
 import pyarrow.ipc as ipc
 
-TABLES = ("metrics", "events", "milestones", "execution")
+TABLES = ("metrics", "events", "milestones", "execution", "journal")
 
 
 def runs_dir(root: str | Path | None = None) -> Path:
@@ -135,6 +135,16 @@ class Run:
             df = df.filter(pl.col("phase") == phase)
         for k, v in filters.items():
             df = df.filter(pl.col(k) == v)
+        return df
+
+    def journal(self, min_importance: int = 0, kinds: list[str] | None = None) -> pl.DataFrame:
+        """The diary of the city (one row per entry), optionally filtered by importance and kind."""
+        df = table(self.path, "journal")
+        if not len(df):
+            return df
+        df = df.filter(pl.col("importance") >= min_importance)
+        if kinds:
+            df = df.filter(pl.col("kind").is_in(kinds))
         return df
 
     def milestones(self) -> pl.DataFrame:
