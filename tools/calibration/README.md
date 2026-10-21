@@ -1,5 +1,9 @@
 # Calibration scripts (mocks)
 
+**One command**: `uv run python tools/calibration/run.py [--points 48] [--seeds 12] [--apply]` (about 25 minutes on 8 cores): wide LHS, local grid on
+`theta_0`/`delta`/`cost_decree`, then the validation and hold-out table; `--apply` writes the winning values as registry defaults. The scripts below are the
+steps it replaces and the history of the 2026-10-21 calibration.
+
 The scripts of the full recalibration of docs/STATUS.md (Session 5). Run from the repository root with `uv run python tools/calibration/<script>`.
 
 - `sweep.py`: one game with parameter overrides and the population/outcome measures used by everything else (`one(...)`).
