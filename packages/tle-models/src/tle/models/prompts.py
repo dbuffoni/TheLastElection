@@ -36,7 +36,7 @@ def render(task: str, inp: BaseModel) -> tuple[str, str]:
     spec = TASKS[task]
     note = f"\n{NOTES[task]}" if task in NOTES else ""
     dump = inp.model_dump()
-    if isinstance(dump.get("context"), dict) and "temperament" in dump["context"]:
+    if isinstance(dump.get("context"), dict) and "opinion" in dump["context"]:
         dump["context"] = describe_citizen(dump["context"])  # words, not bare numbers
     user = f"TASK: {task}\n{spec.description}{note}\n\nINPUT:\n{json.dumps(dump, ensure_ascii=False)}\n"
     return SYSTEM[spec.engine], user

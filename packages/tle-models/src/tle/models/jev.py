@@ -54,7 +54,7 @@ def _shuffled(items: list, seed: int) -> list:
 def _in_words(state: dict) -> dict:
     """The context of a citizen as words (see ``describe_citizen``); other state is left as it is."""
     c = state.get("context")
-    if isinstance(c, dict) and "temperament" in c:
+    if isinstance(c, dict) and "opinion" in c and "temperament" in c:  # a raw label row, not yet in words
         state = {**state, "citizen": describe_citizen(c)}
         state.pop("context")
     return state
