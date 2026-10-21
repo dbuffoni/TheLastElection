@@ -63,7 +63,7 @@ Evidence: `passive` strategy (the "no player" baseline of spec 17.2), seeds 1-9 
   stylized facts, journal timeline, click-through between views.
 ## Session 5: roadmap increments, mocks, recalibration
 - **Dashboard** (core complete): run explorer, run matrix, targets, outcomes, citizen panel, network, impulse view, calibration status, technical health;
-  `tle plot` for PNG export. Not yet: seed grid, sweep and sensitivity matrices, stylized facts, journal timeline, click-through.
+  `tle plot` for PNG export. Not yet: seed grid, sweep and sensitivity matrices, stylized facts, click-through.
 - **Factions (5.7) and influencers (5.9)** (`systems/factions.py`, `systems/influencers.py`, `loop/actors.py`): factions are born from nascent movements (a
   demonstration tagged `faction_birth`, founders within `rho_in`, at least `N_min`), recruit through the events they take part in, hold members by commitment
   with hysteresis, drift with their members and die when weak. Influencers enter by potential and expected share, have a capital, a topic and a catchment area
@@ -104,6 +104,18 @@ Evidence: `passive` strategy (the "no player" baseline of spec 17.2), seeds 1-9 
   Still weak: assault removal sits at the edge of its band across seed sets; the impulse involved peak is at the lower edge; `fear` wins 0.6-0.8 of the games and
   `rentier` is removed 0.8-0.9 (strategies without a band).
 
+## Session 6: diary of the city
+- **Diary** (`telemetry/journal.py`, table `journal.arrow`): one readable entry per notable thing, built from the turn package by the telemetry observer
+  (pure observer: a run with the diary is bit-identical, tested). Columns: `turn, day, phase, kind, importance 0..3, headline, detail, subject, actor, event_id`.
+  Kinds: `decree` (the mayor's words, result, narration), `message` (private, with the citizen's name), `event` (news and its narration), `pillar` (level moves),
+  `threat` (phases), `mood` (approval, fear or opposition changes label), `outcome`. Importance (decision about meaning): news by intensity label (<= low 0,
+  medium 1, high 2, very high or more 3); decrees 2, 3 if they hit a pillar with at least high aggressiveness; pillar, threat, outcome 3; mood and messages 1.
+  Only the game phase is recorded (no warm-up). `TurnPackage.messages` is new (additive). Runs made before have no diary.
+- **Reading it**: `Run.journal(min_importance, kinds)`, `tle journal <run> [--min-importance --kind --find --tail]`, dashboard tab **Diary** (timeline by kind, charts of a
+  metric group with one dot per entry on the curve and the text on hover, filters by kind, importance, word and day range, table of entries), and diary dots
+  (with a minimum importance) in the Run explorer charts. Not yet: click a dot to jump to the entry, diary in the PNG export and the HTML report, shared zoom
+  between the charts.
+
 ## Simplified in this slice (decisions to review against the spec)
 - Decrees act on the mayor's opinion through *direct exposure* only; indirect exposure of non-involved adults is a random involved reaction attenuated by `alpha_ind`.
 - Events of classes and custodians (strike, lockout, ruling, council resolution...) exist in the catalog but are not generated yet; factions, influencers, nascent
@@ -114,7 +126,7 @@ Evidence: `passive` strategy (the "no player" baseline of spec 17.2), seeds 1-9 
   nu_news_decree, nu_found, nu_fac, nu_inf, sigma_I, C_max, sd_C_init) are provisional; the outcome bands were confirmed by Daniele on 2026-10-20 but remain provisional.
 
 ## Not built
-- Seed grid, sweep and sensitivity matrices, stylized facts and journal views of the dashboard; `runs reindex/gc`; journal; class and custodian event generators;
+- Seed grid, sweep and sensitivity matrices and stylized facts of the dashboard; `runs reindex/gc`; diary click-through and PNG/report export; class and custodian event generators;
   MCP server for the lab; in-process `local` model backend (see docs/local-setup.md); Optuna/SALib wrappers (extras declared, not wired); profile promotion and
   journal tooling; GPU-specific tuning.
 

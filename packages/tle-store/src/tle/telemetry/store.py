@@ -6,6 +6,7 @@
     metrics.arrow   one row per turn: day, capital, every indicator, pillar levels, decree outcome
     events.arrow    one row per published news item
     milestones.arrow  pillar advances/falls, threat phases, outcome
+    journal.arrow   the diary of the city: decrees, messages, news, pillar moves, threats, mood changes (readable text)
     execution.arrow  per-task engine accounting (calls, attempts, fallbacks, tokens)
     warnings.jsonl  malformed answers and fallbacks
 
@@ -25,7 +26,9 @@ import numpy as np
 import pyarrow as pa
 import pyarrow.ipc as ipc
 
-TABLES = ("metrics", "events", "milestones", "execution", "citizens", "bonds")
+from .journal import journal_entries
+
+TABLES = ("metrics", "events", "milestones", "execution", "citizens", "bonds", "journal")
 SCHEMA_VERSION = "1"
 TYPE_HINTS = {
     "decree_pillar": pa.string(),
@@ -126,8 +129,11 @@ class RunStore:
         milestones: list[dict],
         execution: list[dict],
         warnings: list[dict],
+        journal: list[dict] | None = None,
     ) -> None:
         self.tables["metrics"].add(row)
+        for j in journal or ():
+            self.tables["journal"].add(j)
         for e in events:
             self.tables["events"].add(e)
         for ms in milestones:
@@ -186,6 +192,7 @@ class TelemetryObserver:
         self.store = store
         self.popstats = popstats
         self.prev_levels: dict[str, int] = {}
+        self.prev_labels: dict[str, str] = {}
         self.meta = run_meta or {}
         self.panel_every = panel_every
         self.next_panel = 0.0
@@ -257,6 +264,10 @@ class TelemetryObserver:
             }
             for n in pkg.news
         ]
+        journal = []
+        if not warm:  # read before prev_levels is updated below
+            journal = journal_entries(pkg, self.prev_labels, self.prev_levels)
+            self.prev_labels = dict(pkg.labels)
         ms = []
         if not warm:
             for pid, lvl in pkg.pillars.items():
@@ -300,7 +311,7 @@ class TelemetryObserver:
             for r in game.engines.drain_execution()
         ]
         self.store.note_violations(self.popstats.check_invariants(w), pkg.day)
-        self.store.log_turn(row, events, ms, ex, pkg.warnings)
+        self.store.log_turn(row, events, ms, ex, pkg.warnings, journal)
         if not warm and self.started and (w.day >= self.next_panel or pkg.outcome):
             if pkg.outcome and w.day == self.last_panel_day:
                 pass

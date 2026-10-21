@@ -48,6 +48,7 @@ def test_dashboard_app_builds_over_a_run_directory(tmp_path):
     tabs = app[1]
     assert list(tabs._names) == [
         "Run explorer",
+        "Diary",
         "Run matrix",
         "Targets",
         "Outcomes",
@@ -74,3 +75,52 @@ def test_png_export_and_plot_command(tmp_path):
     assert res.exit_code == 0, res.output
     png = tmp_path / "p" / "r1-pop_size.png"
     assert png.read_bytes()[:4] == b"\x89PNG"
+
+
+def test_journal_is_recorded_readable_and_filterable(tmp_path):
+    run = _run(tmp_path)
+    j = run.journal()
+    assert len(j) and set(j["kind"].unique()) <= {
+        "decree",
+        "message",
+        "event",
+        "pillar",
+        "threat",
+        "mood",
+        "outcome",
+    }
+    assert j["headline"].str.len_chars().min() > 0
+    assert len(run.journal(min_importance=3)) <= len(j)
+    assert set(run.journal(kinds=["event"])["kind"].unique()) <= {"event"}
+
+
+def test_journal_does_not_change_the_run_and_marks_charts(tmp_path):
+    from tle.viz import journal_table_html, journal_timeline_figure
+
+    g_off = small_game(3)
+    play(g_off, STRATEGIES["random"], 12, [])
+    g_on = small_game(3)
+    store = RunStore(
+        tmp_path, "r2", {"scenario": "industrial_secular", "seed": 3, "label": "random"}, {"a": 1}
+    )
+    play(g_on, STRATEGIES["random"], 12, [TelemetryObserver(store)])
+    store.close()
+    assert g_on.w.digest() == g_off.w.digest()  # the diary is a pure observer
+    run = _run(tmp_path)
+    j = run.journal()
+    m = run.metrics().df
+    fig = metric_figure(m, "pop_size", None, None, journal=j)
+    assert any(getattr(r.glyph, "fill_color", None) == "color" for r in fig.renderers if hasattr(r, "glyph"))
+    assert "<table" in journal_table_html(j) and journal_timeline_figure(j) is not None
+
+
+def test_journal_command(tmp_path):
+    from tle.cli.main import app
+    from typer.testing import CliRunner
+
+    _run(tmp_path)
+    res = CliRunner().invoke(
+        app, ["journal", "r1", "--runs-dir", str(tmp_path), "--min-importance", "0", "--tail", "0"]
+    )
+    assert res.exit_code == 0, res.output
+    assert "day" in res.output

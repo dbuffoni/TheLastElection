@@ -49,6 +49,7 @@ class TurnPackage:
     demography: dict = field(default_factory=dict)
     phase: str = "game"
     rejected: str | None = None  # a decree that could not be classified goes back at no cost (13.1)
+    messages: list[dict] = field(default_factory=list)  # private messages sent this turn: {to, name, text}
 
 
 def classify(engines: Engines, inp: PlayerInput, rng: GameRng) -> m.ClassifyDecreeOut:
@@ -80,6 +81,7 @@ def step(
             w.K -= p.events.cost_message
             w.O[cid, 0] += p.events.persuade * (0.6 - w.O[cid, 0]) * (1.0 if w.O[cid, 0] > -0.5 else 0.3)
             w.last_player_day = w.day
+            pkg.messages.append({"to": cid, "name": str(w.names[cid]), "text": text})
 
     # 2. the decree
     if inp.decree is not None:

@@ -414,6 +414,38 @@ def runs_list(runs_dir: Path = Path("runs")):
     )
 
 
+@app.command("journal")
+def journal_cmd(
+    run: str,
+    min_importance: int = typer.Option(2, help="0 to 3: show entries at least this important"),
+    kind: str = typer.Option(
+        "", help="comma-separated kinds: decree,message,event,pillar,threat,mood,outcome"
+    ),
+    find: str = typer.Option("", help="only entries containing this word"),
+    tail: int = typer.Option(40, help="last N entries (0 for all)"),
+    runs_dir: Path = Path("runs"),
+):
+    """Read the diary of a run: what happened, day by day."""
+    from tle.runs import open_run
+
+    df = open_run(run, runs_dir).journal(min_importance, [k for k in kind.split(",") if k])
+    if find and len(df):
+        import polars as pl
+
+        f = find.lower()
+        df = df.filter(
+            pl.col("headline").str.to_lowercase().str.contains(f, literal=True)
+            | pl.col("detail").str.to_lowercase().str.contains(f, literal=True)
+        )
+    if not len(df):
+        typer.echo("no diary entries (older runs have none)")
+        return
+    for r in (df.tail(tail) if tail else df).iter_rows(named=True):
+        typer.echo(f"day {r['day']:>6.0f}  {r['kind']:<8} {'*' * max(1, r['importance']):<3} {r['headline']}")
+        if r["detail"]:
+            typer.echo(f"{'':>20}{r['detail']}")
+
+
 @runs_app.command("show")
 def runs_show(
     run: str,

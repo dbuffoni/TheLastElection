@@ -8,12 +8,22 @@ import html
 import math
 from collections.abc import Callable, Sequence
 
+import numpy as np
 import polars as pl
-from bokeh.models import BoxAnnotation, Span
+from bokeh.models import BoxAnnotation, ColumnDataSource, HoverTool, Span
 from bokeh.plotting import figure
 
 VERDICT_COLORS = {"ok": "#2a9d5c", "drift": "#e0a100", "miss": "#d1495b", "n/a": "#9aa0a6"}
 LINE = "#3b6ea5"
+JOURNAL_COLORS = {
+    "decree": "#7b3fa0",
+    "message": "#b07cc6",
+    "event": "#3b6ea5",
+    "pillar": "#d1495b",
+    "threat": "#e0701a",
+    "mood": "#6b7280",
+    "outcome": "#111111",
+}
 
 
 def verdict_color(v: str | None) -> str:
@@ -45,8 +55,10 @@ def metric_figure(
     milestones: pl.DataFrame | None = None,
     width: int = 420,
     height: int = 230,
+    journal: pl.DataFrame | None = None,
 ):
-    """Time series of one metric with its target band, milestone lines and a verdict-coloured frame."""
+    """Time series of one metric with its target band, milestone lines and a verdict-coloured frame. ``journal`` (diary
+    entries) adds a dot per entry on the curve, coloured by kind, with the entry text on hover."""
     color = verdict_color(verdict)
     title = (spec.title if spec is not None else metric)[:60]
     p = figure(
@@ -75,7 +87,86 @@ def metric_figure(
         for day, what in zip(milestones["day"].to_list(), milestones["what"].to_list()):
             col = "#d1495b" if what in ("removed", "motion_vote") else "#8e7dbe"
             p.add_layout(Span(location=day, dimension="height", line_color=col, line_alpha=0.5, line_width=1))
+    if journal is not None and len(journal) and metric in metrics.columns and len(metrics):
+        journal_markers(p, metrics["day"].to_list(), metrics[metric].to_list(), journal)
     return p
+
+
+def journal_markers(p, days: Sequence[float], values: Sequence[float], journal: pl.DataFrame) -> None:
+    """Dots on a curve at the day of each diary entry (value interpolated), with a hover that reads the entry."""
+    pts = [(d, v) for d, v in zip(days, values) if _finite(v)]
+    if len(pts) < 2:
+        return
+    xs, ys = zip(*pts)
+    j = journal.filter((pl.col("day") >= xs[0]) & (pl.col("day") <= xs[-1]))
+    if not len(j):
+        return
+    day = j["day"].to_list()
+    src = ColumnDataSource(
+        {
+            "day": day,
+            "y": [float(np.interp(d, xs, ys)) for d in day],
+            "kind": j["kind"].to_list(),
+            "headline": [h[:90] for h in j["headline"].to_list()],
+            "color": [JOURNAL_COLORS.get(k, "#888") for k in j["kind"].to_list()],
+            "size": [4 + 2 * i for i in j["importance"].to_list()],
+        }
+    )
+    r = p.scatter(
+        "day", "y", source=src, size="size", fill_color="color", line_color="white", line_width=0.5, alpha=0.9
+    )
+    p.add_tools(
+        HoverTool(renderers=[r], tooltips=[("day", "@day{0}"), ("kind", "@kind"), ("diary", "@headline")])
+    )
+
+
+def journal_timeline_figure(journal: pl.DataFrame, width: int = 900, height: int = 260):
+    """One row per entry kind, one dot per entry (size = importance), hover shows the text: the shape of the story."""
+    kinds = [k for k in JOURNAL_COLORS if len(journal) and k in journal["kind"].to_list()] or list(
+        JOURNAL_COLORS
+    )
+    p = figure(
+        width=width,
+        height=height,
+        y_range=list(reversed(kinds)),
+        x_axis_label="day",
+        tools="pan,wheel_zoom,box_zoom,reset",
+        toolbar_location="above",
+        title="Diary timeline",
+    )
+    p.title.text_font_size = "12px"
+    if len(journal):
+        src = ColumnDataSource(
+            {
+                "day": journal["day"].to_list(),
+                "kind": journal["kind"].to_list(),
+                "headline": [h[:90] for h in journal["headline"].to_list()],
+                "color": [JOURNAL_COLORS.get(k, "#888") for k in journal["kind"].to_list()],
+                "size": [4 + 2 * i for i in journal["importance"].to_list()],
+            }
+        )
+        r = p.scatter(
+            "day", "kind", source=src, size="size", fill_color="color", line_color="white", alpha=0.85
+        )
+        p.add_tools(
+            HoverTool(renderers=[r], tooltips=[("day", "@day{0}"), ("kind", "@kind"), ("diary", "@headline")])
+        )
+    return p
+
+
+def journal_table_html(journal: pl.DataFrame, max_rows: int = 300) -> str:
+    """The diary as a readable table: day, kind, weight, headline with its narration underneath."""
+    if not len(journal):
+        return f"{_CSS}<p><i>no entries with these filters</i></p>"
+    rows = []
+    for r in journal.sort("day").head(max_rows).iter_rows(named=True):
+        color = JOURNAL_COLORS.get(r["kind"], "#888")
+        rows.append(
+            f'<tr><td>{r["day"]:.0f}</td><td><span class="tle-b" style="background:{color}">{html.escape(r["kind"])}</span></td>'
+            f"<td>{'&#9679;' * max(1, r['importance'])}</td><td><b>{html.escape(r['headline'])}</b>"
+            f"<br><small>{html.escape(r['detail'])}</small></td></tr>"
+        )
+    return f'{_CSS}<table class="tle-t"><tr><th>day</th><th>kind</th><th>weight</th><th>entry</th></tr>{"".join(rows)}</table>'
 
 
 def sparkline_svg(

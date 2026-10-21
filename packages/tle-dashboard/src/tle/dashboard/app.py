@@ -9,10 +9,13 @@ from tle.analysis import population as pop
 from tle.registry.metrics import load_metrics
 from tle.runs import Run, list_runs
 from tle.viz import (
+    JOURNAL_COLORS,
     badge,
     bar_figure,
     curves_figure,
     histogram_figure,
+    journal_table_html,
+    journal_timeline_figure,
     matrix_html,
     metric_figure,
     scatter_figure,
@@ -70,6 +73,8 @@ def build_app(runs_dir: str | Path = "runs", live: bool = False):
     run_sel = pn.widgets.Select(label="Run", options=ids, value=ids[-1] if ids else None)
     group_sel = pn.widgets.Select(label="Group", options={v: k for k, v in GROUPS.items()}, value="ideology")
     warm = pn.widgets.Checkbox(label="include warm-up", value=False)
+    diary_on = pn.widgets.Checkbox(label="diary dots", value=True)
+    diary_min = pn.widgets.Select(label="Diary min importance", options=[0, 1, 2, 3], value=2, width=150)
     day_sel = pn.widgets.FloatInput(label="Inspect day", value=0.0, step=7.0, width=140)
     badge_pane = pn.pane.HTML("", height=40)
     tick = pn.widgets.IntInput(
@@ -94,7 +99,7 @@ def build_app(runs_dir: str | Path = "runs", live: bool = False):
             return "<i>status unavailable</i>"
 
     # ------------------------------------------------------------------ run explorer
-    def explorer(run_id, group, include_warm, day, _tick=0):
+    def explorer(run_id, group, include_warm, day, show_diary, min_imp, _tick=0):
         run = load(run_id)
         if run is None:
             return pn.pane.HTML("<p>No run selected. Start one with <code>tle run</code>.</p>")
@@ -102,8 +107,9 @@ def build_app(runs_dir: str | Path = "runs", live: bool = False):
         m = run.metrics(phase=None if include_warm else "game").df
         ver = _verdicts(run)
         ms = _milestones(run)
+        jr = run.journal(min_imp) if show_diary else None
         figs = [
-            metric_figure(m, mid, s, ver.get(mid), ms)
+            metric_figure(m, mid, s, ver.get(mid), ms, journal=jr)
             for mid, s in specs.items()
             if s.group == group and mid in m.columns
         ]
@@ -121,8 +127,57 @@ def build_app(runs_dir: str | Path = "runs", live: bool = False):
         )
 
     explorer_view = pn.Column(
-        pn.Row(run_sel, group_sel, warm, day_sel, refresh, badge_pane),
-        pn.bind(explorer, run_sel, group_sel, warm, day_sel, tick),
+        pn.Row(run_sel, group_sel, warm, day_sel, diary_on, diary_min, refresh, badge_pane),
+        pn.bind(explorer, run_sel, group_sel, warm, day_sel, diary_on, diary_min, tick),
+    )
+
+    # ------------------------------------------------------------------ diary of the city
+    d_kinds = pn.widgets.CheckBoxGroup(
+        label="Kinds", options=list(JOURNAL_COLORS), value=list(JOURNAL_COLORS)
+    )
+    d_min = pn.widgets.Select(label="Min importance", options=[0, 1, 2, 3], value=2, width=130)
+    d_find = pn.widgets.TextInput(label="Search", placeholder="word in the entry", width=200)
+    d_group = pn.widgets.Select(
+        label="Charts", options={v: k for k, v in GROUPS.items()}, value="opinion", width=220
+    )
+    d_days = pn.widgets.RangeSlider(label="Days", start=0, end=1825, value=(0, 1825), step=7, width=360)
+
+    def diary(run_id, kinds, min_imp, find, group, days, _tick=0):
+        run = load(run_id)
+        if run is None:
+            return pn.pane.HTML("<p>No run selected.</p>")
+        full = run.journal()
+        if not len(full):
+            return pn.pane.HTML(
+                "<p>This run has no diary (runs recorded before the diary existed have none).</p>"
+            )
+        last = float(full["day"].max())
+        d_days.end = max(7.0, last)
+        lo, hi = days if days[1] <= d_days.end else (days[0], d_days.end)
+        j = run.journal(min_imp, list(kinds)).filter((pl.col("day") >= lo) & (pl.col("day") <= hi))
+        if find:
+            j = j.filter(
+                pl.col("headline").str.to_lowercase().str.contains(find.lower(), literal=True)
+                | pl.col("detail").str.to_lowercase().str.contains(find.lower(), literal=True)
+            )
+        m = run.metrics().df.filter((pl.col("day") >= lo) & (pl.col("day") <= hi))
+        ver = _verdicts(run)
+        figs = [
+            metric_figure(m, mid, sp, ver.get(mid), journal=j)
+            for mid, sp in specs.items()
+            if sp.group == group and mid in m.columns
+        ]
+        return pn.Column(
+            pn.pane.HTML(f"<i>{len(j)} entries shown out of {len(full)}</i>"),
+            pn.pane.Bokeh(journal_timeline_figure(j), sizing_mode="fixed"),
+            pn.GridBox(*[pn.pane.Bokeh(f, sizing_mode="fixed") for f in figs], ncols=3),
+            pn.pane.HTML(journal_table_html(j)),
+        )
+
+    diary_view = pn.Column(
+        pn.Row(run_sel, d_group, d_min, d_find, d_days),
+        d_kinds,
+        pn.bind(diary, run_sel, d_kinds, d_min, d_find, d_group, d_days, tick),
     )
 
     # ------------------------------------------------------------------ run matrix
@@ -378,6 +433,7 @@ def build_app(runs_dir: str | Path = "runs", live: bool = False):
 
     tabs = pn.Tabs(
         ("Run explorer", explorer_view),
+        ("Diary", diary_view),
         ("Run matrix", matrix_view),
         ("Targets", scorecard_view),
         ("Outcomes", outcome_view),
