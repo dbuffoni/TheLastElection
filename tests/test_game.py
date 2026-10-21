@@ -76,8 +76,18 @@ def test_world_serialisation_roundtrip():
 
 def test_turn_length_independence_of_decay():
     """With no player action and no events, two half turns equal one whole turn for the decay terms."""
-    a = small_game(5, overrides={"nu_exo": 0.0})
-    b = small_game(5, overrides={"nu_exo": 0.0})
+    quiet = {  # no event of any actor and no birth, death or migration: only the decay terms act
+        "nu_exo": 0.0,
+        "nu_fac": 0.0,
+        "nu_found": 0.0,
+        "nu_inf": 0.0,
+        "nu_child": 0.0,
+        "nu_im": 0.0,
+        "nu_em": 0.0,
+        "mu_30": 0.0,
+    }
+    a = small_game(5, overrides=quiet)
+    b = small_game(5, overrides=quiet)
     a.w.fear[:] = 0.8
     b.w.fear[:] = 0.8
     a.step(PlayerInput(dt=14.0))

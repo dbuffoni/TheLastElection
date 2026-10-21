@@ -13,8 +13,9 @@ from tle.core.prims import count, express, rate, relax
 from tle.core.rng import GameRng
 from tle.engines.errors import UnclassifiableDecree, validate_text
 from tle.engines.protocol import Engines
+from tle.loop import actors
 from tle.params import Params
-from tle.systems import demography, indicators, power, ties
+from tle.systems import custodians, demography, economy, factions, indicators, influencers, power, ties
 from tle.systems.predicate import match
 from tle.systems.reaction import EventResult, run_event
 from tle.world.catalogs import Catalogs
@@ -98,10 +99,19 @@ def step(
         if r:
             pkg.news.append(r)
 
+    for r_ in actors.generate(w, cat, p, engines, turn_rng.child("actors"), dt):
+        pkg.news.append(r_)
+
     # 4. contagion through ties, ideology drift, fear decay, wealth relaxation
     _contagion(w, p, dt)
     life = ties.daily_life(w, cat, p, engines, dt, turn_rng.child("life"))
     ties.ideology_pull(w, p, dt)
+    factions.pull(w, p, dt)
+    influencers.pull(w, p, dt)
+    economy.step(w, cat, p, dt)
+    custodians.follow_alignment(w, p, dt)
+    factions.step(w, p, dt)
+    influencers.step(w, p, dt)
     w.stats["ties_dropped"] = w.stats.get("ties_dropped", 0) + ties.tie_dynamics(w, p, dt)
     w.I = relax(w.I, w.B, p.vectors.h_I, dt)  # ideology fades toward its base ...
     w.B = relax(
@@ -112,13 +122,22 @@ def step(
     w.I = np.clip(w.I + drift, -1.0, 1.0)  # personal experience: idiosyncratic ideological drift ...
     w.B = np.clip(w.B + drift, -1.0, 1.0)  # ... which moves the base along, so it persists
     w.O = relax(w.O, w.Ob, p.vectors.h_O, dt)  # opinions fade toward the personal baseline (h_O)
+    c_ = (
+        w.councillor != 0
+    )  # party discipline: councillors fall back to their alignment faster than ordinary citizens
+    w.O[c_, 0] = relax(w.O[c_, 0], w.Ob[c_, 0], p.vectors.h_O_council, dt)
     w.fear = relax(w.fear, 0.0, p.events.h_fear, dt, 0.0, 1.0)
     w.r = relax(w.r, w.r0, 365.0, dt, 0.0, 1.0)
-    # economic vote: opinion of the mayor follows the change in own wealth
+    # economic vote (5.18): the change in wealth of the turn, from any source, pushes the opinion of the mayor toward +1
+    # if positive and -1 if negative (k = kappa_ec |dr|); the part due to transfers also pushes the acceptance of the
+    # erosion of property and rule of law: who gains from extraction accepts the rules that allow it, who pays defends them
     dr = w.r - w.r_prev
-    w.O[:, 0] = np.clip(
-        w.O[:, 0] + 3.0 * np.tanh(20.0 * dr) * p.events.persuade * (dt / p.time.dt_max), -1.0, 1.0
-    )
+    k = np.clip(p.economy.kappa_ec * np.abs(dr), 0.0, 1.0)
+    w.O[:, 0] = np.clip(w.O[:, 0] + k * (np.sign(dr) - w.O[:, 0]), -1.0, 1.0)
+    kt = np.clip(p.economy.kappa_ec * np.abs(w.dr_transfer), 0.0, 1.0)
+    for pid in ("property", "law"):
+        j = 1 + cat.pillar_ids().index(pid)
+        w.O[:, j] = np.clip(w.O[:, j] + kt * (np.sign(w.dr_transfer) - w.O[:, j]), -1.0, 1.0)
     w.r_prev = w.r.copy()
 
     demo = demography.step(w, cat, p, engines, dt, turn_rng.child("demography"))
@@ -129,6 +148,7 @@ def step(
     w.turn += 1
     w.dt_prev = dt
     ind = indicators.compute(w, cat, p)
+    w.stats["fac_F"], w.stats["fac_H"] = factions.balance(w, p, express(w.O, w.fear))
     if not warmup:
         power.capital_step(w, p, dt, ind.get("support", 0.0))
         pkg.threats = power.threats_step(w, cat, p, dt, turn_rng.child("threats"))
@@ -172,10 +192,15 @@ def _handle_decree(w, cat, p, engines, rng, cd: m.ClassifyDecreeOut, text: str, 
         "executed": False,
     }
     if cost > w.K:
-        info["result"] = "insufficient_capital"
-        w.stats["decree_failed"] = w.stats.get("decree_failed", 0) + 1
-        return info
-    w.K -= cost
+        # the decree passes anyway (5.8): capital drops to 0 and the deficit adds to the pressure of a threat, the judicial
+        # route if it hits the rule of law and the no-confidence motion otherwise
+        deficit = cost - w.K
+        w.K = 0.0
+        t = power.JUDICIAL if cd.pillar == "law" else power.MOTION
+        w.threat_p[t] = float(w.threat_p[t] + (1.0 - w.threat_p[t]) * min(1.0, p.capital.kappa_D * deficit))
+        w.stats["decree_deficit"] = w.stats.get("decree_deficit", 0) + 1
+    else:
+        w.K -= cost
     w.last_player_day = w.day
     info["executed"] = True
     involved = np.flatnonzero(match(w, cat, p, cd.predicate))
@@ -227,6 +252,11 @@ def _handle_decree(w, cat, p, engines, rng, cd: m.ClassifyDecreeOut, text: str, 
         w.O[involved, ai] = np.clip(
             w.O[involved, ai] + p.events.alpha_aware * (agg / 6.0) * (-1.0 - w.O[involved, ai]), -1, 1
         )
+    if cd.transfer is not None:
+        tr = economy.transfer(w, cat, p, cd.transfer, "mayor")
+        info["transfer"] = "rent" if tr and "I" in tr else ("one_off" if tr else "blocked")
+    if cd.revocation is not None:
+        info["revoked"] = economy.revoke(w, cat, p, cd.revocation)
     if cd.pillar != "none":
         pi = cat.pillar_ids().index(cd.pillar)
         outcome, level = power.try_pillar_step(w, cat, p, pi, agg)
@@ -241,7 +271,12 @@ def _handle_decree(w, cat, p, engines, rng, cd: m.ClassifyDecreeOut, text: str, 
 
 def _exogenous(w, cat, p, engines, rng, ad) -> EventResult | None:
     types = [e for e in cat.event_types if "exogenous" in e.actors]
-    et = types[rng.choice_index([e.weight for e in types])]
+    # extractiveness blocks creative destruction: it reduces the frequency of discoveries by (1 - X) (5.18)
+    et = types[
+        rng.choice_index(
+            [e.weight * ((1.0 - w.extractiveness) if e.category == "discovery" else 1.0) for e in types]
+        )
+    ]
     intensity = uni_name(int(rng.integers(1, 6)))
     kind = et.predicate_kinds[rng.integers(0, len(et.predicate_kinds))] if et.predicate_kinds else "all"
     mask = ad.copy()

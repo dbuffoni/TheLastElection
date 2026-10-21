@@ -6,7 +6,7 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "tle-engine", "tle-config", "tle-models", "tle-store", "tle-lab",
-    "tle-game", "tle-devtools", "tle-cli",
+    "tle-game", "tle-devtools", "tle-cli", "tle-viz", "tle-dashboard",
 ]
 
 [dependency-groups]
@@ -31,6 +31,8 @@ tle-lab = { workspace = true }
 tle-game = { workspace = true }
 tle-devtools = { workspace = true }
 tle-cli = { workspace = true }
+tle-viz = { workspace = true }
+tle-dashboard = { workspace = true }
 tle-testing = { workspace = true }
 
 [tool.pytest.ini_options]
@@ -50,7 +52,7 @@ markers = [
 [tool.ruff]
 line-length = 110
 target-version = "py312"
-extend-exclude = ["packages/tle-engine/src/tle/params/_generated.py"]
+extend-exclude = ["packages/tle-engine/src/tle/params/_generated.py", "tools/calibration"]  # research scripts
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP", "NPY"]

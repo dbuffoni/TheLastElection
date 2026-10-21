@@ -145,3 +145,17 @@ class Warning_:
     response: str
     day: float = 0.0
     extra: dict = field(default_factory=dict)
+
+
+def call_many(engine, task: str, inputs: list, rngs: list) -> list:
+    """Independent calls of one task, in parallel when the engine allows it (``concurrency`` > 1; the order and the
+    per-call RNG streams are fixed by the caller, so the result does not depend on scheduling)."""
+    if int(getattr(engine, "batch", 1)) > 1:  # many items per request (S1 on a real model)
+        return engine.call_batch(task, inputs, rngs)
+    workers = int(getattr(engine, "concurrency", 1))
+    if workers <= 1 or len(inputs) <= 1:
+        return [engine.call(task, i, r) for i, r in zip(inputs, rngs)]
+    from concurrent.futures import ThreadPoolExecutor
+
+    with ThreadPoolExecutor(workers) as ex:
+        return list(ex.map(lambda ir: engine.call(task, *ir), zip(inputs, rngs)))

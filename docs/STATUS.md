@@ -52,21 +52,74 @@ Evidence: `passive` strategy (the "no player" baseline of spec 17.2), seeds 1-9 
   `clientelist` 0.08. All four placeholder bands pass; with 12 seeds the gradual margin is thin. Mobility, impulse and saturation unchanged
   (mobility now in band on 9/9 seeds since the passive mayor survives).
 
+## Session 4: real models and dashboard
+- **Real models** (PR #3): S1 and S2 configured separately (`config/engines*.toml`, `.env`), `jev` backend (TypeSafe decision model on OpenRouter), batched
+  S1 requests, deadlines, token caps. See `docs/local-setup.md`.
+- **Dashboard** (`tle dash [--runs-dir runs] [--port 5006] [--live]`): packages `tle-viz` (Bokeh renderers, generic matrix, sparkline, tables) and
+  `tle-dashboard` (Panel app). Views: run explorer (charts per metric group with target band, verdict frame and milestones, events around a day),
+  run matrix (runs x metrics with sparklines and verdict frames), targets scorecard, outcomes per strategy/scenario, technical health (execution, warnings).
+  `--live` re-reads `runs/` every two seconds. Also citizen panel (ideology scatter, histograms, mobility, class flows), network (degree distribution, tie mix), impulse view (runs the 17.3 test on demand),
+  calibration status (targets x runs) and `tle plot <run> <metric>` (PNG with its regeneration command). Not yet: seed grid, parameter sweep and sensitivity matrices,
+  stylized facts, journal timeline, click-through between views.
+## Session 5: roadmap increments, mocks, recalibration
+- **Dashboard** (core complete): run explorer, run matrix, targets, outcomes, citizen panel, network, impulse view, calibration status, technical health;
+  `tle plot` for PNG export. Not yet: seed grid, sweep and sensitivity matrices, stylized facts, journal timeline, click-through.
+- **Factions (5.7) and influencers (5.9)** (`systems/factions.py`, `systems/influencers.py`, `loop/actors.py`): factions are born from nascent movements (a
+  demonstration tagged `faction_birth`, founders within `rho_in`, at least `N_min`), recruit through the events they take part in, hold members by commitment
+  with hysteresis, drift with their members and die when weak. Influencers enter by potential and expected share, have a capital, a topic and a catchment area
+  with per-axis saturation, and pull their audience. Both act through events (tone follows the actor's opinion of the mayor) and feed political capital (F) and
+  the threats (H). New parameters: `nu_found`, `theta_found`, `nu_fac`, `nu_inf`, `w_z_*`, `reach_share`.
+- **Custodians and active threats (5.17, 5.12)**: custodians weigh `omega_cust` in the resistance of their pillar; the council is stratified on the first axis with
+  alignment bases; pressure grows with the custodians' expressed discontent and the factions' hostility, scaled by the intactness of the linked pillar; a chain
+  starts with frequency `nu_T p^gamma`; the mayor is removed only if `p >= theta_outcome` and more than half of the custodians dissent. Capital deficits add to the
+  pressure. Simplification: the development phase has one event, not 1-3.
+- **Council discipline** (`h_O_council`): the opinion of the mayor of a councillor falls back to its alignment base faster than that of an ordinary citizen. Without
+  it, shocks common to all citizens flipped the whole council together and a passive mayor was removed in 20-70% of the seeds.
+- **Extractive economy (5.18)** (`systems/economy.py`): one-off transfers and persistent rents between predicates, capped by the erosion of property, concentration,
+  deadweight loss, extractive coalition, extractiveness X, economic vote with transfer-driven acceptance of erosion. New strategy `rentier`; `populist` redistributes.
+  Not built: transfers from events (news_feature), redistributive risk label.
+- **Mocks** (`docs/mocks.md`): decree bank labelled by a real S1 (Jev), narration templates, `tle mocks label-decrees|eval|fit`, `tle run --record`, warm-up on
+  simulated engines. First bootstrap: the real S1 was position-biased and weakly context-sensitive, so the mock defaults were kept (fit in `config/mocks/s1_fit.toml`).
+  The Jev reaction prompt now describes the citizen in words and shuffles the options; **not yet measured against the real model** (the key reached its daily budget).
+- **Full recalibration on the mocks**: one objective for the three groups of targets (population on the passive baseline, impulse test, outcome bands), 96-point LHS
+  over 14 parameters, then 64 points with `theta_outcome` tied to the baseline pressure of a divided council (`theta_outcome = p_base + margin`, so that a loyal
+  council with 5/12 in opposition cannot remove a quiet mayor), then 40 points on the pillar gate and the capital cost; training seeds 1-12, validation 101-124,
+  hold-out 201-224. Promoted: `alpha_react` 2.36, `alpha_ind` 0.366, `k_contagion` 0.0048, `sigma_I` 0.126, `nu_inf` 0.0084, `nu_child` 0.061, `nu_T` 0.318,
+  `kappa_D` 8.0, `h_O_council` 38.9, `x_star_T` 0.734, `delay_min` 4.5, `w_M` 0.70, `alpha_direct` 0.846, `theta_outcome` 0.495, `theta_0` 0.245, `theta_1` 0.147,
+  `theta_down` 0.617, `alpha_aware` 0.518, `c_0` 0.225, `delta` 0.31, `x_star_K` 0.716. Result (before = the parameters of the previous pass, same seeds):
+
+  | Target | Band | Before (val) | After (val 101-124) | After (hold-out 201-224) |
+  |---|---|---|---|---|
+  | assault removed | >= 0.6 | 0.04 | **0.62** | 0.50 (just under) |
+  | gradual victory | 0.15-0.6 | 0.29 | 0.17 | 0.25 |
+  | populist pillars fallen | 1-4.5 | 3.7 | 2.9 | 3.4 |
+  | random victory | <= 0.1 | 0.00 | 0.00 | 0.00 |
+  | passive removed | low (own check) | 0.04 | 0.00 | 0.08 |
+  | label changed at 730 d (seeds in band) | 0.15-0.35 | 100% | 96% | 100% |
+  | displacement at 730 d (seeds in band) | >= 0.167 | 91% | 96% | 100% |
+  | impulse involved peak (seeds in band) | 0.25-0.42 | 100% | 67% (mean 0.27) | 67% (mean 0.28) |
+  | impulse others / half-life | 0.07-0.15 / 39-81 d | in | in / 49 d | in / 49 d |
+  | saturated character, births | <= 0.05, 0.01 | 0, 0.0107 | 0, 0.0109 | 0, 0.0113 |
+
+  Still weak: assault removal sits at the edge of its band across seed sets; the impulse involved peak is at the lower edge; `fear` wins 0.6-0.8 of the games and
+  `rentier` is removed 0.8-0.9 (strategies without a band).
+
 ## Simplified in this slice (decisions to review against the spec)
-These are marked `slice v0` in `config/params/events.toml` (module `loop.*`).
-- Decrees act on the mayor's opinion through *direct exposure* only. Indirect (published news) and contagion-gated exposure are reduced to one tie-diffusion step on expressed opinion (`_contagion`).
-- Only mayor and exogenous events run the full pipeline. Faction, influencer, class and custodian events exist in the catalog but are not generated yet.
-- No factions, influencers, economy of rents/transfers, community indices (tec/cul), newspaper/annual edition/almanac, private-message influencer responses (messages are a simple persuasion pull).
-- Pillar resistance R_p = share of adults whose *expressed* acceptance of erosion is below -1/3; level gate uses it. Spec formulas for custodians are not implemented; threats are driven by council discontent and law-pillar resistance.
-- Parameters introduced by the slice (alpha_react, alpha_ideo, alpha_aware, k_wealth, h_fear, fear_decree, persuade, k_contagion, cost_decree, cost_message, nu_news_decree) are provisional.
-- **Balance is not tuned.** With defaults most aggressive strategies get the mayor removed and passive ones reach term end; the target bands in `config/balance/targets.toml` are placeholders.
+- Decrees act on the mayor's opinion through *direct exposure* only; indirect exposure of non-involved adults is a random involved reaction attenuated by `alpha_ind`.
+- Events of classes and custodians (strike, lockout, ruling, council resolution...) exist in the catalog but are not generated yet; factions, influencers, nascent
+  movements, exogenous events, threats and the mayor are.
+- No community indices (tec/cul), newspaper/annual edition/almanac, private-message influencer responses (messages are a simple persuasion pull), redistributive
+  risk, transfers from events.
+- Parameters introduced by the slice (alpha_react, alpha_ideo, alpha_aware, alpha_direct, k_wealth, h_fear, fear_decree, persuade, k_contagion, cost_decree, cost_message,
+  nu_news_decree, nu_found, nu_fac, nu_inf, sigma_I, C_max, sd_C_init) are provisional; the outcome bands were confirmed by Daniele on 2026-10-20 but remain provisional.
 
 ## Not built
-- Panel dashboard, `tle plot`, journal, `runs reindex/gc`, factions, influencers, economy, custodians, MCP server for the lab, in-process `local` model backend (see docs/local-setup.md), Optuna/SALib wrappers (extras declared, not wired), profile promotion/journal tooling, GPU-specific tuning.
+- Seed grid, sweep and sensitivity matrices, stylized facts and journal views of the dashboard; `runs reindex/gc`; journal; class and custodian event generators;
+  MCP server for the lab; in-process `local` model backend (see docs/local-setup.md); Optuna/SALib wrappers (extras declared, not wired); profile promotion and
+  journal tooling; GPU-specific tuning.
 
 ## Suggested order for the next increments
-1. Factions + influencers (spec 5.x) and their event generators -> turn the unused event types on.
-2. Calibrate stages 1-2 on the failing population targets (see findings).
-3. Economy (rents, transfers, extractive coalition), community indices.
-4. Custodians and the full threat model; replace the placeholder pillar gate inputs.
-5. Warm-up, newspaper and almanac (S2 text), then calibrate against real bands.
+1. Measure the new Jev reaction prompt against the real model (`--record`, `tle mocks fit`), and move the mock defaults if the real S1 becomes context-sensitive.
+2. Class and custodian event generators (strike, lockout, ruling, council resolution) and 1-3 development events in the threat chains.
+3. Community indices, newspaper and almanac (S2 text), transfers from events.
+4. Rebalance `fear`/`rentier` and the assault band with more seeds; wire the calibration loop into `tle` (the scripts used here live outside the repo).

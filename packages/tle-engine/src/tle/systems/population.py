@@ -7,8 +7,9 @@ import numpy as np
 from tle.contracts import models as m
 from tle.contracts.vocab import BIPOLAR
 from tle.core.rng import GameRng
-from tle.engines.protocol import Engines
+from tle.engines.protocol import Engines, call_many
 from tle.params import Params
+from tle.systems import custodians
 from tle.world.catalogs import AGE_BANDS, Catalogs
 from tle.world.state import B_AFF, B_FAM, KIN_PARENT, KIN_PARTNER, N_PILLARS, World, allocate
 
@@ -87,26 +88,47 @@ def create_world(
     w.circle[:n] = rng.integers(0, n_circ, n)
 
     # labels: S2 describes, S1 classifies (the two-engine boundary)
-    gen = engines.s2.call(
+    real_s2 = hasattr(engines.s2, "concurrency")  # a real model gets short lists and may still return fewer
+    size = p.technical.B_gen if real_s2 else n
+    spans = [(a, min(n, a + size)) for a in range(0, n, size)]
+    parts = call_many(
+        engines.s2,
         "generate_citizens",
-        m.GenerateCitizensIn(
-            scenario=scenario_id,
-            number=n,
-            ages=[int(a) for a in w.age[:n]],
-            circles=[int(c) for c in w.circle[:n]],
-            parents=[{} for _ in range(n)],
-        ),
-        rng.child("gen"),
+        [
+            m.GenerateCitizensIn(
+                scenario=scenario_id,
+                number=b - a,
+                ages=[int(x) for x in w.age[a:b]],
+                circles=[int(c) for c in w.circle[a:b]],
+                parents=[{} for _ in range(b - a)],
+            )
+            for a, b in spans
+        ],
+        [rng.child("gen") if not real_s2 else rng.child("gen", a) for a, b in spans],
     )
+    drafts = []
+    for (a, b), part in zip(spans, parts):
+        got = list(part.citizens)[: b - a] if part is not None else []
+        drafts += got + [
+            m.CitizenDraft(name=f"Citizen {a + len(got) + j}", description="T=0,0,0,0;C=0,0,0;I=0,0,0")
+            for j in range(b - a - len(got))
+        ]  # missing ones are neutral (13.3 fallback)
+    gen = m.GenerateCitizensOut(citizens=drafts)
     prof_rng = rng.child("profile")
-    for i in range(n):
-        d = gen.citizens[i]
-        w.names[i] = d.name
-        out = engines.s1.call(
-            "citizen_profile",
-            m.CitizenProfileIn(description=d.description, anchor="average citizen"),
-            prof_rng,
-        )
+    par = (
+        int(getattr(engines.s1, "concurrency", 1)) > 1
+    )  # parallel calls need an independent stream per citizen
+    outs = call_many(
+        engines.s1,
+        "citizen_profile",
+        [
+            m.CitizenProfileIn(description=gen.citizens[i].description, anchor="average citizen")
+            for i in range(n)
+        ],
+        [prof_rng.child(i) if par else prof_rng for i in range(n)],
+    )
+    for i, out in enumerate(outs):
+        w.names[i] = gen.citizens[i].name
         idx = [
             BIPOLAR.index(getattr(out, k))
             for k in ("NS", "HA", "RD", "P", "SD", "CO", "ST", "I1", "I2", "I3")
@@ -209,9 +231,8 @@ def create_world(
 
     # council: adults, half on the mayor's side
     adults = np.flatnonzero(w.adults(p.demography.a_adult))
-    nc = min(p.pillars.n_council, len(adults))
-    chosen = adults[rng.permutation(len(adults))[:nc]]
-    w.councillor[chosen] = np.where(np.arange(nc) % 2 == 0, 1, -1)
+    custodians.ensure_minimum(w, cat, p, adults, rng.child("cust"))
+    custodians.seat_council(w, p, adults, rng.child("council"))
 
     # initial state of the power block
     w.K = float(p.capital.c_0)

@@ -23,8 +23,41 @@ PILLAR_DOMAIN = {
 }
 
 
+def transfer_of(
+    payers: dict, beneficiaries: dict, intensity: int = 3, persistent: bool = True
+) -> m.TransferOut:
+    """A transfer between two predicates (5.18); unspecified dimensions are "any"."""
+    return m.TransferOut(
+        payers=_predicate(**payers),
+        beneficiaries=_predicate(**beneficiaries),
+        intensity=uni_name(intensity),
+        duration="persistent" if persistent else "one_off",
+    )
+
+
+def _predicate(**pred) -> m.Predicate:
+    base = dict(
+        age_band="any",
+        social_class="any",
+        trade="any",
+        circle="any",
+        faction="any",
+        influencer="any",
+        ideology_extreme="any",
+        role="any",
+    )
+    base.update(pred)
+    return m.Predicate(**base)
+
+
 def structured(
-    pillar: str, agg: int, domain: str | None = None, econ: str = MASK, text: str | None = None, **pred
+    pillar: str,
+    agg: int,
+    domain: str | None = None,
+    econ: str = MASK,
+    text: str | None = None,
+    transfer: m.TransferOut | None = None,
+    **pred,
 ) -> PlayerInput:
     base = dict(
         age_band="any",
@@ -46,7 +79,7 @@ def structured(
         cul_effect=MASK,
         econ_effect=econ,
         threat="none",
-        transfer=None,
+        transfer=transfer,
         revocation=None,
     )
     label = (text or f"{pillar} level {agg}")[:50]
@@ -91,10 +124,38 @@ def _gradual(w, cat, rng):
     return structured(pid, int(w.pillar_level[i]) + 1, text=f"gradual {pid}")
 
 
+def _prop_level(w, cat) -> int:
+    return int(w.pillar_level[cat.pillar_ids().index("property")])
+
+
 def _populist(w, cat, rng):
     if w.turn % 3 != 2 or w.K < 0.3:
+        if _prop_level(w, cat) > 0 and w.turn % 6 == 0:  # redistribution: tax the rich for the poor (c < 0)
+            return structured(
+                "none",
+                2,
+                domain="economy",
+                econ="positive",
+                text="Tax the rich, pay the poor",
+                transfer=transfer_of({"social_class": "high"}, {"social_class": "low"}, 2),
+            )
         return structured(
             "none", 1, domain="worship", econ="positive", text="Public festival and bonus for all"
+        )
+    return _gradual(w, cat, rng)
+
+
+def _rentier(w, cat, rng):
+    """Extractive rents for a few: everybody pays, councillors and entrepreneurs receive (c > 0)."""
+    if _prop_level(w, cat) == 0:
+        return structured("property", 1, text="Open the market to concessions")
+    if w.turn % 4 == 0 and w.K >= 0.2:
+        return structured(
+            "none",
+            2,
+            domain="economy",
+            text="Concessions for the mayor's friends",
+            transfer=transfer_of({}, {"role": "councillor"}, 3),
         )
     return _gradual(w, cat, rng)
 
@@ -138,6 +199,7 @@ STRATEGIES: dict[str, Strategy] = {
         Strategy("assault", _assault),
         Strategy("gradual", _gradual),
         Strategy("populist", _populist),
+        Strategy("rentier", _rentier),
         Strategy("capture", _capture),
         Strategy("fear", _fear),
         Strategy("clientelist", _clientelist),

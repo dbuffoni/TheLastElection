@@ -25,6 +25,18 @@ introduced  = 1
 module      = "engines.real"
 status      = "provisional"
 
+[B_gen]
+symbol      = "B_gen"
+spec        = "14"
+description = "Citizens described per S2 call when a real model writes them (a small model loses count on long lists)"
+default     = 8
+scale       = "int"
+class       = "fixed"
+stage       = 0
+introduced  = 3
+module      = "systems.population"
+status      = "provisional"
+
 [B_S1]
 symbol      = "B_S1"
 spec        = "14"
@@ -100,3 +112,31 @@ stage       = 0
 introduced  = 2
 module      = "telemetry"
 status      = "provisional"
+
+[w_actor_stance]
+symbol      = "w_actor_stance"
+spec        = "15.3"
+description = "Weight of the actor stance in the distance of the simulated choice"
+default     = 1.0
+range       = [0.0, 3.0]
+scale       = "linear"
+class       = "free"
+stage       = 0
+introduced  = 3
+module      = "engines.simulated"
+status      = "provisional"
+rationale   = "Fitted against a real S1 with `tle mocks fit`"
+
+[beta_support]
+symbol      = "beta_support"
+spec        = "15.3"
+description = "Preference of the simulated choice for options that side with the actor"
+default     = 0.0
+range       = [0.0, 2.0]
+scale       = "linear"
+class       = "free"
+stage       = 0
+introduced  = 3
+module      = "engines.simulated"
+status      = "provisional"
+rationale   = "A real S1 mostly picks the supportive option (fit with `tle mocks fit`)"

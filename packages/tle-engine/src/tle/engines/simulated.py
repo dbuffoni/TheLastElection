@@ -3,6 +3,7 @@ respect the same contracts as the real models. They see only labels (fidelity pr
 
 from __future__ import annotations
 
+import re
 from typing import Any
 
 import numpy as np
@@ -94,9 +95,53 @@ def _any_pred(**kw: str) -> m.Predicate:
 
 
 PILLAR_KW = {
-    "press": ("press", "newspaper", "journalist", "media", "gazette", "broadcast", "radio", "news"),
-    "law": ("judge", "court", "magistrate", "law ", "trial", "justice", "tribunal"),
-    "pluralism": ("election", "council", "opposition", "party", "vote", "candidate", "ballot"),
+    "press": (
+        "press",
+        "newspaper",
+        "journalist",
+        "media",
+        "gazette",
+        "broadcast",
+        "radio",
+        "news",
+        "editor",
+        "publish",
+        "print",
+        "interview",
+        "reporting",
+        "paper",
+    ),
+    "law": (
+        "judge",
+        "court",
+        "magistrate",
+        "law ",
+        "trial",
+        "justice",
+        "tribunal",
+        "sentence",
+        "verdict",
+        "lawyer",
+        "legal",
+        "prosecut",
+        "overturn",
+        "auditor",
+    ),
+    "pluralism": (
+        "election",
+        "council",
+        "opposition",
+        "part",
+        "vote",
+        "candidate",
+        "ballot",
+        "seat",
+        "debate",
+        "minutes",
+        "office permanent",
+        "term",
+        "chairs",
+    ),
     "property": (
         "tax",
         "property",
@@ -109,6 +154,14 @@ PILLAR_KW = {
         "licen",
         "tariff",
         "firm",
+        "nationaliz",
+        "warehouse",
+        "mill",
+        "concession",
+        "monopoly",
+        "price",
+        "harbour trade",
+        "merchant",
     ),
     "civil": (
         "police",
@@ -122,6 +175,19 @@ PILLAR_KW = {
         "security",
         "march",
         "rally",
+        "detain",
+        "warrant",
+        "search",
+        "guard",
+        "arm ",
+        "union",
+        "strike",
+        "critic",
+        "neighbour",
+        "report their",
+        "expel",
+        "forbid",
+        "jail",
     ),
 }
 PILLAR_DOMAIN = {
@@ -157,6 +223,26 @@ MED_KW = (
     "levy",
     "control",
 )
+BENIGN_KW = (
+    "review",
+    "invite",
+    "ask ",
+    "study",
+    "audit",
+    "inspect",
+    "publish",
+    "fund",
+    "welcome",
+    "free ",
+    "open ",
+    "allow",
+    "build",
+    "raise",
+    "grant",
+    "subsid",
+    "neutral",
+    "pay ",
+)
 LOW_KW = ("review", "inspect", "ask", "urge", "audit", "study", "invite", "request")
 POS_ECON = ("subsid", "bonus", "grant", "free", "relief", "reward", "pay raise", "build")
 NEG_ECON = ("tax", "fine", "levy", "seize", "tariff")
@@ -175,6 +261,80 @@ PRED_KW = [
     (("priest", "clergy", "cleric"), dict(trade="cleric")),
     (("entrepreneur", "business owner"), dict(trade="entrepreneur")),
 ]
+
+
+_STOP = {
+    "the",
+    "a",
+    "an",
+    "of",
+    "to",
+    "for",
+    "and",
+    "all",
+    "in",
+    "on",
+    "my",
+    "our",
+    "is",
+    "be",
+    "by",
+    "at",
+    "with",
+    "that",
+}
+
+
+def _tokens(text: str) -> set[str]:
+    out = set()
+    for w in re.findall(r"[a-z']+", text.lower()):
+        if w in _STOP:
+            continue
+        for suf in ("ing", "ed", "es", "s"):
+            if w.endswith(suf) and len(w) - len(suf) >= 3:
+                w = w[: -len(suf)]
+                break
+        out.add(w)
+    return out
+
+
+def _neighbours(text: str, bank: list[dict], k: int = 3) -> list[tuple[float, dict]]:
+    """The ``k`` labelled decrees most similar to ``text`` (Jaccard similarity of stemmed words)."""
+    if not bank:
+        return []
+    a = _tokens(text)
+    if not a:
+        return []
+    sims = []
+    for e in bank:
+        b = _tokens(e["text"])
+        u = len(a | b)
+        sims.append((len(a & b) / u if u else 0.0, e))
+    sims.sort(key=lambda x: -x[0])
+    return sims[:k]
+
+
+def _from_bank(e: dict) -> m.ClassifyDecreeOut:
+    tr = e.get("transfer")
+    return m.ClassifyDecreeOut(
+        pillar=e["pillar"],
+        domain=e["domain"],
+        aggressiveness=e["aggressiveness"],
+        predicate=_any_pred(**e.get("predicate", {})),
+        tec_effect=e["tec_effect"],
+        cul_effect=e["cul_effect"],
+        econ_effect=e["econ_effect"],
+        threat="none",
+        transfer=None
+        if not tr
+        else m.TransferOut(
+            payers=_any_pred(**tr["payers"]),
+            beneficiaries=_any_pred(**tr["beneficiaries"]),
+            intensity=tr["intensity"],
+            duration=tr["duration"],
+        ),
+        revocation=None,
+    )
 
 
 def shift_label(idx, rng: GameRng, eps: float, lo: int = 0, hi: int = 6):
@@ -339,9 +499,19 @@ class SimulatedEngine:
     def _fb_classify_decree(self, inp, rng):
         raise UnclassifiableDecree("the decree could not be classified; please rephrase it")
 
-    def classify_text(self, text: str) -> m.ClassifyDecreeOut:
-        """Keyword classifier for free text: a development convenience of the simulated S1 (a real S1 reads
-        the text itself). Structured decrees of the simulated player never pass through here."""
+    def classify_text(self, text: str, bank: list[dict] | None = None) -> m.ClassifyDecreeOut:
+        """Classifier for free text: a development convenience of the simulated S1 (a real S1 reads the text itself).
+        Structured decrees of the simulated player never pass through here. A decree close to one already labelled by a
+        real S1 (the bank, bootstrap data) gets its labels; otherwise keyword rules decide, and the labelled neighbours
+        correct their pillar. ``bank`` overrides the bank of the catalogs (leave-one-out evaluation)."""
+        bank = self.cat.decree_bank if bank is None else bank
+        near = _neighbours(text, bank)
+        if near and near[0][0] >= 0.6:
+            return _from_bank(near[0][1])
+        out = self._classify_rules(text, near)
+        return out
+
+    def _classify_rules(self, text: str, near: list | None = None) -> m.ClassifyDecreeOut:
         t = " " + text.lower() + " "
         pillar = "none"
         score = 0
@@ -349,10 +519,29 @@ class SimulatedEngine:
             s = sum(1 for k in kws if k in t)
             if s > score:
                 pillar, score = pid, s
+        votes: dict[str, float] = {}
+        for sim, e in near or []:
+            if sim >= 0.2:
+                votes[e["pillar"]] = votes.get(e["pillar"], 0.0) + sim
+        if votes:
+            best, w_best = max(votes.items(), key=lambda kv: kv[1])
+            if score == 0 or w_best >= 0.9:
+                pillar, score = best, max(score, 1)
+        benign = any(k in t for k in BENIGN_KW) and not any(k in t for k in HIGH_KW + MED_KW)
+        if benign and pillar != "none":  # a review, an invitation, a grant: it does not restrict any pillar
+            pillar = "none"
         announce = any(k in t for k in ("announce", "thank", "celebrate", "festival", "welcome", "honor"))
         econ_pos = any(k in t for k in POS_ECON)
         econ_neg = any(k in t for k in NEG_ECON)
-        if pillar == "none" and not (announce or econ_pos or econ_neg or "all" in t or "build" in t):
+        known = (
+            announce
+            or econ_pos
+            or econ_neg
+            or " all " in t
+            or "build" in t
+            or bool(near and near[0][0] >= 0.15)
+        )
+        if pillar == "none" and not known:
             raise UnclassifiableDecree("the decree could not be classified; please rephrase it")
         agg = 2
         if any(k in t for k in LOW_KW):
@@ -385,6 +574,15 @@ class SimulatedEngine:
         domain = PILLAR_DOMAIN.get(
             pillar, "economy" if (econ_pos or econ_neg) else "worship" if announce else "institutions"
         )
+        close = [(sm, e) for sm, e in (near or []) if sm >= 0.3]
+        if close:  # labelled neighbours (bootstrap data) refine the domain and the aggressiveness
+            dv: dict[str, float] = {}
+            for sm, e in close:
+                dv[e["domain"]] = dv.get(e["domain"], 0.0) + sm
+            domain = max(dv.items(), key=lambda kv: kv[1])[0]
+            wsum = sum(sm for sm, _ in close)
+            agg_n = sum(sm * uni_idx(e["aggressiveness"]) for sm, e in close) / wsum
+            agg = int(round(0.5 * agg + 0.5 * agg_n))
         return m.ClassifyDecreeOut(
             pillar=pillar,
             domain=domain,
@@ -414,6 +612,31 @@ class SimulatedEngine:
     def _fb_rank_event_types(self, inp: m.RankEventTypesIn, rng: GameRng) -> m.RankEventTypesOut:
         perm = rng.permutation(len(inp.admitted))
         return m.RankEventTypesOut(order=[inp.admitted[i] for i in perm])
+
+    # ------------------------------------------------------------------ narration templates (S2 text only)
+    def _reaction_text(self, level: int, k: int, adherent: bool, rng: GameRng) -> str:
+        """Wording of the option of a given stance level; falls back to the stance name without templates."""
+        pool = self.cat.narration.get("reactions", {}).get(str(3 + (3 if adherent else level)))
+        if not pool:
+            return f"[{STANCE[3 + level]}] option {k}"
+        return pool[int(rng.integers(0, len(pool)))]
+
+    def _headline(self, seed, et, actor_kind: str, inten: int, rng: GameRng) -> tuple[str, str]:
+        nar = self.cat.narration
+        heads = nar.get("headline", {}).get(et.id)
+        actor = seed.actor.get("name", actor_kind.title())
+        if not heads:
+            title = f"{actor}: {et.id.replace('_', ' ')}"
+            return title, f"{title}, {seed.intensity} intensity."
+        group = seed.involved_group or "the townsfolk"
+        title = heads[int(rng.integers(0, len(heads)))].format(
+            actor=actor, group=group, pillar="A pillar of the town"
+        )
+        tone = nar.get("tone", {}).get("body", [])
+        body = (
+            f"{title}. {tone[min(inten, len(tone) - 1)]}" if tone else f"{title}, {seed.intensity} intensity."
+        )
+        return title, body
 
     # ------------------------------------------------------------------ narrate_event (S2)
     def _t_narrate_event(self, inp: m.NarrateEventIn, rng: GameRng) -> m.NarrateEventOut:
@@ -496,13 +719,9 @@ class SimulatedEngine:
                     stance_target=MASK,
                 )
             )
-            options.append(
-                m.OptionOut(text=f"[{STANCE[s + 3]}] {et.id.replace('_', ' ')}", adherence=adherent)
-            )
-        title = f"{seed.actor.get('name', actor_kind.title())}: {et.id.replace('_', ' ')}"
-        out = m.NarrateEventOut(
-            title=title, text=f"{title}, {seed.intensity} intensity.", tags=tags, options=options
-        )
+            options.append(m.OptionOut(text=self._reaction_text(s, k, adherent, rng), adherence=adherent))
+        title, body = self._headline(seed, et, actor_kind, inten, rng)
+        out = m.NarrateEventOut(title=title, text=body, tags=tags, options=options)
         out._annotation = feats
         return out
 
@@ -629,22 +848,13 @@ class SimulatedEngine:
     def _fb_choose_influencer_response(self, inp, rng):
         return m.ChooseInfluencerResponseOut(option="ignore")
 
-    # ------------------------------------------------------------------ S1: choose_reaction (batch)
-    def choose_reaction_many(
-        self,
-        ctx: LabelContext,
-        actor: ActorCtx,
-        news: Any,
-        options: list[Any],
-        features: OptionFeatures,
-        rng: GameRng,
+    def choice_utilities(
+        self, ctx: LabelContext, actor: ActorCtx, features: OptionFeatures, params=None
     ) -> np.ndarray:
-        """Utility model of 15.3: u = -d(s_hat, s_k) - lambda_HA * max(0, HA) * e_k + tau * Gumbel."""
+        """Utility of each option for each citizen (15.3): u = -d(s_hat, s_k) - lambda_HA * max(0, HA) * e_k, where the
+        distance weighs the actor stance by ``w_actor_stance``. Used by the choice and by the fit against a real model."""
+        p = params or self.p
         mcount = len(ctx)
-        rec = self._rec("choose_reaction")
-        rec.calls += mcount
-        if mcount == 0:
-            return np.zeros(0, dtype=int)
         S = np.concatenate(
             [features.stance[:, [6]], features.stance[:, [0]], features.stance[:, 1:6]], axis=1
         )  # (K,7): actor, mayor, pillars
@@ -662,11 +872,38 @@ class SimulatedEngine:
         s_hat = np.concatenate([actor_hat[:, None], O_hat], axis=1)  # (m,7)
         present = ~np.isnan(S)  # (K,7)
         npresent = np.maximum(1, present.sum(axis=1))  # (K,)
-        diff = np.where(present[None, :, :], (s_hat[:, None, :] - np.nan_to_num(S)[None, :, :]) ** 2, 0.0)
+        wd = np.ones(7)
+        wd[0] = p.technical.w_actor_stance
+        diff = np.where(
+            present[None, :, :], wd * (s_hat[:, None, :] - np.nan_to_num(S)[None, :, :]) ** 2, 0.0
+        )
         d = np.sqrt(diff.sum(axis=2)) / (2.0 * np.sqrt(npresent))[None, :]  # (m,K)
         e = np.max(np.where(present, np.abs(S), 0.0), axis=1)
         HA = np.maximum(0.0, bip_value(ctx.T[:, 1]))
-        U = -d - self.lam_ha * HA[:, None] * e[None, :]
+        support = np.nan_to_num(S[:, 0], nan=0.0)  # preference for options that side with the actor
+        return (
+            -d
+            - p.technical.lambda_HA * HA[:, None] * e[None, :]
+            + p.technical.beta_support * support[None, :]
+        )
+
+    # ------------------------------------------------------------------ S1: choose_reaction (batch)
+    def choose_reaction_many(
+        self,
+        ctx: LabelContext,
+        actor: ActorCtx,
+        news: Any,
+        options: list[Any],
+        features: OptionFeatures,
+        rng: GameRng,
+    ) -> np.ndarray:
+        """Utility model of 15.3: u = -d(s_hat, s_k) - lambda_HA * max(0, HA) * e_k + tau * Gumbel."""
+        mcount = len(ctx)
+        rec = self._rec("choose_reaction")
+        rec.calls += mcount
+        if mcount == 0:
+            return np.zeros(0, dtype=int)
+        U = self.choice_utilities(ctx, actor, features)
         if self.tau > 0:
             U = U + self.tau * rng.gumbel(U.shape)
         choice = U.argmax(axis=1)

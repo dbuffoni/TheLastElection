@@ -19,4 +19,10 @@ def load_catalogs(root: Path | None = None) -> Catalogs:
         if not path.exists():
             raise FileNotFoundError(f"missing catalog file {path}")
         merged.update(tomllib.loads(path.read_text()))
+    bank = root / "config" / "mocks" / "decree_bank.toml"
+    if bank.exists():  # bootstrap data of the simulated S1, optional
+        merged["decree_bank"] = tomllib.loads(bank.read_text()).get("decrees", [])
+    nar = root / "config" / "mocks" / "narration.toml"
+    if nar.exists():
+        merged["narration"] = tomllib.loads(nar.read_text())
     return Catalogs.model_validate(merged)

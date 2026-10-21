@@ -25,10 +25,14 @@ class Game:
         world: World | None = None,
         warmup: bool = True,
         observers=(),
+        warmup_engines: Engines | None = None,
     ):
         self.cat = cat
         self.p = params or default_params()
         self.engines = engines or Engines(SimulatedEngine(cat, self.p), SimulatedEngine(cat, self.p))
+        self.warmup_engines = (
+            warmup_engines  # the warm-up may run on cheaper engines than the game (real models)
+        )
         if world is None:
             world = create_world(cat, self.p, self.engines, scenario, seed, n)
             self.w = world
@@ -46,7 +50,7 @@ class Game:
                 w,
                 self.cat,
                 self.p,
-                self.engines,
+                self.warmup_engines or self.engines,
                 PlayerInput(dt=min(self.p.time.dt_max, t_end - w.day)),
                 warmup=True,
             )

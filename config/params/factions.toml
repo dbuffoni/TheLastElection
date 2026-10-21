@@ -192,3 +192,43 @@ stage       = 0
 introduced  = 8
 module      = "systems.factions"
 status      = "provisional"
+
+[nu_found]
+symbol      = "nu_found"
+spec        = "5.7"
+description = "Rate per day at which a nascent movement stages a demonstration at full discontent (slice v0)"
+default     = 0.1
+range       = [0.0, 0.1]
+scale       = "linear"
+class       = "free"
+stage       = 3
+introduced  = 8
+module      = "loop.actors"
+status      = "provisional"
+rationale   = "Factions are born only from events tagged faction_birth"
+
+[theta_found]
+symbol      = "theta_found"
+spec        = "5.7"
+description = "Share of adults opposed to the mayor above which nascent movements appear (slice v0)"
+default     = 0.2
+range       = [0.05, 0.6]
+scale       = "linear"
+class       = "free"
+stage       = 3
+introduced  = 8
+module      = "loop.actors"
+status      = "provisional"
+
+[nu_fac]
+symbol      = "nu_fac"
+spec        = "5.7"
+description = "Rate per day at which a faction at full strength acts (slice v0)"
+default     = 0.2
+range       = [0.005, 0.1]
+scale       = "linear"
+class       = "free"
+stage       = 3
+introduced  = 8
+module      = "loop.actors"
+status      = "provisional"

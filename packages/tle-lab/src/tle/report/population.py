@@ -20,6 +20,7 @@ GROUP_TITLES = {
     "opinion": "Opinion, fear and silence",
     "wealth": "Wealth and classes",
     "network": "Social network",
+    "politics": "Factions and influencers",
 }
 
 

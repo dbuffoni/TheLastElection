@@ -149,3 +149,161 @@ def test_run_one_is_deterministic_and_campaign_summarises(tmp_path):
     df = run_campaign(c, tmp_path, workers=1, telemetry=False)
     assert len(df) == 4 and set(summary(df)["strategy"]) == {"gradual", "assault"}
     assert len(band_report(df, load_bands())) >= 1
+
+
+def test_engines_are_configured_separately(tmp_path):
+    from tle.models import build_engines, load_specs, with_overrides
+    from tle.params import default_params
+
+    f = tmp_path / "engines.toml"
+    f.write_text(
+        '[s1]\nkind = "openai_compat"\nbase_url = "http://jev:9/v1"\nmodel = "jev-x"\nstructured = false\n'
+    )
+    specs = with_overrides(load_specs(f), s2_kind="openai_compat", s2_model="narrator")
+    eng, info = build_engines(catalogs(), default_params(), specs)
+    assert info["s1"] == {
+        "kind": "openai_compat",
+        "model": "jev-x",
+        "base_url": "http://jev:9/v1",
+        "batch": 10,
+    }
+    assert info["s2"]["model"] == "narrator" and eng.s1.backend.structured is False
+    assert eng.s1.backend.base_url != eng.s2.backend.base_url or eng.s1.backend.model != eng.s2.backend.model
+    _, sim = build_engines(catalogs(), default_params(), load_specs(None))
+    assert sim == {"s1": {"kind": "simulated"}, "s2": {"kind": "simulated"}}
+
+
+def test_jev_backend_turns_contracts_into_questions():
+    from tle.models.jev import JevBackend
+
+    seen = []
+
+    def transport(url, headers, body, timeout):
+        req = json.loads(body)
+        seen.append((url, headers, req))
+        ans = {}
+        for k, q in req["questions"].items():
+            first = next(iter(q["criteria"]))
+            choice = "1" if k == "option" else ("press" if k == "pillar" else first)
+            ans[k] = {"type": "choice", "choice": choice, "confidence": 0.9, "probabilities": {choice: 1.0}}
+        return json.dumps({"answers": ans, "usage": {"input_tokens": 3, "output_tokens": 1}}).encode()
+
+    be = JevBackend(api_key="k", transport=transport)
+    e = RealEngine(be, catalogs().vocab(), fallback=None)
+    # per-citizen choice among the options S2 wrote
+    opts = [m.OptionIn(id=str(i), text=f"option {i}") for i in range(3)]
+    news = m.NewsItem(
+        event_id=1,
+        title="t",
+        text="x",
+        event_type="crime",
+        intensity="low",
+        actor_kind="exogenous",
+        target="none",
+        tags=[],
+    )
+    res = e.call(
+        "choose_reaction",
+        m.ChooseReactionIn(context={"age_band": "adult"}, news=news, options=opts),
+        GameRng(1),
+    )
+    assert res.option == "1"
+    url, headers, req = seen[0]
+    assert url.endswith("/decisions") and headers["Authorization"] == "Bearer k"
+    assert req["questions"]["option"]["criteria"] == {"0": "option 0", "1": "option 1", "2": "option 2"}
+    # a closed-vocabulary contract: one choice question per enum field, optional structures stay null
+    out = e.call("classify_decree", m.ClassifyDecreeIn(text="Close the gazette"), GameRng(1))
+    assert out is not None and out.pillar == "press" and out.transfer is None
+    # a task Jev cannot express (a list) is a permanent failure: the engine falls back instead of retrying
+    import pytest
+    from tle.models.jev import JevUnsupported
+
+    with pytest.raises(JevUnsupported):
+        be.build("TASK: rank_event_types\nd\n\nINPUT:\n{}\n", e.schema("rank_event_types"))
+
+
+def test_engines_file_expands_environment_variables(tmp_path, monkeypatch):
+    from tle.models import load_dotenv, load_specs
+
+    (tmp_path / ".env").write_text("TLE_X_MODEL=from-env\n# c\n")
+    monkeypatch.delenv("TLE_X_MODEL", raising=False)
+    load_dotenv(tmp_path / ".env")
+    f = tmp_path / "e.toml"
+    f.write_text(
+        '[s1]\nkind = "jev"\nmodel = "${TLE_X_MODEL:-fallback}"\nbase_url = "${TLE_X_URL:-http://u}"\n'
+    )
+    s = load_specs(f)["s1"]
+    assert s.model == "from-env" and s.base_url == "http://u"
+
+
+def test_batch_answers_many_items_in_one_request_and_repairs_bad_items():
+    calls = []
+
+    def script(user):
+        calls.append(user)
+        if "BATCH" in user:
+            k = int(user.split("BATCH of ")[1].split()[0])
+            items = [{"activity": "work"} for _ in range(k)]
+            items[1] = {"activity": "not-an-activity"}  # one malformed item
+            return json.dumps({"items": items})
+        return json.dumps({"activity": "work"})
+
+    be = MockBackend({"choose_activity": script})
+    e = RealEngine(be, catalogs().vocab(), fallback=None, batch=4)
+    ins = [m.ChooseActivityIn(context={"i": i}) for i in range(6)]
+    out = e.call_batch("choose_activity", ins, [GameRng(i) for i in range(6)])
+    assert [o.activity for o in out] == ["work"] * 6
+    # 6 items -> 2 batch requests; the malformed item of each is asked again alone
+    assert sum("BATCH" in c for c in calls) == 2 and sum("BATCH" not in c for c in calls) == 2
+
+
+def test_jev_reaction_prompt_describes_the_citizen_and_does_not_fix_the_option_order():
+    from tle.models.jev import JevBackend
+    from tle.models.prompts import describe_citizen, render_batch
+
+    row = {
+        "age_band": "adult",
+        "class": "low",
+        "trade": 1,
+        "circle": 0,
+        "temperament": [0, 2, 0, 0],
+        "character": [0, 0, 0],
+        "ideology": [3, -2, 0],
+        "opinion": [-3, 0, 0, -2, 0, 0],
+        "fear": 0,
+        "redistributive_risk": 0,
+    }
+    d = describe_citizen(row)
+    assert (
+        d["ideology"]["religion"] == "strongly religious" and d["ideology"]["economy"] == "clearly pro-market"
+    )
+    assert (
+        d["opinion of the mayor"] == "strongly disapproves"
+        and d["views on weakening the pillars of democracy"]["free press"] == "clearly rejects"
+    )
+    news = m.NewsItem(
+        event_id=1,
+        title="t",
+        text="x",
+        event_type="decree_press",
+        intensity="high",
+        actor_kind="mayor",
+        target="press",
+        tags=[],
+    )
+    opts = [m.OptionIn(id=str(i), text=f"option {i}") for i in range(8)]
+    ins = [m.ChooseReactionIn(context=row, news=news, options=opts)] * 2
+    dumps = [i.model_dump() for i in ins]
+    shared = {k: v for k, v in dumps[0].items() if k in ("news", "options")}
+    items = [{"context": d_["context"]} for d_ in dumps]
+    _, user = render_batch("choose_reaction", shared, items)
+    be = JevBackend()
+    orders = []
+    for seed in (1, 2, 3):
+        body, _ = be.build(user, None, seed)
+        q = body["questions"]["i0:option"]
+        orders.append(list(q["criteria"]))
+        assert "THIS citizen" in q["instructions"] and "citizen" in body["state"]["items"][0]
+    assert (
+        sorted(orders[0]) == sorted(orders[1]) and len({tuple(o) for o in orders}) > 1
+    )  # same options, different order

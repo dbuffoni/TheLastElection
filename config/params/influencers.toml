@@ -18,7 +18,7 @@ rationale   = "The most central and polarized 5-10%"
 symbol      = "θ_share"
 spec        = "8.2"
 description = "Minimum expected effective share"
-default     = 0.2
+default     = 0.3
 range       = [0.1, 0.4]
 scale       = "linear"
 class       = "free"
@@ -134,5 +134,67 @@ scale       = "linear"
 class       = "fixed"
 stage       = 0
 introduced  = 9
+module      = "systems.influencers"
+status      = "provisional"
+
+[nu_inf]
+symbol      = "nu_inf"
+spec        = "5.7"
+description = "Rate per day at which an influencer at full capital acts (slice v0)"
+default     = 0.00842
+range       = [0.005, 0.1]
+scale       = "linear"
+class       = "free"
+stage       = 3
+introduced  = 8
+module      = "loop.actors"
+status      = "provisional"
+
+[w_z_c]
+symbol      = "w_z_c"
+spec        = "5.7"
+description = "Weight of centrality in the influencer potential"
+default     = 0.5
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 8
+module      = "systems.influencers"
+status      = "provisional"
+rationale   = "z = 0.5 c + 0.3 pi + 0.2 r (5.9)"
+
+[w_z_pi]
+symbol      = "w_z_pi"
+spec        = "5.7"
+description = "Weight of temperament P in the influencer potential"
+default     = 0.3
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 8
+module      = "systems.influencers"
+status      = "provisional"
+
+[w_z_r]
+symbol      = "w_z_r"
+spec        = "5.7"
+description = "Weight of wealth rank in the influencer potential"
+default     = 0.2
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 8
+module      = "systems.influencers"
+status      = "provisional"
+
+[reach_share]
+symbol      = "reach_share"
+spec        = "5.7"
+description = "Share of the population whose effective reach is worth the full income"
+default     = 0.1
+scale       = "linear"
+class       = "fixed"
+stage       = 0
+introduced  = 8
 module      = "systems.influencers"
 status      = "provisional"

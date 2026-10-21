@@ -60,6 +60,7 @@ class World:
     r: np.ndarray = _f(0)
     r0: np.ndarray = _f(0)
     r_prev: np.ndarray = _f(0)  # wealth at the previous turn (economic vote)
+    dr_transfer: np.ndarray = _f(0)  # wealth change of the turn due to transfers
     d_r_transfer: np.ndarray = _f(0)  # wealth change due to transfers in the last turn
     cls: np.ndarray = _f(0, np.int8)
     trade: np.ndarray = _f(0, np.int16)
@@ -257,6 +258,7 @@ def allocate(w: World, cap: int) -> None:
     w.r = np.zeros(cap)
     w.r0 = np.zeros(cap)
     w.r_prev = np.zeros(cap)
+    w.dr_transfer = np.zeros(cap)
     w.d_r_transfer = np.zeros(cap)
     w.cls = np.zeros(cap, np.int8)
     w.trade = np.zeros(cap, np.int16)
