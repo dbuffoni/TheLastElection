@@ -110,7 +110,7 @@ class CapitalParams:
     w_S: float = 0.25  # w_S: Weight of decree success
     w_F: float = 0.2  # w_F: Weight of faction balance
     c_0: float = 0.2247  # c_0: Maximum cost of a decree
-    delta: float = 0.3122  # δ: Maximum discount for erosion
+    delta: float = 0.5  # δ: Maximum discount for erosion
     kappa_D: float = 7.995  # κ_D: Deficit passage into threat pressure
     kappa_def: float = 2.0  # κ_def: Effectiveness of defense
 
@@ -159,12 +159,12 @@ class EconomyParams:
 
 @dataclass(frozen=True)
 class PillarsParams:
-    theta_0: float = 0.2449  # θ_0: Resistance tolerated at the first level
+    theta_0: float = 0.275  # θ_0: Resistance tolerated at the first level
     theta_1: float = 0.1466  # θ_1: Reduction of tolerated resistance down to the fall
     theta_down: float = 0.6165  # θ_down: Resistance that causes demotion
     n_council: int = 12  # n_council: Number of councillors
     q_maj: float = 0.6  # q_maj: Initial majority share of the council
-    omega_cust: float = 5.0  # ω_cust: Weight of custodians in the resistance
+    omega_cust: float = 4.1181  # ω_cust: Weight of custodians in the resistance
     n_cust: int = 3  # n_cust: Minimum custodians per trade
 
 @dataclass(frozen=True)
@@ -205,7 +205,7 @@ class EventsParams:
     fear_decree: float = 0.25  # fear_decree: Fear raised by a decree per unit of aggressiveness (slice v0)
     persuade: float = 0.12  # persuade: Opinion pull of a private message (slice v0)
     k_contagion: float = 0.00479  # k_contagion: Rate of opinion contagion through ties per day (slice v0)
-    cost_decree: float = 0.15  # cost_decree: Capital cost of a decree per unit of aggressiveness (slice v0)
+    cost_decree: float = 0.18  # cost_decree: Capital cost of a decree per unit of aggressiveness (slice v0)
     cost_message: float = 0.01  # cost_message: Capital cost of a private message (slice v0)
     nu_news_decree: float = 1.0  # nu_news_decree: Mayor-decree reaction spread: share of adults involved when the predicate is 'any'
     alpha_aware: float = 0.5184  # alpha_aware: Pull of an attacked pillar's acceptance toward rejection per unit of aggressiveness (slice v0)

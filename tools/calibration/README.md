@@ -11,3 +11,6 @@ The scripts of the full recalibration of docs/STATUS.md (Session 5). Run from th
 - `final.py`: before/after table on the validation and hold-out seeds (`out/final.json`).
 
 They are research scripts, not part of the `tle` command: the objective and its weights are in `calib.py::loss`.
+
+- `calib6.py`, `calib7.py`: refinements of the pillar gate, the capital cost, the threats and the awareness around the best point of the previous search.
+  The last step of the 2026-10-21 calibration was a local grid over `theta_0`, `delta` and `cost_decree` (see docs/STATUS.md, Session 7).

@@ -123,6 +123,37 @@ Evidence: `passive` strategy (the "no player" baseline of spec 17.2), seeds 1-9 
 - The real S1 **echoes** each citizen's opinion. A mock fitted on it (`config/mocks/s1_fit.toml`) breaks the balance (objective 0.47 -> 9.8, details in `docs/mocks.md`),
   so the mock defaults stay on the calibrated profile and the fit is documented as an alternative profile. Open design question: what counterweights an echo chamber.
 
+## Session 7: cross-pressure, common shocks and a recalibration on the new code
+- **Cross-pressure (option 2)**: the label context of a citizen carries the tie-weighted *expressed* opinion of the people they know (`LabelContext.social`,
+  `reaction.neighbour_opinion`); the simulated choice blends it with the citizen's own opinion (`gamma_social`) and the Jev prompt says it in words. Result: with the
+  echo of a real S1 it changes almost nothing (gamma 0 to 0.9 leaves the outcomes unchanged) because the swings of the mayor's opinion were not local: they were
+  **common shocks**. Found and fixed instead:
+  - events of influencers and factions reached every adult at full strength: now an influencer reaches its audience weighted by the effective share `e_ai`, a faction
+    its members and their ties weighted by commitment, both attenuated by `alpha_ind` (perceived, not lived: 8.1);
+  - indirect exposure copied the reaction of one involved citizen to everybody: now it scales with the share involved (`news_share`);
+  - the simulated S2 gave a stance on the mayor to events that are not about him (an alliance moved the mean opinion by 0.9): now it does not.
+- **Mock fitted on the real S1, again** (80 events, 2426 choices): the support preference is real but belongs to those who already side with the actor
+  (`support_gate`: log-likelihood -4315 -> -4116); the weight of the stances on the pillars is not identified by the data (`w_pillar_stance`, a real Jev
+  extracts one stance for all dimensions). Profile in `config/mocks/s1_fit.toml`. Under it the game cannot be balanced (three searches over 12-19 parameters): the mayor's
+  approval rises with every decree, even on attacks to pillars, because the real pipeline accepts them. The calibrated defaults keep the previous mock profile.
+- **Recalibration on the new code** (calib5 112 points, calib6 96, calib7 72 and a final local grid; training seeds 1-12, validation 101-124, hold-out 201-224):
+  the previous parameters on the new code kept the assault band but lost the gradual one (0.04); the promoted set adds `theta_0` 0.275, `delta` 0.5,
+  `cost_decree` 0.18. Result (registry defaults):
+
+  | Target | Band | Previous parameters on the new code (val) | Promoted (val 101-124) | Promoted (hold-out 201-224) |
+  |---|---|---|---|---|
+  | assault removed | >= 0.6 | 0.92 | 0.67 | 0.71 |
+  | gradual victory | 0.15-0.6 | 0.04 | 0.25 | 0.21 |
+  | populist pillars fallen | 1-4.5 | 4.4 | 4.2 | 4.3 |
+  | random victory | <= 0.1 | 0 | 0 | 0 |
+  | passive removed | low (own check) | 0 | 0 | 0 |
+  | label changed / displacement at 730 d (seeds in band) | 0.15-0.35 / >= 0.167 | 100% / 96% | 100% / 96% | 100% / 100% |
+  | impulse involved peak (seeds in band) | 0.25-0.42 | 67% (mean 0.26) | 67% (mean 0.26) | 100% (mean 0.30) |
+  | saturated character, births | <= 0.05, 0.01 | 0, 0.011 | 0, 0.011 | 0, 0.012 |
+
+  All four confirmed outcome bands hold on both seed sets. `fear` wins 0.3, `rentier` is removed 0.7, `clientelist` almost never wins (strategies without bands).
+  `gamma_social` stays 0.
+
 ## Simplified in this slice (decisions to review against the spec)
 - Decrees act on the mayor's opinion through *direct exposure* only; indirect exposure of non-involved adults is a random involved reaction attenuated by `alpha_ind`.
 - Events of classes and custodians (strike, lockout, ruling, council resolution...) exist in the catalog but are not generated yet; factions, influencers, nascent
