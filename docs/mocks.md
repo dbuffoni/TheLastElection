@@ -36,11 +36,24 @@ promote values by editing `config/params/technical.toml` after reading the repor
   option order), not of the mock, so the mock defaults were **not** moved to the fit: balance on a pipeline that ignores the
   citizen would be balance on a bug. Improving the S1 prompt (the citizen's labels first, shuffled options) comes first.
 
-## Second step: the S1 prompt (Jev) and what is still to verify
-The first bootstrap showed that Jev saw citizens as bare integers (`temperament: [0, 2, 0, 0]`) and an option list in a fixed order.
-`tle.models.prompts.describe_citizen` now turns the context into words (what each axis and each number means), and the Jev backend
-(a) puts the citizen in the state as words, (b) shuffles the options per request with a deterministic seed, (c) tells the model to pick what
-*this* citizen would pick and not the first or the most supportive option. The same description is used for chat-completions prompts.
-This is covered by a unit test with a fake transport. **It has not been measured against the real model yet**: the OpenRouter key used for the first
-bootstrap reached its daily budget. To measure it, record again (`tle run --engines config/engines.openrouter.toml --record ...`) and compare with
-`tle mocks fit`: the share of first-option choices (54% before) and the likelihood gain of the context-dependent utility should move.
+## Second step: the S1 prompt (Jev), measured
+The first bootstrap showed that Jev saw citizens as bare integers and an option list in a fixed order. `tle.models.prompts.describe_citizen` now turns the
+context into words, the Jev backend puts the citizen in the state as words, shuffles the options per request with a deterministic seed and tells the model to pick
+what *this* citizen would pick. Measured on three short games with the real Jev (80 events, 2426 choices, about 0.5 dollars):
+
+| | first bootstrap | new prompt |
+|---|---|---|
+| picks the first option | 54% | 35% |
+| log-likelihood against a uniform choice | +7% | +23% |
+| mayor's opponents who pick an option that sides with the mayor | not measurable | 5% (36% of the options do) |
+| neutral / approving citizens who do | not measurable | 42% / 98% |
+
+So the real S1 is context-sensitive, and what it does is **echo**: every citizen reinforces the opinion they already have. The fit of the simulated choice
+(`config/mocks/s1_fit.toml`: `lambda_HA` 0.05, `tau_sim` 0.37, `w_actor_stance` 4.0 at its bound, `beta_support` 0.92) describes it.
+
+**Consequence for the balance.** Putting those values in the mock breaks the calibration: the objective of `tools/calibration` goes from 0.47 to 9.8 (all strategies
+win, assault is never removed, a passive mayor is removed in 79% of the seeds, the impulse test gives 0.56 instead of 0.33), and a wide search over 16 parameters
+(including the frequency of the events of factions and influencers) does not find a point with an assault removal above 0. With echo, a mayor who starts with a
+majority keeps it, and opinions swing as a block when an actor event arrives. The calibrated defaults therefore stay on the previous mock parameters; the fit is
+a profile to use with `--set lambda_HA=0.05 --set tau_sim=0.37 --set w_actor_stance=4 --set beta_support=0.92`. Making the game winnable *and* losable under echo is
+a design question (what counterweights an echo chamber: decay of opinion toward the base, cross-pressure from ties, a stronger direct effect of decrees), not a tuning one.

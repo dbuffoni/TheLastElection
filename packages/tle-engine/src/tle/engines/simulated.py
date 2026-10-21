@@ -417,7 +417,11 @@ class SimulatedEngine:
     # ------------------------------------------------------------------ generic call
     def call(self, task: str, inp: BaseModel, rng: GameRng) -> BaseModel | None:
         spec = TASKS[task]
-        handler = getattr(self, f"_t_{task}")
+        handler = getattr(self, f"_t_{task}", None)
+        if (
+            handler is None
+        ):  # per-citizen choices exist only in batch form here: the caller applies its neutral default
+            return None
         ok, _ = self._attempt(task, rng)
         if not ok:
             self._warn_fallback(task, inp)

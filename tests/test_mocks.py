@@ -95,3 +95,24 @@ def test_narration_templates_give_readable_text_without_numbers():
     )
     assert "The Greens" in out.title and not any(ch.isdigit() for ch in out.text)
     assert len({o.text for o in out.options}) >= 4
+
+
+def test_simulated_engine_has_no_single_citizen_choice_and_says_so():
+    from tle.contracts import models as m
+
+    eng = SimulatedEngine(catalogs(), default_params(), perfect=True)
+    ctx = {
+        "age_band": "adult",
+        "class": "low",
+        "trade": 0,
+        "circle": 0,
+        "temperament": [0] * 4,
+        "character": [0] * 3,
+        "ideology": [0] * 3,
+        "opinion": [0] * 6,
+        "fear": 0,
+        "redistributive_risk": 0,
+    }
+    assert (
+        eng.call("choose_activity", m.ChooseActivityIn(context=ctx), GameRng(1)) is None
+    )  # a real engine falls back to this

@@ -307,3 +307,36 @@ def test_jev_reaction_prompt_describes_the_citizen_and_does_not_fix_the_option_o
     assert (
         sorted(orders[0]) == sorted(orders[1]) and len({tuple(o) for o in orders}) > 1
     )  # same options, different order
+
+
+def test_jev_single_call_after_render_does_not_describe_the_citizen_twice():
+    """A batch item that failed is asked again alone: its prompt is already in words and must reach Jev as it is."""
+    from tle.models.jev import JevBackend
+    from tle.models.prompts import render
+
+    row = {
+        "age_band": "adult",
+        "class": "low",
+        "trade": 1,
+        "circle": 0,
+        "temperament": [0, 2, 0, 0],
+        "character": [0, 0, 0],
+        "ideology": [3, -2, 0],
+        "opinion": [-3, 0, 0, -2, 0, 0],
+        "fear": 0,
+        "redistributive_risk": 0,
+    }
+    news = m.NewsItem(
+        event_id=1,
+        title="t",
+        text="x",
+        event_type="decree_press",
+        intensity="high",
+        actor_kind="mayor",
+        target="press",
+        tags=[],
+    )
+    opts = [m.OptionIn(id=str(i), text=f"option {i}") for i in range(3)]
+    _, user = render("choose_reaction", m.ChooseReactionIn(context=row, news=news, options=opts))
+    body, _ = JevBackend().build(user, None, 1)
+    assert "who" in body["state"]["context"] and "option" in body["questions"]

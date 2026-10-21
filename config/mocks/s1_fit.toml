@@ -1,14 +1,14 @@
 # Fit of the simulated S1 against a real model (tle mocks fit). Promote by editing config/params/technical.toml.
-n_choices = 4911
-events = 135
-loglik_before = -12827.37
-loglik_after = -10479.41
-loglik_uniform = -11308.00
-agreement_before = 0.211
-agreement_after = 0.478
+n_choices = 2426
+events = 80
+loglik_before = -5550.58
+loglik_after = -4280.81
+loglik_uniform = -5570.86
+agreement_before = 0.167
+agreement_after = 0.487
 
 [params]
 lambda_HA = 0.0500
-tau_sim = 0.8997
-w_actor_stance = 0.5000
-beta_support = 0.7432
+tau_sim = 0.3698
+w_actor_stance = 4.0000
+beta_support = 0.9210

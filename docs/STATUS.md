@@ -116,6 +116,13 @@ Evidence: `passive` strategy (the "no player" baseline of spec 17.2), seeds 1-9 
   (with a minimum importance) in the Run explorer charts. Not yet: click a dot to jump to the entry, diary in the PNG export and the HTML report, shared zoom
   between the charts.
 
+## Session 6: the S1 prompt measured on the real model
+- Three short games with the real Jev and the new reaction prompt (2426 choices, 0.5 dollars of key): first-option picks 54% -> 35%, likelihood against uniform
+  +7% -> +23%, and the choices depend on the citizen (opponents of the mayor pick a supportive option 5% of the time, approvers 98%). Two bugs found with the real model
+  and fixed: the citizen described twice in single requests, and no single-citizen fallback in the simulated engine.
+- The real S1 **echoes** each citizen's opinion. A mock fitted on it (`config/mocks/s1_fit.toml`) breaks the balance (objective 0.47 -> 9.8, details in `docs/mocks.md`),
+  so the mock defaults stay on the calibrated profile and the fit is documented as an alternative profile. Open design question: what counterweights an echo chamber.
+
 ## Simplified in this slice (decisions to review against the spec)
 - Decrees act on the mayor's opinion through *direct exposure* only; indirect exposure of non-involved adults is a random involved reaction attenuated by `alpha_ind`.
 - Events of classes and custodians (strike, lockout, ruling, council resolution...) exist in the catalog but are not generated yet; factions, influencers, nascent
@@ -131,7 +138,7 @@ Evidence: `passive` strategy (the "no player" baseline of spec 17.2), seeds 1-9 
   journal tooling; GPU-specific tuning.
 
 ## Suggested order for the next increments
-1. Measure the new Jev reaction prompt against the real model (`--record`, `tle mocks fit`), and move the mock defaults if the real S1 becomes context-sensitive.
+1. Decide the counterweight to the echo of the real S1 (decay of opinion toward the base, cross-pressure from ties, stronger direct effect of decrees), then recalibrate on the fitted mock.
 2. Class and custodian event generators (strike, lockout, ruling, council resolution) and 1-3 development events in the threat chains.
 3. Community indices, newspaper and almanac (S2 text), transfers from events.
 4. Rebalance `fear`/`rentier` and the assault band with more seeds; wire the calibration loop into `tle` (the scripts used here live outside the repo).
