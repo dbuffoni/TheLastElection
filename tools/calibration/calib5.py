@@ -7,10 +7,11 @@ from calib import *
 
 calib.RANGES.clear()
 calib.RANGES.update({
-    "alpha_react": (0.8, 2.5), "alpha_ind": (0.15, 0.5), "k_contagion": (0.003, 0.012), "sigma_I": (0.08, 0.15),
-    "nu_inf": (0.001, 0.01), "nu_fac": (0.02, 0.2), "nu_found": (0.01, 0.1), "nu_child": (0.055, 0.067),
+    "alpha_react": (1.2, 3.2), "alpha_ind": (0.15, 0.5), "k_contagion": (0.003, 0.05), "sigma_I": (0.07, 0.15),
+    "nu_inf": (0.002, 0.012), "nu_fac": (0.02, 0.2), "nu_found": (0.01, 0.1), "nu_child": (0.055, 0.067),
     "nu_T": (0.15, 0.6), "margin": (0.0, 0.15), "kappa_D": (3.0, 9.0), "h_O_council": (15.0, 70.0),
     "x_star_T": (0.65, 0.95), "w_M": (0.7, 1.0), "alpha_direct": (0.45, 0.9), "alpha_aware": (0.4, 0.65),
+    "gamma_social": (0.0, 0.5), "news_share": (0.05, 0.3), "rho_0": (0.06, 0.15), "h_O": (30.0, 120.0),
 })
 n = int(sys.argv[1]); seeds = range(1, 13)
 rng = np.random.default_rng(53)

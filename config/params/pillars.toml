@@ -4,7 +4,7 @@
 symbol      = "θ_0"
 spec        = "8.3"
 description = "Resistance tolerated at the first level"
-default     = 0.2449
+default     = 0.275
 range       = [0.15, 0.4]
 scale       = "linear"
 class       = "free"
@@ -67,7 +67,7 @@ status      = "provisional"
 symbol      = "ω_cust"
 spec        = "8.3"
 description = "Weight of custodians in the resistance"
-default     = 5.0
+default     = 4.1181
 range       = [2.0, 8.0]
 scale       = "linear"
 class       = "free"

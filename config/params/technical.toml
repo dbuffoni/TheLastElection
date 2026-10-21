@@ -132,7 +132,7 @@ symbol      = "beta_support"
 spec        = "15.3"
 description = "Preference of the simulated choice for options that side with the actor"
 default     = 0.0
-range       = [0.0, 3.0]
+range       = [0.0, 4.0]
 scale       = "linear"
 class       = "free"
 stage       = 0
@@ -140,3 +140,31 @@ introduced  = 3
 module      = "engines.simulated"
 status      = "provisional"
 rationale   = "A real S1 mostly picks the supportive option (fit with `tle mocks fit`)"
+
+[support_gate]
+symbol      = "support_gate"
+spec        = "15.3"
+description = "Share of the preference for options that side with the actor that depends on the citizen already siding with it"
+default     = 0.0
+range       = [0.0, 1.0]
+scale       = "linear"
+class       = "free"
+stage       = 0
+introduced  = 4
+module      = "engines.simulated"
+status      = "provisional"
+rationale   = "A real S1 gives the supportive option to those who approve, not to everybody (5% of the opponents, 98% of the approvers)"
+
+[w_pillar_stance]
+symbol      = "w_pillar_stance"
+spec        = "15.3"
+description = "Weight of the stances on the pillars in the distance of the simulated choice"
+default     = 1.0
+range       = [0.0, 10.0]
+scale       = "linear"
+class       = "free"
+stage       = 0
+introduced  = 4
+module      = "engines.simulated"
+status      = "provisional"
+rationale   = "Fitted against a real S1 on events that touch the pillars (`tle mocks fit`)"

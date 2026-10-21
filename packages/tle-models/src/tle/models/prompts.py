@@ -78,6 +78,10 @@ def _pole(name: str, v: int) -> str:
     return "neutral between " + lo + " and " + hi if v == 0 else f"{_DEGREE[abs(v)]} {hi if v > 0 else lo}"
 
 
+def _crowd(v: int) -> str:
+    return "mixed" if v == 0 else f"{_DEGREE[abs(v)]} {'approve' if v > 0 else 'disapprove'}"
+
+
 def describe_citizen(row: dict) -> dict:
     """The label context of a citizen (integers -3..3) as words, so that a decision model can read it: what each
     number means is part of the prompt, not something the model has to guess."""
@@ -100,6 +104,11 @@ def describe_citizen(row: dict) -> dict:
             n: ("indifferent" if v == 0 else f"{_DEGREE[abs(v)]} {'accepts' if v > 0 else 'rejects'}")
             for n, v in zip(_PILLARS, o[1:])
         },
+        **(
+            {"what the people they know think of the mayor": _crowd(row["people_they_know"][0])}
+            if "people_they_know" in row
+            else {}
+        ),
         "fear of the authorities": "none" if row["fear"] == 0 else ("low" if row["fear"] <= 2 else "high"),
     }
     return d

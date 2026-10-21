@@ -49,11 +49,18 @@ what *this* citizen would pick. Measured on three short games with the real Jev 
 | neutral / approving citizens who do | not measurable | 42% / 98% |
 
 So the real S1 is context-sensitive, and what it does is **echo**: every citizen reinforces the opinion they already have. The fit of the simulated choice
-(`config/mocks/s1_fit.toml`: `lambda_HA` 0.05, `tau_sim` 0.37, `w_actor_stance` 4.0 at its bound, `beta_support` 0.92) describes it.
+(`config/mocks/s1_fit.toml`: `lambda_HA` 0.05, `tau_sim` 0.43, `w_actor_stance` 0.5, `beta_support` 3.0, `support_gate` 1, `w_pillar_stance` 0.25) describes it; a gated support preference (who already approves likes to say so) fits much better than a flat one.
 
 **Consequence for the balance.** Putting those values in the mock breaks the calibration: the objective of `tools/calibration` goes from 0.47 to 9.8 (all strategies
 win, assault is never removed, a passive mayor is removed in 79% of the seeds, the impulse test gives 0.56 instead of 0.33), and a wide search over 16 parameters
 (including the frequency of the events of factions and influencers) does not find a point with an assault removal above 0. With echo, a mayor who starts with a
 majority keeps it, and opinions swing as a block when an actor event arrives. The calibrated defaults therefore stay on the previous mock parameters; the fit is
-a profile to use with `--set lambda_HA=0.05 --set tau_sim=0.37 --set w_actor_stance=4 --set beta_support=0.92`. Making the game winnable *and* losable under echo is
+a profile to use with `--set lambda_HA=0.05 --set tau_sim=0.43 --set w_actor_stance=0.5 --set beta_support=3 --set support_gate=1 --set w_pillar_stance=0.25`. Making the game winnable *and* losable under echo is
 a design question (what counterweights an echo chamber: decay of opinion toward the base, cross-pressure from ties, a stronger direct effect of decrees), not a tuning one.
+
+## Third step: cross-pressure and what it did not fix
+The context of a citizen now includes the opinion of the people they know (`gamma_social` weighs it in the simulated choice; the Jev prompt says it in words, so a
+new `--record` stores it and `tle mocks fit` can fit `gamma_social`; the recorded data used here predate it). It did not rebalance the fitted profile: the swings
+of the mayor's opinion came from common shocks (events that reached every adult at full strength), now fixed (STATUS, Session 7), and from a real S1 that accepts
+attacks on the pillars. Under the fitted profile the approval of the mayor still grows with every decree. The open design question stays open: with the pipeline
+as it is, the game is winnable by attacking, and a counterweight has to come from the rules, not from the choice of the mock.

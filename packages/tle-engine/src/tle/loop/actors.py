@@ -6,10 +6,10 @@ from __future__ import annotations
 import numpy as np
 from tle.contracts.vocab import uni_name
 from tle.core.labels import quantize_bipolar
-from tle.core.prims import express
+from tle.core.prims import dist, express
 from tle.core.rng import GameRng
 from tle.params import Params
-from tle.systems import factions
+from tle.systems import factions, influencers
 from tle.systems.reaction import EventResult, run_event
 from tle.world.catalogs import Catalogs
 from tle.world.state import World
@@ -56,7 +56,7 @@ def _pick(rng: GameRng, types: list):
 
 
 def _fire(
-    w, cat, p, engines, rng, et, actor, kind, strength, ideology, ad, slot=None, found=False
+    w, cat, p, engines, rng, et, actor, kind, strength, ideology, ad, slot=None, found=False, weights=None
 ) -> EventResult | None:
     pillar_idx = None
     if et.target == "pillar" and et.pillar and et.pillar in cat.pillar_ids():
@@ -71,7 +71,7 @@ def _fire(
         actor=actor,
         actor_kind=kind,
         intensity=uni_name(int(np.clip(round(1 + 4 * strength), 1, 5))),
-        involved=np.flatnonzero(ad),
+        involved=np.flatnonzero(ad),  # the audience mask of the actor
         hidden={
             "actor_sign": sign,
             "pillar_idx": pillar_idx,
@@ -82,7 +82,26 @@ def _fire(
         can_found=found,
         actor_ideology=quantize_bipolar(ideology) if ideology is not None else None,
         faction_slot=slot,
+        weights=None
+        if weights is None
+        else weights * p.vectors.alpha_ind,  # perceived, not lived: attenuated (8.1)
     )
+
+
+def _faction_audience(w: World, s: int, ad: np.ndarray) -> np.ndarray:
+    """Who is involved in an event of a faction: its members and the people they are tied to; the rest hear of it only
+    indirectly (``alpha_ind``). Not the whole city: a common shock would move everybody together."""
+    mem = w.fac_member[:, s]
+    near = np.zeros(w.n_cap, bool)
+    if w.bn:
+        near[w.bdst[: w.bn][mem[w.bsrc[: w.bn]]]] = True
+    return ad & (mem | near)
+
+
+def _faction_weights(w: World, s: int, p: Params) -> np.ndarray:
+    """Weight of a faction over each citizen: the commitment of its members, a share of it for the people tied to them."""
+    mem = w.fac_member[:, s]
+    return np.where(mem, np.maximum(w.fac_m[:, s], p.factions.theta_m_in), p.vectors.alpha_ind)
 
 
 def generate(w: World, cat: Catalogs, p: Params, engines, rng: GameRng, dt: float) -> list[EventResult]:
@@ -126,9 +145,10 @@ def generate(w: World, cat: Catalogs, p: Params, engines, rng: GameRng, dt: floa
             "faction",
             S,
             w.fac_mu[s],
-            ad,
+            _faction_audience(w, int(s), ad),
             int(s),
             et.can_found,
+            weights=_faction_weights(w, int(s), p),
         )
         if res:
             out.append(res)
@@ -146,6 +166,9 @@ def generate(w: World, cat: Catalogs, p: Params, engines, rng: GameRng, dt: floa
         et = _pick(r, admitted(w, cat, "influencer", tokens, o))
         if et is None:
             continue
+        aud_w = influencers.effective_shares(w, p, ad, np.array([a]))[
+            0
+        ]  # e_ai: how much each citizen listens
         res = _fire(
             w,
             cat,
@@ -157,7 +180,8 @@ def generate(w: World, cat: Catalogs, p: Params, engines, rng: GameRng, dt: floa
             "influencer",
             float(w.inf_K[a]),
             w.I[a],
-            ad,
+            ad & (aud_w > 0),
+            weights=aud_w,
         )
         if res:
             out.append(res)
@@ -182,7 +206,7 @@ def generate(w: World, cat: Catalogs, p: Params, engines, rng: GameRng, dt: floa
                 "faction",
                 0.5,
                 ideology,
-                ad,
+                ad & (dist(w.I, ideology[None, :]) <= p.factions.rho_conf),
                 None,
                 True,
             )
