@@ -31,6 +31,9 @@ class LabelContext:
     fear: np.ndarray  # (m,) unipolar index
     risk: np.ndarray  # (m,) redistributive risk label (upper class only; 0 otherwise)
     member: np.ndarray | None = None  # (m,) bool: belongs to the class/custodian group that acts
+    social: np.ndarray | None = (
+        None  # (m, 6) labels of the expressed opinion of the people they know (None: not known)
+    )
 
     def __len__(self) -> int:
         return len(self.ids)
@@ -48,6 +51,7 @@ class LabelContext:
             "opinion": [int(x) - 3 for x in self.O[i]],
             "fear": int(self.fear[i]),
             "redistributive_risk": int(self.risk[i]),
+            **({"people_they_know": [int(x) - 3 for x in self.social[i]]} if self.social is not None else {}),
         }
 
 

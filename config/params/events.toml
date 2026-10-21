@@ -344,3 +344,31 @@ stage       = 0
 introduced  = 1
 module      = "loop.decree"
 status      = "provisional"
+
+[gamma_social]
+symbol      = "gamma_social"
+spec        = "5.6"
+description = "Weight of the opinion of the people they know in a citizen's reaction (cross-pressure of the social context)"
+default     = 0.0
+range       = [0.0, 1.0]
+scale       = "linear"
+class       = "free"
+stage       = 2
+introduced  = 4
+module      = "engines.simulated"
+status      = "provisional"
+rationale   = "A real S1 echoes each citizen's own opinion; what the neighbours say is the counterweight (spec 5.6)"
+
+[news_share]
+symbol      = "news_share"
+spec        = "8.1"
+description = "Share of the adults an event must touch to be news for everybody (indirect exposure scales with the share involved)"
+default     = 0.1
+range       = [0.02, 0.5]
+scale       = "linear"
+class       = "free"
+stage       = 2
+introduced  = 4
+module      = "systems.reaction"
+status      = "provisional"
+rationale   = "A crime that touches three people is not a reason for the whole town to change its mind"

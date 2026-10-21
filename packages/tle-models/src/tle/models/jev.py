@@ -39,7 +39,7 @@ FIELD_HELP = {
 
 OPTION_RULE = (
     "Pick the option that THIS citizen would choose given who they are (ideology, temperament, character, opinion of the "
-    "mayor, views on the pillars of democracy, fear). Do not pick an option because it is listed first or because it "
+    "mayor, views on the pillars of democracy, fear) and by what the people around them think. Do not pick an option because it is listed first or because it "
     "supports the actor: citizens differ, and opponents of the actor pick opposing options."
 )
 

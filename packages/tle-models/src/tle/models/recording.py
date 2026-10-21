@@ -49,6 +49,7 @@ class RecordingEngine:
                     "O": _l(ctx.O),
                     "fear": _l(ctx.fear),
                     "member": None if ctx.member is None else _l(ctx.member),
+                    "social": None if ctx.social is None else _l(ctx.social),
                 },
                 "stance": np.where(np.isnan(features.stance), None, features.stance).tolist(),
                 "choice": _l(choice),

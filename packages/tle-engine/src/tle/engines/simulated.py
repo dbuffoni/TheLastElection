@@ -693,8 +693,10 @@ class SimulatedEngine:
                 mayor_v = sv * sign if et.target == "mayor" else float("nan")
             elif actor_kind in ("threat",):
                 mayor_v = -sv
-            else:
+            elif et.target == "mayor":  # the act is about the mayor: the reaction takes a side on him
                 mayor_v = sv * (1.0 if sign >= 0 else -1.0)
+            else:  # an alliance, a fundraising, a ruling about something else: nothing to say about the mayor
+                mayor_v = float("nan")
             st_pillars = [MASK] * 5
             if pillar_idx is not None and pillar_idx >= 0 and attacks != 0:
                 acc = mayor_v if attacks > 0 else -sv  # support for a defender is opposition to erosion
@@ -863,6 +865,9 @@ class SimulatedEngine:
             [features.stance[:, [6]], features.stance[:, [0]], features.stance[:, 1:6]], axis=1
         )  # (K,7): actor, mayor, pillars
         O_hat = bip_value(ctx.O)  # (m,6)
+        if ctx.social is not None and p.events.gamma_social > 0:  # cross-pressure: what they hear around them
+            g_ = p.events.gamma_social
+            O_hat = (1.0 - g_) * O_hat + g_ * bip_value(ctx.social)
         mayor_hat = O_hat[:, 0]
         if actor.kind == "mayor" or actor.kind in ("threat", "system"):
             actor_hat = mayor_hat

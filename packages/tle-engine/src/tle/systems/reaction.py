@@ -35,8 +35,24 @@ class EventResult:
     published: bool = True
 
 
+def neighbour_opinion(w: World, ids: np.ndarray) -> np.ndarray | None:
+    """Tie-weighted mean of the *expressed* opinion of the people each citizen knows (what they hear around them);
+    NaN where a citizen has no ties. This is the cross-pressure of the social context (5.6)."""
+    if w.bn == 0:
+        return None
+    s_, d_, bw = w.bsrc[: w.bn], w.bdst[: w.bn], w.bw[: w.bn]
+    E = express(w.O, w.fear)
+    num = np.zeros_like(E)
+    den = np.zeros(w.n_cap)
+    np.add.at(num, d_, bw[:, None] * E[s_])
+    np.add.at(den, d_, bw)
+    out = np.where(den[:, None] > 1e-9, num / np.maximum(den[:, None], 1e-9), 0.0)
+    return out[ids]
+
+
 def label_context(w: World, p: Params, ids: np.ndarray) -> LabelContext:
     eps = p.labels.eps
+    nb = neighbour_opinion(w, ids)
     O = quantize_bipolar(w.O[ids], w.lab_O[ids], eps)
     w.lab_O[ids] = O
     return LabelContext(
@@ -51,6 +67,7 @@ def label_context(w: World, p: Params, ids: np.ndarray) -> LabelContext:
         O=O,
         fear=quantize_unipolar(w.fear[ids]),
         risk=np.where(w.cls[ids] == 2, quantize_unipolar(np.clip(w.r[ids], 0, 1)), 0).astype(np.int8),
+        social=None if nb is None else quantize_bipolar(nb),
     )
 
 
@@ -71,6 +88,7 @@ def run_event(
     can_found: bool = False,
     actor_ideology: np.ndarray | None = None,
     faction_slot: int | None = None,
+    weights: np.ndarray | None = None,
 ) -> EventResult | None:
     """Run one event end to end and apply its effects to ``w``. Returns None if S2 fails (13.3)."""
     eid = w.next_event_id
@@ -140,7 +158,9 @@ def run_event(
         choice = np.concatenate([choice_s, choice_r])
     else:
         ids, choice = sample, choice_s
-    apply_reactions(w, p, ids, choice, F, float(uni_idx(intensity)) / 6.0)
+    apply_reactions(
+        w, p, ids, choice, F, float(uni_idx(intensity)) / 6.0, scale=1.0 if weights is None else weights[ids]
+    )  # the weight of an actor over each citizen (influence share, commitment)
     if can_found and "faction_birth" in out.tags:
         adh = [k for k, o in enumerate(out.options) if o.adherence]
         if adh:
@@ -153,7 +173,12 @@ def run_event(
     if len(rest_ad):
         irng = rng.child("indirect", eid)
         pick = choice[irng.integers(0, len(choice), size=len(rest_ad))]
-        apply_reactions(w, p, rest_ad, pick, F, float(uni_idx(intensity)) / 6.0, scale=p.vectors.alpha_ind)
+        reach = min(
+            1.0, (len(ids) / max(1, len(ids) + len(rest_ad))) / p.events.news_share
+        )  # how much of a piece of news it is
+        apply_reactions(
+            w, p, rest_ad, pick, F, float(uni_idx(intensity)) / 6.0, scale=p.vectors.alpha_ind * reach
+        )
     res.option_counts = np.bincount(choice, minlength=F.K).tolist()
     w.events.append(
         {

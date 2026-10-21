@@ -209,6 +209,8 @@ class EventsParams:
     cost_message: float = 0.01  # cost_message: Capital cost of a private message (slice v0)
     nu_news_decree: float = 1.0  # nu_news_decree: Mayor-decree reaction spread: share of adults involved when the predicate is 'any'
     alpha_aware: float = 0.5184  # alpha_aware: Pull of an attacked pillar's acceptance toward rejection per unit of aggressiveness (slice v0)
+    gamma_social: float = 0.0  # gamma_social: Weight of the opinion of the people they know in a citizen's reaction (cross-pressure of the social context)
+    news_share: float = 0.1  # news_share: Share of the adults an event must touch to be news for everybody (indirect exposure scales with the share involved)
 
 @dataclass(frozen=True)
 class DemographyParams:
@@ -231,13 +233,13 @@ class TechnicalParams:
     n_retry: int = 2  # n_retry: Attempts before the fallback
     B_gen: int = 8  # B_gen: Citizens described per S2 call when a real model writes them (a small model loses count on long lists)
     B_S1: int = 40  # B_S1: Involved count beyond which S1 works on a sample
-    tau_sim: float = 0.15  # τ_sim: Noise of the simulated choice
-    lambda_HA: float = 0.2  # λ_HA: Aversion to extreme reactions in the simulated choice
+    tau_sim: float = 0.37  # τ_sim: Noise of the simulated choice
+    lambda_HA: float = 0.05  # λ_HA: Aversion to extreme reactions in the simulated choice
     eps_t: float = 0.1  # ε_t: Ordinal noise of simulated S1 extraction
     eps_err: float = 0.02  # ε_err: Simulated contract failures
     panel_every: int = 30  # panel_every: Days between citizen panel snapshots
-    w_actor_stance: float = 1.0  # w_actor_stance: Weight of the actor stance in the distance of the simulated choice
-    beta_support: float = 0.0  # beta_support: Preference of the simulated choice for options that side with the actor
+    w_actor_stance: float = 4.0  # w_actor_stance: Weight of the actor stance in the distance of the simulated choice
+    beta_support: float = 0.92  # beta_support: Preference of the simulated choice for options that side with the actor
 
 
 @dataclass(frozen=True)
@@ -430,6 +432,8 @@ GROUP_OF = {
     'cost_message': 'events',
     'nu_news_decree': 'events',
     'alpha_aware': 'events',
+    'gamma_social': 'events',
+    'news_share': 'events',
     'nu_b': 'demography',
     'nu_im': 'demography',
     'nu_em': 'demography',

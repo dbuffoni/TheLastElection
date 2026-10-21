@@ -50,6 +50,7 @@ def _ctx(rec: dict) -> tuple[LabelContext, ActorCtx, OptionFeatures, np.ndarray]
         fear=np.array(c["fear"]),
         risk=np.zeros(m_, int),
         member=None if c["member"] is None else np.array(c["member"], bool),
+        social=None if c.get("social") is None else np.array(c["social"]),
     )
     st = np.array([[np.nan if v is None else v for v in row] for row in rec["stance"]], dtype=float)
     K = len(st)
