@@ -27,11 +27,11 @@ nvidia-smi
 
 ## 3. S1 con Kev
 ```bash
-./setup-desktop.sh                     # clona Kev, uv sync, crea e avvia il servizio utente tle-s1 su 127.0.0.1:8009
+bash setup-desktop.sh                   # clona Kev, uv sync, crea e avvia il servizio utente tle-s1 su 127.0.0.1:8009
 journalctl --user -u tle-s1 -f         # il primo avvio scarica il checkpoint
 ```
 Manuale, senza servizio: `cd ~/tle-local/kev && uv run --extra serve python -m kev.serve --run jaredpalmer/kev-4b --port 8009`.
-Cambiare checkpoint: `./setup-desktop.sh <altro> 8009` (id Hugging Face o cartella locale; in `kev.serve` il parametro è `--run`).
+Cambiare checkpoint: `bash setup-desktop.sh <altro> 8009` (id Hugging Face o cartella locale; in `kev.serve` il parametro è `--run`).
 
 **La memoria è il punto critico.** Kev-4B in bf16 pesa circa 8 GB e il suo server non documenta opzioni di quantizzazione. Con S2 (circa 4 GB con la cache) il totale supera i 12 GB. Procedi così:
 1. Avvia S1 da solo e guarda `nvidia-smi`. Poi carica S2 e riguarda. Se entrambi stanno, hai finito.
