@@ -1,0 +1,27 @@
+# Servers to test. One entry per model: load the model in the server, keep the entry, run the benchmark, change model.
+# `name` is only a label (use --only to run a subset). `model` must match what the server calls it.
+
+# --- S1: System One format (POST {state, model, questions}) -----------------------------------------------------
+[[s1]]
+name  = "kev-4b"
+url   = "http://127.0.0.1:8009/v1/systemone"
+model = "kev-latest"
+
+# Another checkpoint, same port: stop the server, start it with --run <other>, then change the label here.
+# [[s1]]
+# name  = "kev-0.8b"
+# url   = "http://127.0.0.1:8009/v1/systemone"
+# model = "kev-latest"
+
+# --- S2: OpenAI chat completions (LM Studio default port 1234) ---------------------------------------------------
+[[s2]]
+name  = "qwen3-4b-2507"
+base_url = "http://127.0.0.1:1234/v1"
+model = "qwen3-4b-instruct-2507"     # the identifier LM Studio shows for the loaded model
+structured = true                    # false if the server rejects response_format json_schema
+# api_key = "..."                    # only if the server asks for one
+
+# [[s2]]
+# name  = "gemma-3-4b"
+# base_url = "http://127.0.0.1:1234/v1"
+# model = "gemma-3-4b-it"
