@@ -54,9 +54,10 @@ Per turn the pipeline makes: 1 narration + K_opt(10) option extractions per even
 (capped by `B_S1` = 40, the rest copy the nearest sampled citizen) and one daily-life choice per active citizen. Start with
 `--n 60` and the cache; raise `--n` once latency is known. Use the simulated engine for balancing and the real one to validate.
 
-## Not implemented yet: in-process `local` backend
-`make_backend("local")` raises on purpose. Implement `Backend.complete` with transformers + outlines on the GPU machine if you
-prefer loading weights in-process; nothing else changes.
+## Liquid engine (local or on your desktop)
+`packages/tle-liquid` runs Liquid AI's d1 decision model (S1) and LFM2.5-1.2B-Instruct (S2) on NVIDIA, AMD or CPU, batched, and serves them
+over HTTP; the game reaches it with `config/engines.liquid.toml`. See `packages/tle-liquid/README.md`. Models run in a separate process,
+never inside the game (campaigns use process pools).
 
 ## Optional extras
 `uv sync --extra search` adds Optuna and SALib for Sobol/Optuna searches (hooked up through the `calibrate` skill).

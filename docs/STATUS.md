@@ -173,3 +173,11 @@ Evidence: `passive` strategy (the "no player" baseline of spec 17.2), seeds 1-9 
 2. Class and custodian event generators (strike, lockout, ruling, council resolution) and 1-3 development events in the threat chains.
 3. Community indices, newspaper and almanac (S2 text), transfers from events.
 4. Rebalance `fear`/`rentier` and the assault band with more seeds; wire the calibration loop into `tle` (the scripts used here live outside the repo).
+
+## Session 5: Liquid engine (replaces the PR #7 local-server scripts)
+- **`packages/tle-liquid`** (namespace `tle.liquid`, no import of game code): `LiquidEngine` with a micro-batcher per role, `DecisionRuntime` (Liquid d1 via `system_one`/`system_one_batch`),
+  `ChatRuntime` (LFM2.5 instruct, left-padded batched `generate`, xgrammar JSON-schema decoding with one grammar per row), device detection (CUDA / ROCm / CPU), Starlette server
+  (`/v1/chat/completions`, `/api/alpha/decisions`, optional bearer key), CLI `tle-liquid doctor|fetch|serve|smoke`, `scripts/install.sh|serve.sh`, mock and random-weight tiny LFM2 for tests.
+- Decision about meaning: S1 is served through the decision API that `kind = "jev"` already speaks, so the game needs no new backend; S2 through OpenAI chat completions. "Local" means a server on 127.0.0.1.
+- Fixed in the game: `JevBackend` never filled the answers of batched requests (`_fill` skipped lists), so every batched item was re-asked alone; `RealEngine` now rejects a `narrate_event` with no options (retry, then fallback) instead of crashing the pipeline.
+- **Not verified:** real d1 / LFM2.5 weights and real GPUs (huggingface.co was unreachable in the build sandbox). Verified: mock and tiny random-weight LFM2 on CPU, 3 game turns through the server.

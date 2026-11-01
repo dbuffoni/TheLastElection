@@ -187,6 +187,8 @@ class RealEngine:
                 continue
             if check_vocab(out, self.vocab):
                 continue
+            if task == "narrate_event" and not out.options:
+                continue  # a news item with nothing to react to would break the event pipeline: ask again, then fall back
             return out
         with self._lock:
             rec.fallbacks += 1
