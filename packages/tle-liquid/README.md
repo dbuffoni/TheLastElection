@@ -53,9 +53,14 @@ uv run tle-liquid smoke                       # the real weights (after `fetch`)
 `smoke` prints PASS/FAIL per check, including whether requests were really fused into batches.
 
 ## Limits you should know
-* Only `--mode mock` and `--mode tiny` have been run so far (the sandbox this was written in could not reach huggingface.co). The
-  real d1 and LFM2.5 weights, CUDA and ROCm are untested: run `tle-liquid smoke` once on your hardware.
-* d1 ships its own code (`trust_remote_code`). `DecisionRuntime` calls `system_one_batch` with a list of `{state, questions}` and
-  falls back to one `system_one` call per request if that signature is wrong (a warning is logged).
+* Verified on real weights (AMD Radeon 780M iGPU, ROCm 6.4 wheel, Linux): `tle-liquid smoke` passes 5/5 (S1 32 concurrent requests in
+  batches of 16: 5 s on GPU vs 20 s on CPU; S2 constrained 127 tok/s vs 27). CUDA is untested.
+* AMD iGPU (gfx1103): export `HSA_OVERRIDE_GFX_VERSION=11.0.0`, otherwise every kernel fails with `invalid device function`. Triton
+  compiles small helpers at run time, so the Python in the venv needs its headers (`Python.h`): use a uv-managed Python
+  (`uv venv --managed-python -p 3.12`) or install `python3-dev`. The user must be in the `render` group.
+* **Open problem:** `smoke --game` is not green on that iGPU. The real game load (S2 constrained+sampled batches and S1 batches with
+  ~110 questions each, with both models resident) hangs the GPU ("HW Exception ... GPU Hang") and kills the server, intermittently and
+  not on the same request; the same requests replayed alone in a separate process succeed. A discrete GPU, or CPU, is not affected as far as tested.
+* d1 ships its own code (`trust_remote_code`, needs `torchvision`). `system_one_batch` takes a list of `(state, questions)` tuples.
 * The ROCm wheel index (`rocm6.4` in `install.sh`) may be old: set `TORCH_BACKEND` to the one your driver supports.
 * One seed per fused batch: sampling with a `seed` is repeatable only for the same batch composition. S1 is deterministic.
