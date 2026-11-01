@@ -67,11 +67,11 @@ class DecisionRuntime:
             if self._batch_ok and len(reqs) > 1:
                 try:
                     out = self.model.system_one_batch(
-                        [{"state": r["state"], "questions": r["questions"]} for r in reqs]
+                        [(r["state"], r["questions"]) for r in reqs]  # d1 takes (state, questions) tuples
                     )
                     if len(out) == len(reqs):
                         return list(out)
-                except Exception as e:  # the batch call signature is the one thing not verifiable offline
+                except Exception as e:
                     log.warning("system_one_batch failed (%s: %s); answering one by one", type(e).__name__, e)
                     self._batch_ok = False
             res: list[Any] = []

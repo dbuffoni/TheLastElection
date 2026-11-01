@@ -26,7 +26,7 @@ esac
 
 command -v uv >/dev/null 2>&1 || { echo "uv is required: https://docs.astral.sh/uv/getting-started/installation/"; exit 1; }
 uv sync --inexact                                          # the game itself
-uv pip install --torch-backend "$backend" torch            # GPU-matched wheel
+uv pip install --torch-backend "$backend" torch torchvision   # GPU-matched wheels (d1 remote code imports torchvision)
 uv pip install -e "packages/tle-liquid[serve]"             # transformers, xgrammar, starlette, uvicorn, huggingface_hub
 uv run tle-liquid doctor || true
 if [[ $fetch -eq 1 ]]; then uv run tle-liquid fetch; fi
