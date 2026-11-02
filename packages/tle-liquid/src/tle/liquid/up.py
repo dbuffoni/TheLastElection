@@ -2,8 +2,9 @@
 
 1. It looks at the hardware (in a subprocess) and chooses a layout:
    * dedicated GPU (NVIDIA CUDA or a discrete AMD card): one process, both models on the GPU;
-   * integrated AMD GPU: S1 on the CPU, S2 on the GPU, two processes. Measured on a Radeon 780M: running both models on the
-     iGPU hangs the GPU under game load; S1 on the CPU and S2 on the GPU is stable;
+   * integrated AMD GPU (``s1-gpu``): S1 on the GPU, S2 on the CPU, two processes. S1 is the busy model (one call per citizen
+     per event) and the GPU makes it about 5 times faster; S2 only writes a few texts per turn. Measured on a Radeon 780M: both
+     models on the iGPU hang the GPU under game load, one model per device does not;
    * no GPU: two CPU processes, the cores split between them.
    One process per model means the two never wait for each other (S1 and S2 run in parallel).
 2. A small gateway listens on the public port and forwards ``/api/alpha/decisions`` to S1 and ``/v1/*`` to S2, so a single
@@ -27,7 +28,7 @@ import time
 from dataclasses import dataclass, field
 
 RESTART_GRACE = 240.0  # seconds a request waits for a crashed backend to come back
-LAYOUTS = ("auto", "together", "split-gpu", "cpu")
+LAYOUTS = ("auto", "together", "s1-gpu", "s2-gpu", "cpu")
 
 
 @dataclass
@@ -77,7 +78,7 @@ def plan(
         if gpu == "cpu":
             layout = "cpu"
         elif hw.get("integrated"):
-            layout = "split-gpu"
+            layout = "s1-gpu"
         else:
             layout = "together"
     if layout != "cpu" and gpu == "cpu":
@@ -95,14 +96,15 @@ def plan(
     port = base_port + 1
     if layout == "together":
         return layout, [Backend(roles, gpu_dev, port, mb_for(roles) or 16, None, env)]
-    if layout == "split-gpu":  # the decision model on the CPU, the narrator on the GPU
+    if layout in ("s1-gpu", "s2-gpu"):  # one model on the GPU, the other on the CPU (two processes)
+        on_gpu = "s1" if layout == "s1-gpu" else "s2"
         out = []
-        cpu_threads = max(1, cores - 2) if "s2" in roles else cores
+        cpu_threads = max(1, cores - 1) if len(roles) > 1 else cores
         for r in roles:
-            if r == "s1":
-                out.append(Backend(("s1",), "cpu", port, mb_for(("s1",)) or 8, cpu_threads, {}))
+            if r == on_gpu:
+                out.append(Backend((r,), gpu_dev, port, mb_for((r,)) or 8, None, env))
             else:
-                out.append(Backend(("s2",), gpu_dev, port, mb_for(("s2",)) or 8, None, env))
+                out.append(Backend((r,), "cpu", port, mb_for((r,)) or 8, cpu_threads, {}))
             port += 1
         return layout, out
     # cpu: one process per role, the cores shared

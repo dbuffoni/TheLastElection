@@ -29,6 +29,7 @@ class RealEngine:
         temperature: float = 0.0,
         name: str = "real",
         batch: int = 1,
+        similarity: float | None = None,
     ):
         self.batch = batch  # items of the same S1 task answered in one request (1 = one request per item)
         self.backend, self.vocab, self.fallback = backend, vocab, fallback
@@ -37,6 +38,11 @@ class RealEngine:
         self._warn: list[dict[str, Any]] = []
         self._schemas: dict[str, dict] = {}
         self._lock = threading.Lock()  # per-citizen calls may run in parallel
+        from .similarity import SimilarityCache
+
+        self.similar = SimilarityCache(
+            similarity
+        )  # answers reused between citizens closer than the threshold
 
     def _rec(self, task: str) -> ExecutionRecord:
         return self._exec.setdefault(
@@ -217,19 +223,20 @@ class RealEngine:
                 else len(opts) // 2
             )
 
-        if self.batch > 1:
-            ins = [m.ChooseReactionIn(context=ctx.row(i), news=news, options=opts) for i in range(len(ctx))]
-            res = self.call_batch("choose_reaction", ins, [rng.child("c", i) for i in range(len(ctx))])
-            return np.array(
-                [
+        def ask(idx: list[int]) -> list[int]:
+            if self.batch > 1:
+                ins = [m.ChooseReactionIn(context=ctx.row(i), news=news, options=opts) for i in idx]
+                res = self.call_batch("choose_reaction", ins, [rng.child("c", i) for i in idx])
+                return [
                     int(r.option)
                     if r is not None and r.option.isdigit() and int(r.option) < len(opts)
                     else len(opts) // 2
                     for r in res
-                ],
-                dtype=int,
-            )
-        return np.array(self._map(one, len(ctx)), dtype=int)
+                ]
+            return self._map(lambda k: one(idx[k]), len(idx))
+
+        key = json.dumps(["reaction", news.model_dump(mode="json"), [o.text for o in opts]], sort_keys=True)
+        return np.array(self._through_cache("choose_reaction", key, ctx, ask), dtype=int)
 
     def choose_activity_many(self, ctx: LabelContext, rng: GameRng) -> np.ndarray:
         from tle.contracts import models as m
@@ -240,11 +247,21 @@ class RealEngine:
             res = self.call("choose_activity", m.ChooseActivityIn(context=ctx.row(i)), rng.child("a", i))
             return acts.index(res.activity) if res is not None else 0
 
-        if self.batch > 1:
-            ins = [m.ChooseActivityIn(context=ctx.row(i)) for i in range(len(ctx))]
-            res = self.call_batch("choose_activity", ins, [rng.child("a", i) for i in range(len(ctx))])
-            return np.array([acts.index(r.activity) if r is not None else 0 for r in res], dtype=int)
-        return np.array(self._map(one, len(ctx)), dtype=int)
+        def ask(idx: list[int]) -> list[int]:
+            if self.batch > 1:
+                ins = [m.ChooseActivityIn(context=ctx.row(i)) for i in idx]
+                res = self.call_batch("choose_activity", ins, [rng.child("a", i) for i in idx])
+                return [acts.index(r.activity) if r is not None else 0 for r in res]
+            return self._map(lambda k: one(idx[k]), len(idx))
+
+        return np.array(self._through_cache("choose_activity", "activity", ctx, ask), dtype=int)
+
+    def _through_cache(self, task: str, key: str, ctx, ask) -> list[int]:
+        before = self.similar.hits
+        out = self.similar.resolve(key, ctx, ask)
+        if self.similar.on and (hit := self.similar.hits - before):
+            self._rec(f"{task}~similar").calls += hit  # citizens answered from a similar one, no model call
+        return out
 
     def _map(self, fn, n: int) -> list[int]:
         """Per-citizen calls; in parallel when the backend allows it (results keep their order)."""

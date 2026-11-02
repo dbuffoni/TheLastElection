@@ -57,10 +57,10 @@ the game sends many requests at once (`max_concurrency` in `config/engines.liqui
 | hardware | layout | why |
 |---|---|---|
 | NVIDIA GPU, or a discrete AMD card | `together`: one process, S1 and S2 on the GPU | **not tested yet** (no such machine so far) |
-| AMD integrated GPU (name ends in "Graphics") | `split-gpu`: S1 on the **CPU**, S2 on the GPU | measured on a Radeon 780M: both models on the iGPU hang the GPU under game load; this split completes games |
+| AMD integrated GPU (name ends in "Graphics") | `s1-gpu`: S1 on the **GPU**, S2 on the CPU | S1 is the busy model (one call per citizen per event, ~80% of the calls) and the GPU makes it ~5x faster; S2 writes a few texts per turn. Both on the iGPU hung the GPU under game load (measured on a 780M), one per device is stable |
 | no GPU | `cpu`: one process per model, the cores shared | S1 and S2 run in parallel instead of taking turns |
 
-Force a layout with `--layout together|split-gpu|cpu`, check what would happen with `--dry-run`. For AMD APUs that PyTorch does
+Force a layout with `--layout together|s1-gpu|s2-gpu|cpu`, check what would happen with `--dry-run`. For AMD APUs that PyTorch does
 not support natively (780M/760M/740M) it sets `HSA_OVERRIDE_GFX_VERSION=11.0.0` for the model processes (your own value wins).
 
 ## G and R, and calibration
@@ -89,6 +89,17 @@ not support natively (780M/760M/740M) it sets `HSA_OVERRIDE_GFX_VERSION=11.0.0` 
 Grids: GPU `G in {1,2,5,10}`, `R in {1,2,4,8,16}` (at most 64 citizens per measurement); CPU `G in {1,5}`, `R in {1,2,4}`;
 `--quick` is smaller. On the 780M the earlier hand measurements were: grouping above ~10-12 citizens hangs the GPU and gains 30-60% at
 best; on the CPU neither G nor R changes anything.
+
+## Similarity cache (optional, off by default)
+
+`similarity` in `config/engines.liquid.toml` (env `TLE_LIQUID_SIMILARITY`, 0..1, -1 = off): before asking S1, citizens are compared on
+their S7 labels (`packages/tle-models/src/tle/models/similarity.py`); a citizen closer than the threshold to one that was already
+answered for the same question (same news and options) copies that answer, so the model sees only the representatives. Deterministic
+(index order, nearest wins). Hits show in the execution table as `choose_reaction~similar` / `choose_activity~similar`.
+Measured with the real d1 on 60 citizens (29 reaction and 20 activity calls): reactions saved 3% / 19% / 33% of the calls at
+threshold 0.04 / 0.06 / 0.08 with followers matching their representative 76% / 75% / 70% of the time, a random citizen's answer
+matching 65%; activities saved 1% / 8% / 9% with 100% / 89% / 90% agreement (random: 41%). So the label distance predicts the
+activity well but the reaction poorly: the cache is a speed-for-fidelity trade, not free. Fitting per-label weights did not help.
 
 ## Requirements and pitfalls
 

@@ -144,7 +144,7 @@ def main(argv: list[str] | None = None) -> int:
     s.add_argument(
         "--share", action="store_true", help="listen on the network; the link carries an access key"
     )
-    s.add_argument("--layout", choices=["auto", "together", "split-gpu", "cpu"], default="auto")
+    s.add_argument("--layout", choices=["auto", "together", "s1-gpu", "s2-gpu", "cpu"], default="auto")
     s.add_argument(
         "--max-batch", type=int, help="requests fused per model call (default depends on the layout)"
     )
@@ -155,7 +155,7 @@ def main(argv: list[str] | None = None) -> int:
         "calibrate", help="find the best G and R for this machine with the game's real requests; saves them"
     )
     s.add_argument("--roles", nargs="+", choices=["s1", "s2"])
-    s.add_argument("--layout", choices=["auto", "together", "split-gpu", "cpu"], default="auto")
+    s.add_argument("--layout", choices=["auto", "together", "s1-gpu", "s2-gpu", "cpu"], default="auto")
     s.add_argument("--quick", action="store_true", help="a small grid (minutes instead of tens of minutes)")
     s.add_argument("--mode", choices=["real", "mock"], default="real", help="mock: no weights (tests)")
     s.set_defaults(fn=cmd_calibrate)

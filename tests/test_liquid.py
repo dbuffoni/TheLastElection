@@ -128,8 +128,8 @@ def test_up_plan_layouts():
 
     igpu = {"backend": "rocm", "name": "AMD Radeon 780M Graphics", "cores": 8, "integrated": True}
     name, b = plan(igpu, ("s1", "s2"), 8100)
-    assert name == "split-gpu" and [(x.roles, x.device) for x in b] == [(("s1",), "cpu"), (("s2",), "rocm")]
-    assert b[0].threads == 6 and b[1].env.get("HSA_OVERRIDE_GFX_VERSION") == "11.0.0"
+    assert name == "s1-gpu" and [(x.roles, x.device) for x in b] == [(("s1",), "rocm"), (("s2",), "cpu")]
+    assert b[1].threads == 7 and b[0].env.get("HSA_OVERRIDE_GFX_VERSION") == "11.0.0"
     assert [x.port for x in b] == [8101, 8102]
     nv = {"backend": "cuda", "name": "NVIDIA RTX 4090", "cores": 16, "integrated": False}
     name, b = plan(nv, ("s1", "s2"), 8100)
