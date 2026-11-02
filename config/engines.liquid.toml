@@ -1,12 +1,16 @@
 # S1 and S2 on the Liquid engine (packages/tle-liquid): S1 = d1 decision model, S2 = LFM2.5 instruct.
 # 1. start the engine (same machine or your desktop):   packages/tle-liquid/scripts/serve.sh
 # 2. play:  uv run tle run --engines config/engines.liquid.toml --n 60 --cache runs/cache.jsonl
+# Where each engine runs is independent (one process per role is fine, and S1 can be on the CPU while S2 is on the GPU):
+#   local CPU  : TLE_LIQUID_S1_DEVICE=cpu packages/tle-liquid/scripts/serve.sh --roles s1 --port 8101
+#   local GPU  : TLE_LIQUID_S2_DEVICE=rocm|cuda packages/tle-liquid/scripts/serve.sh --roles s2 --port 8102
+#   remote API : TLE_LIQUID_S1_URL=http://<desktop-ip>:8101  (one URL per role; TLE_LIQUID_URL is the default for both)
 # Remote desktop: export TLE_LIQUID_URL=http://<desktop-ip>:8100 and, if the server has a key, TLE_LIQUID_API_KEY=<key>
 # (then add api_key_env = "TLE_LIQUID_API_KEY" to both tables; an empty key is refused, so it is off by default).
 
 [s1]
 kind            = "jev"           # the d1 decision API (state + questions -> answers)
-base_url        = "${TLE_LIQUID_URL:-http://127.0.0.1:8100}/api/alpha/decisions"
+base_url        = "${TLE_LIQUID_S1_URL:-${TLE_LIQUID_URL:-http://127.0.0.1:8100}}/api/alpha/decisions"
 model           = "liquid-s1"
 batch_size      = 10              # items per request; the engine fuses concurrent requests as well
 max_concurrency = 16
@@ -14,7 +18,7 @@ timeout         = 120
 
 [s2]
 kind        = "openai_compat"
-base_url    = "${TLE_LIQUID_URL:-http://127.0.0.1:8100}/v1"
+base_url    = "${TLE_LIQUID_S2_URL:-${TLE_LIQUID_URL:-http://127.0.0.1:8100}}/v1"
 model       = "liquid-s2"
 max_tokens  = 1024
 timeout     = 120

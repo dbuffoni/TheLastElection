@@ -11,6 +11,8 @@
 
 [s1]   # Liquid d1 decision model (one forward pass, no generation). Smaller: LiquidAI/d1-omni-600M
 repo = "LiquidAI/d1-2B"
+# device = "cpu"           # this role only: auto | cuda | rocm | cpu (default: the global device above)
 
 [s2]   # non-thinking instruct model. Other sizes: LiquidAI/LFM2.5-350M, LiquidAI/LFM2.5-2.6B
 repo = "LiquidAI/LFM2.5-1.2B-Instruct"
+# device = "rocm"          # e.g. S1 on the CPU and S2 on the GPU: TLE_LIQUID_S1_DEVICE / TLE_LIQUID_S2_DEVICE do the same

@@ -58,7 +58,10 @@ uv run tle-liquid smoke                       # the real weights (after `fetch`)
 * AMD iGPU (gfx1103): export `HSA_OVERRIDE_GFX_VERSION=11.0.0`, otherwise every kernel fails with `invalid device function`. Triton
   compiles small helpers at run time, so the Python in the venv needs its headers (`Python.h`): use a uv-managed Python
   (`uv venv --managed-python -p 3.12`) or install `python3-dev`. The user must be in the `render` group.
-* **Open problem:** `smoke --game` is not green on that iGPU. The real game load (S2 constrained+sampled batches and S1 batches with
+* Where each engine runs is chosen per role: `device = "cpu" | "rocm" | "cuda"` in `[s1]` / `[s2]` of `config/liquid.toml` (or
+  `TLE_LIQUID_S1_DEVICE` / `TLE_LIQUID_S2_DEVICE`), and `TLE_LIQUID_S1_URL` / `TLE_LIQUID_S2_URL` point each engine at a local or remote server.
+* **What works on the 780M iGPU:** two processes (`--roles s1 --device cpu --port 8101`, `--roles s2 --device rocm --port 8102`): 3 game turns,
+  41 requests, no hang (14 min, dominated by S1 on CPU). **Open problem:** `smoke --game` is not green on that iGPU. The real game load (S2 constrained+sampled batches and S1 batches with
   ~110 questions each, with both models resident) hangs the GPU ("HW Exception ... GPU Hang") and kills the server, intermittently and
   not on the same request; the same requests replayed alone in a separate process succeed. A discrete GPU, or CPU, is not affected as far as tested.
 * d1 ships its own code (`trust_remote_code`, needs `torchvision`). `system_one_batch` takes a list of `(state, questions)` tuples.

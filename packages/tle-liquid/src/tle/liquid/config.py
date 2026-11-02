@@ -18,6 +18,7 @@ class ModelSpec:
     approx_gb: float  # weights in bf16, to warn before loading on a small GPU
     trust_remote_code: bool = False
     revision: str | None = None
+    device: str = ""  # "" = the global device; else auto | cuda | rocm | cpu for this role only (e.g. S1 on cpu, S2 on gpu)
 
 
 # S1 is Liquid's decision model d1 (the same "System One" interface the game already speaks through `kind = "jev"`);
@@ -67,6 +68,8 @@ def load_config(path: Path | None = None, **overrides) -> LiquidConfig:
     cfg = replace(cfg, **{k: v for k, v in env.items() if v})
     specs = dict(cfg.specs)
     for role in ("s1", "s2"):  # TLE_LIQUID_S1_REPO=/path/to/dir swaps the weights without touching files
+        if os.environ.get(f"TLE_LIQUID_{role.upper()}_DEVICE"):
+            specs[role] = replace(specs[role], device=os.environ[f"TLE_LIQUID_{role.upper()}_DEVICE"])
         if os.environ.get(f"TLE_LIQUID_{role.upper()}_REPO"):
             specs[role] = replace(specs[role], repo=os.environ[f"TLE_LIQUID_{role.upper()}_REPO"])
     cfg = replace(cfg, specs=specs)

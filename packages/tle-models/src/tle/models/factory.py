@@ -50,10 +50,13 @@ def load_dotenv(path: Path = Path(".env")) -> None:
 
 
 def _expand(v):
-    """``${VAR}`` and ``${VAR:-default}`` in string values of the engines file."""
+    """``${VAR}`` and ``${VAR:-default}`` in string values of the engines file; defaults may nest (innermost first)."""
     if not isinstance(v, str):
         return v
-    return re.sub(r"\$\{(\w+)(?::-([^}]*))?\}", lambda m: os.environ.get(m.group(1), m.group(2) or ""), v)
+    pat = re.compile(r"\$\{(\w+)(?::-([^${}]*))?\}")
+    while (out := pat.sub(lambda m: os.environ.get(m.group(1), m.group(2) or ""), v)) != v:
+        v = out
+    return v
 
 
 def load_specs(path: Path | None = None) -> dict[str, EngineSpec]:

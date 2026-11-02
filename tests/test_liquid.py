@@ -103,3 +103,21 @@ def test_server_with_one_role_refuses_the_other():
     with pytest.raises(KeyError):
         eng.decide({"state": {}, "questions": QUESTIONS})
     eng.close()
+
+
+def test_role_device_from_env(monkeypatch):
+    from tle.liquid.config import load_config
+
+    monkeypatch.setenv("TLE_LIQUID_S1_DEVICE", "cpu")
+    cfg = load_config(None)
+    assert cfg.specs["s1"].device == "cpu" and cfg.specs["s2"].device == ""
+
+
+def test_engines_file_nested_url_default(monkeypatch):
+    from tle.models.factory import load_specs
+
+    monkeypatch.delenv("TLE_LIQUID_S1_URL", raising=False)
+    monkeypatch.setenv("TLE_LIQUID_URL", "http://a:1")
+    monkeypatch.setenv("TLE_LIQUID_S2_URL", "http://b:2")
+    s = load_specs("config/engines.liquid.toml")
+    assert s["s1"].base_url.startswith("http://a:1/") and s["s2"].base_url.startswith("http://b:2/")

@@ -25,6 +25,7 @@ class LiquidEngine:
         self.runtimes: dict[str, object] = {}
         self.batchers: dict[str, MicroBatcher] = {}
         self.device = None
+        self.devices: dict[str, object] = {}  # per role: a role may run on another device than the default
         self.load_seconds: dict[str, float] = {}
         self._lock = threading.Lock()
         if mode != "mock":
@@ -32,9 +33,20 @@ class LiquidEngine:
 
             self.device = detect(cfg.device)
             log.info("device: %s", self.device.describe())
+            self.devices = {r: self._role_device(r) for r in cfg.roles}
         if not cfg.lazy_load:
             for role in cfg.roles:
                 self._ensure(role)
+
+    def _role_device(self, role: str):
+        from .devices import detect
+
+        want = self.cfg.specs[role].device
+        if not want or want == self.cfg.device:
+            return self.device
+        dev = detect(want)
+        log.info("device of %s: %s", role, dev.describe())
+        return dev
 
     # ---- loading ----------------------------------------------------------------------------------------------
     def spec(self, role: str) -> ModelSpec:
@@ -55,12 +67,13 @@ class LiquidEngine:
 
                 rt = MockDecisionRuntime() if role == "s1" else MockChatRuntime()
             else:
-                if self.device.backend != "cpu" and spec.approx_gb > self.device.free_gb:
+                dev = self.devices.get(role) or self.device
+                if dev.backend != "cpu" and spec.approx_gb > dev.free_gb:
                     log.warning(
                         "%s needs about %.1f GB and the GPU has %.1f GB free",
                         spec.repo,
                         spec.approx_gb,
-                        self.device.free_gb,
+                        dev.free_gb,
                     )
                 if self.mode == "tiny":
                     import tempfile
@@ -74,9 +87,9 @@ class LiquidEngine:
                 from .runtimes import ChatRuntime, DecisionRuntime
 
                 rt = (
-                    DecisionRuntime(spec, path, self.device, self.cfg.dtype)
+                    DecisionRuntime(spec, path, dev, self.cfg.dtype)
                     if spec.kind == "decision"
-                    else ChatRuntime(spec, path, self.device, self.cfg.dtype, self.cfg.max_new_tokens)
+                    else ChatRuntime(spec, path, dev, self.cfg.dtype, self.cfg.max_new_tokens)
                 )
             self.load_seconds[role] = time.perf_counter() - t0
             self.runtimes[role] = rt
@@ -115,6 +128,7 @@ class LiquidEngine:
                     "alias": self.spec(r).alias,
                     "kind": self.spec(r).kind,
                     "loaded": r in self.runtimes,
+                    "device": "mock" if self.mock else (self.devices.get(r) or self.device).describe(),
                 }
                 for r in self.cfg.roles
             },
