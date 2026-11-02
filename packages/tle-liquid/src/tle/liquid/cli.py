@@ -1,4 +1,4 @@
-"""``tle-liquid``: doctor | fetch | serve | smoke."""
+"""``tle-liquid``: up | doctor | fetch | serve | smoke."""
 
 from __future__ import annotations
 
@@ -77,6 +77,20 @@ def cmd_serve(a) -> int:
     return 0
 
 
+def cmd_up(a) -> int:
+    from .up import run
+
+    return run(
+        tuple(a.roles or ("s1", "s2")),
+        port=a.port or 8100,
+        share=a.share,
+        layout=a.layout,
+        max_batch=a.max_batch,
+        key=a.key,
+        dry_run=a.dry_run,
+    )
+
+
 def cmd_smoke(a) -> int:
     from .smoke import run
 
@@ -114,6 +128,21 @@ def main(argv: list[str] | None = None) -> int:
     s.add_argument("--port", type=int)
     s.add_argument("--api-key")
     s.set_defaults(fn=cmd_serve)
+    s = sub.add_parser(
+        "up", help="detect this machine, start S1/S2 with the right layout, print ONE link for the game"
+    )
+    s.add_argument("--roles", nargs="+", choices=["s1", "s2"], help="roles to serve here (default both)")
+    s.add_argument("--port", type=int, help="public port of the link (default 8100)")
+    s.add_argument(
+        "--share", action="store_true", help="listen on the network; the link carries an access key"
+    )
+    s.add_argument("--layout", choices=["auto", "together", "split-gpu", "cpu"], default="auto")
+    s.add_argument(
+        "--max-batch", type=int, help="requests fused per model call (default depends on the layout)"
+    )
+    s.add_argument("--key", help="access key for --share (default: random)")
+    s.add_argument("--dry-run", action="store_true", help="only print the detected layout")
+    s.set_defaults(fn=cmd_up)
     s = sub.add_parser(
         "smoke", help="integrated smoke test (starts a server, fires batched requests, optional game turns)"
     )

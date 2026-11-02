@@ -121,3 +121,59 @@ def test_engines_file_nested_url_default(monkeypatch):
     monkeypatch.setenv("TLE_LIQUID_S2_URL", "http://b:2")
     s = load_specs("config/engines.liquid.toml")
     assert s["s1"].base_url.startswith("http://a:1/") and s["s2"].base_url.startswith("http://b:2/")
+
+
+def test_up_plan_layouts():
+    from tle.liquid.up import plan
+
+    igpu = {"backend": "rocm", "name": "AMD Radeon 780M Graphics", "cores": 8, "integrated": True}
+    name, b = plan(igpu, ("s1", "s2"), 8100)
+    assert name == "split-gpu" and [(x.roles, x.device) for x in b] == [(("s1",), "cpu"), (("s2",), "rocm")]
+    assert b[0].threads == 6 and b[1].env.get("HSA_OVERRIDE_GFX_VERSION") == "11.0.0"
+    assert [x.port for x in b] == [8101, 8102]
+    nv = {"backend": "cuda", "name": "NVIDIA RTX 4090", "cores": 16, "integrated": False}
+    name, b = plan(nv, ("s1", "s2"), 8100)
+    assert name == "together" and len(b) == 1 and b[0].roles == ("s1", "s2") and b[0].device == "cuda"
+    cpu = {"backend": "cpu", "name": "", "cores": 8}
+    name, b = plan(cpu, ("s1", "s2"), 8100)
+    assert name == "cpu" and [x.threads for x in b] == [4, 4]
+    name, b = plan(cpu, ("s2",), 8100, max_batch=3)
+    assert b[0].threads == 8 and b[0].max_batch == 3
+    import pytest
+
+    with pytest.raises(RuntimeError):
+        plan(cpu, ("s1",), 8100, layout="together")
+
+
+def test_up_gateway_routes_and_key():
+    pytest.importorskip("httpx")
+    import httpx
+    from starlette.testclient import TestClient
+    from tle.liquid.up import exports, make_gateway, make_link
+
+    hits = []
+
+    def fake(request: httpx.Request):
+        hits.append(str(request.url))
+        return httpx.Response(200, json={"status": "ok"})
+
+    app = make_gateway(
+        {"s1": "http://b1", "s2": "http://b2"},
+        "KEY",
+        client=httpx.AsyncClient(transport=httpx.MockTransport(fake)),
+    )
+    c = TestClient(app)
+    assert c.post("/api/alpha/decisions", json={}).status_code == 401
+    assert c.post("/k/KEY/api/alpha/decisions", json={}).status_code == 200
+    assert c.post("/k/KEY/v1/chat/completions", json={}).status_code == 200
+    assert c.post("/v1/chat/completions", json={}, headers={"Authorization": "Bearer KEY"}).status_code == 200
+    assert hits == [
+        "http://b1/api/alpha/decisions",
+        "http://b2/v1/chat/completions",
+        "http://b2/v1/chat/completions",
+    ]
+    only_s2 = TestClient(make_gateway({"s2": "http://b2"}, None))
+    assert only_s2.post("/api/alpha/decisions", json={}).status_code == 404
+    assert make_link("h", 1, "K") == "http://h:1/k/K" and make_link("h", 1, None) == "http://h:1"
+    assert exports("L", ("s1", "s2")) == ["export TLE_LIQUID_URL=L"]
+    assert exports("L", ("s2",)) == ["export TLE_LIQUID_S2_URL=L"]

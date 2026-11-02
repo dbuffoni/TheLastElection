@@ -52,6 +52,8 @@ uv run tle-liquid smoke                       # the real weights (after `fetch`)
 ```
 `smoke` prints PASS/FAIL per check, including whether requests were really fused into batches.
 
+**Another machine, one link, automatic layout: see [REMOTE.md](REMOTE.md)** (`tle-liquid up`).
+
 ## Limits you should know
 * Verified on real weights (AMD Radeon 780M iGPU, ROCm 6.4 wheel, Linux): `tle-liquid smoke` passes 5/5 (S1 32 concurrent requests in
   batches of 16: 5 s on GPU vs 20 s on CPU; S2 constrained 127 tok/s vs 27). CUDA is untested.
