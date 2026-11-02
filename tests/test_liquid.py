@@ -177,3 +177,50 @@ def test_up_gateway_routes_and_key():
     assert make_link("h", 1, "K") == "http://h:1/k/K" and make_link("h", 1, None) == "http://h:1"
     assert exports("L", ("s1", "s2")) == ["export TLE_LIQUID_URL=L"]
     assert exports("L", ("s2",)) == ["export TLE_LIQUID_S2_URL=L"]
+
+
+def test_calibration_selection_rules():
+    from tle.liquid.calibrate import candidates, grid, skipped_after
+
+    rows = [
+        {"G": 1, "R": 1, "ok": True, "score": 1.0},
+        {"G": 1, "R": 4, "ok": True, "score": 1.9},
+        {"G": 5, "R": 4, "ok": True, "score": 1.95},  # within 5% of the best: the smaller one is preferred
+        {"G": 10, "R": 8, "ok": False},
+    ]
+    assert [(r["G"], r["R"]) for r in candidates(rows)] == [(1, 4), (5, 4), (1, 1)]
+    assert candidates([{"G": 1, "R": 1, "ok": False}]) == []
+    assert skipped_after((5, 2), [(1, 4), (5, 2), (5, 4), (10, 1), (10, 2)]) == [(5, 2), (5, 4), (10, 2)]
+    g = grid("gpu", "full", "s1")
+    assert g[0] == (1, 1) and all(a * b <= 64 for a, b in g) and (10, 4) in g and (10, 8) not in g
+    assert {a for a, _ in grid("gpu", "full", "s2")} == {1}
+
+
+def test_calibration_end_to_end_with_a_simulated_hang(tmp_path, monkeypatch):
+    from tle.liquid import calibrate
+
+    monkeypatch.setenv("TLE_LIQUID_CALIB_FAIL", "G>=5 and R>=2")
+    out = tmp_path / "cal.json"
+    hw = {"backend": "cpu", "name": "test", "cores": 4}
+    assert (
+        calibrate.run(
+            layout="cpu", effort="quick", mode="mock", timeout=30, out=out, hw=hw, log=lambda m: None
+        )
+        == 0
+    )
+    doc = calibrate.load(out)
+    assert doc["layout"] == "cpu" and set(doc["roles"]) == {"s1", "s2"}
+    assert (
+        doc["roles"]["s1"]["G"] == 1 and doc["roles"]["s2"]["G"] == 1 if "G" in doc["roles"]["s2"] else True
+    )
+    assert calibrate.matches(doc, hw) and not calibrate.matches(doc, {**hw, "name": "other"})
+
+
+def test_up_uses_calibrated_batches():
+    from tle.liquid.up import plan
+
+    hw = {"backend": "rocm", "name": "AMD Radeon 780M Graphics", "cores": 8, "integrated": True}
+    _, b = plan(hw, ("s1", "s2"), 8100, "auto", None, {"s1": 4, "s2": 12})
+    assert [x.max_batch for x in b] == [4, 12]
+    _, b = plan(hw, ("s1", "s2"), 8100, "auto", 3, {"s1": 4, "s2": 12})
+    assert [x.max_batch for x in b] == [3, 3]  # --max-batch wins

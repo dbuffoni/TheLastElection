@@ -1,4 +1,4 @@
-"""``tle-liquid``: up | doctor | fetch | serve | smoke."""
+"""``tle-liquid``: up | calibrate | doctor | fetch | serve | smoke."""
 
 from __future__ import annotations
 
@@ -91,6 +91,14 @@ def cmd_up(a) -> int:
     )
 
 
+def cmd_calibrate(a) -> int:
+    from . import calibrate
+
+    return calibrate.run(
+        tuple(a.roles or ("s1", "s2")), layout=a.layout, effort="quick" if a.quick else "full", mode=a.mode
+    )
+
+
 def cmd_smoke(a) -> int:
     from .smoke import run
 
@@ -143,6 +151,14 @@ def main(argv: list[str] | None = None) -> int:
     s.add_argument("--key", help="access key for --share (default: random)")
     s.add_argument("--dry-run", action="store_true", help="only print the detected layout")
     s.set_defaults(fn=cmd_up)
+    s = sub.add_parser(
+        "calibrate", help="find the best G and R for this machine with the game's real requests; saves them"
+    )
+    s.add_argument("--roles", nargs="+", choices=["s1", "s2"])
+    s.add_argument("--layout", choices=["auto", "together", "split-gpu", "cpu"], default="auto")
+    s.add_argument("--quick", action="store_true", help="a small grid (minutes instead of tens of minutes)")
+    s.add_argument("--mode", choices=["real", "mock"], default="real", help="mock: no weights (tests)")
+    s.set_defaults(fn=cmd_calibrate)
     s = sub.add_parser(
         "smoke", help="integrated smoke test (starts a server, fires batched requests, optional game turns)"
     )

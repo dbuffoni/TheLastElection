@@ -3,6 +3,16 @@
 `tle-liquid up` looks at the machine it runs on, starts the Liquid models with the layout that suits the hardware, and prints
 **one link**. The machine that plays uses that link; nothing else has to be configured there.
 
+## The three steps
+
+| step | command | what it does |
+|---|---|---|
+| 1. configuration | `packages/tle-liquid/scripts/install.sh auto --fetch` | right torch wheel (CUDA / ROCm / CPU), libraries, weights |
+| 2. calibration | `uv run tle-liquid calibrate` | finds the best **G** and **R** for this machine and saves them in `.tle-liquid/calibration.json` |
+| 3. activation | `uv run tle-liquid up --share` | starts the models with that layout and batches, prints the link |
+
+`scripts/remote.sh` does all three (skipping what is already done; `--recalibrate` forces step 2, `--quick` uses a small grid).
+
 ## On the machine that serves (a clone of this repo)
 
 ```bash
@@ -53,13 +63,32 @@ the game sends many requests at once (`max_concurrency` in `config/engines.liqui
 Force a layout with `--layout together|split-gpu|cpu`, check what would happen with `--dry-run`. For AMD APUs that PyTorch does
 not support natively (780M/760M/740M) it sets `HSA_OVERRIDE_GFX_VERSION=11.0.0` for the model processes (your own value wins).
 
-## Batches (the only tuning knob left)
+## G and R, and calibration
 
-The game sends **one citizen per request** (`batch_size = 1` in `config/engines.liquid.toml`): grouping several citizens in one
-request gained 30-60% at best on the GPU and large requests hang small GPUs. The server fuses concurrent requests into one model
-call: `--max-batch N` (default 16 on a dedicated GPU, 8 elsewhere). Measured on the 780M, S1 requests of about 10 citizens (~10 kB of
-state) or less were safe; on the CPU batching changes nothing. Raise `--max-batch` on a big GPU and measure with
-`uv run tle-liquid smoke`.
+* **G** = citizens per request (S1 only). The game sends G citizens in one request. It is a client setting, `batch_size` in
+  `config/engines.liquid.toml`, read from `TLE_LIQUID_S1_BATCH` (default 1 = no grouping).
+* **R** = requests fused into one model call. It is a server setting, `--max-batch`. It only matters if the game sends that many
+  requests at once (`max_concurrency` in the engines file, 16 by default).
+
+`tle-liquid calibrate` measures them with **real requests of the game that are stored in the repo**
+(`packages/tle-liquid/data/s1_requests.jsonl`, `s2_requests.jsonl`; regenerate with
+`scripts/capture_calibration_data.py`), so a fresh clone needs no game run:
+
+1. detects the hardware and uses the same layout / devices / CPU threads as `up`;
+2. times a grid of (G, R) per role: S1 on the reaction and the activity requests (what runs every turn), S2 on its generation
+   requests (G is not used there). Every configuration runs in a worker process: a size that hangs the GPU kills only that worker,
+   and every configuration at least as big is skipped;
+3. takes the fastest configuration (within 5% of the best, the smaller G and R win), runs it three more times and keeps it only if all
+   three succeed, otherwise tries the next one;
+4. saves `.tle-liquid/calibration.json` (git-ignored, one per machine, with the whole grid).
+
+`up` reads that file when the hardware matches: it uses the calibrated layout and R, and prints
+`export TLE_LIQUID_S1_BATCH=<G>` next to the link, to be set on the machine that plays. Without a calibration it uses safe defaults
+(R = 16 on a dedicated GPU, 8 elsewhere; G = 1). `--max-batch` always wins over the file.
+
+Grids: GPU `G in {1,2,5,10}`, `R in {1,2,4,8,16}` (at most 64 citizens per measurement); CPU `G in {1,5}`, `R in {1,2,4}`;
+`--quick` is smaller. On the 780M the earlier hand measurements were: grouping above ~10-12 citizens hangs the GPU and gains 30-60% at
+best; on the CPU neither G nor R changes anything.
 
 ## Requirements and pitfalls
 

@@ -12,7 +12,7 @@
 kind            = "jev"           # the d1 decision API (state + questions -> answers)
 base_url        = "${TLE_LIQUID_S1_URL:-${TLE_LIQUID_URL:-http://127.0.0.1:8100}}/api/alpha/decisions"
 model           = "liquid-s1"
-batch_size      = 1               # citizens per request. 1 = no grouping (measured: grouping gains little and large requests hang small GPUs).
+batch_size      = "${TLE_LIQUID_S1_BATCH:-1}"               # citizens per request. 1 = no grouping (measured: grouping gains little and large requests hang small GPUs).
                                   # The server still fuses concurrent requests: that is `--max-batch` of `tle-liquid up`.
 max_concurrency = 16
 timeout         = 120

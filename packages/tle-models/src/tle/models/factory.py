@@ -67,7 +67,15 @@ def load_specs(path: Path | None = None) -> dict[str, EngineSpec]:
     data = tomllib.loads(Path(path).read_text())
     for k in out:
         if k in data:
-            out[k] = EngineSpec(**{a: _expand(b) for a, b in data[k].items()})
+            defaults = EngineSpec()
+            vals = {}
+            for a, b in data[k].items():
+                b = _expand(b)
+                want = type(getattr(defaults, a, None))
+                if isinstance(b, str) and want in (int, float):  # numbers can come from ${VAR:-n}
+                    b = want(b)
+                vals[a] = b
+            out[k] = EngineSpec(**vals)
     return out
 
 

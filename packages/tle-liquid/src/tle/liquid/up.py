@@ -57,7 +57,12 @@ class Backend:
 
 
 def plan(
-    hw: dict, roles: tuple[str, ...], base_port: int, layout: str = "auto", max_batch: int | None = None
+    hw: dict,
+    roles: tuple[str, ...],
+    base_port: int,
+    layout: str = "auto",
+    max_batch: int | None = None,
+    batch_by_role: dict[str, int] | None = None,
 ):
     """Pure function: hardware description -> (layout name, backends). Ports: base_port is the public gateway, the
     backends take the next ones."""
@@ -79,25 +84,29 @@ def plan(
         if v := hsa_override_for(hw.get("name", "")):
             env["HSA_OVERRIDE_GFX_VERSION"] = v
     gpu_dev = gpu if gpu != "cpu" else "cpu"
-    mb = max_batch
+    by = batch_by_role or {}
+
+    def mb_for(rs):  # explicit flag > calibrated R > default
+        return max_batch or max((by.get(r, 0) for r in rs), default=0) or None
+
     port = base_port + 1
     if layout == "together":
-        return layout, [Backend(roles, gpu_dev, port, mb or 16, None, env)]
+        return layout, [Backend(roles, gpu_dev, port, mb_for(roles) or 16, None, env)]
     if layout == "split-gpu":  # the decision model on the CPU, the narrator on the GPU
         out = []
         cpu_threads = max(1, cores - 2) if "s2" in roles else cores
         for r in roles:
             if r == "s1":
-                out.append(Backend(("s1",), "cpu", port, mb or 8, cpu_threads, {}))
+                out.append(Backend(("s1",), "cpu", port, mb_for(("s1",)) or 8, cpu_threads, {}))
             else:
-                out.append(Backend(("s2",), gpu_dev, port, mb or 8, None, env))
+                out.append(Backend(("s2",), gpu_dev, port, mb_for(("s2",)) or 8, None, env))
             port += 1
         return layout, out
     # cpu: one process per role, the cores shared
     share = max(1, cores // len(roles))
     out = []
     for r in roles:
-        out.append(Backend((r,), "cpu", port, mb or 8, share, {}))
+        out.append(Backend((r,), "cpu", port, mb_for((r,)) or 8, share, {}))
         port += 1
     return "cpu", out
 
@@ -219,8 +228,23 @@ def run(
 ) -> int:
     import uvicorn
 
+    from . import calibrate
+
     hw = hw or detect_hardware()
-    name, backends = plan(hw, roles, port, layout, max_batch)
+    cal = calibrate.load()
+    by: dict[str, int] = {}
+    if cal and calibrate.matches(cal, hw):
+        by = {r: v["R"] for r, v in cal["roles"].items()}
+        if layout == "auto":
+            layout = cal["layout"]
+        print(
+            f"calibration: {cal['created']} (R per role {by}, G for S1 {cal['roles'].get('s1', {}).get('G', '-')})",
+            flush=True,
+        )
+    else:
+        cal = None
+        print("calibration: none for this machine, using defaults (run `tle-liquid calibrate`)", flush=True)
+    name, backends = plan(hw, roles, port, layout, max_batch, by)
     print(
         f"hardware: {hw.get('backend')} {hw.get('name', '')} ({hw.get('cores')} cores); layout: {name}",
         flush=True,
