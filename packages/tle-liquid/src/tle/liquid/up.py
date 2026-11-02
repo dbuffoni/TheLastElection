@@ -14,6 +14,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
 import os
 import secrets
@@ -21,9 +22,11 @@ import signal
 import socket
 import subprocess
 import sys
+import threading
 import time
 from dataclasses import dataclass, field
 
+RESTART_GRACE = 240.0  # seconds a request waits for a crashed backend to come back
 LAYOUTS = ("auto", "together", "split-gpu", "cpu")
 
 
@@ -184,15 +187,24 @@ def make_gateway(routes: dict[str, str], key: str | None, client=None):
                 status_code=404,
             )
         body = await request.body()
-        try:
-            r = await client.request(
-                request.method,
-                routes[role] + path,
-                content=body,
-                headers={"content-type": "application/json"},
-            )
-        except httpx.HTTPError as e:
-            return JSONResponse({"error": {"message": f"backend down: {type(e).__name__}"}}, status_code=502)
+        deadline = time.monotonic() + RESTART_GRACE
+        while True:
+            try:
+                r = await client.request(
+                    request.method,
+                    routes[role] + path,
+                    content=body,
+                    headers={"content-type": "application/json"},
+                )
+                break
+            except (
+                httpx.HTTPError
+            ) as e:  # a backend that crashed (GPU hang) is restarted by the supervisor: wait for it
+                if time.monotonic() > deadline:
+                    return JSONResponse(
+                        {"error": {"message": f"backend down: {type(e).__name__}"}}, status_code=502
+                    )
+                await asyncio.sleep(2)
         return Response(r.content, status_code=r.status_code, media_type="application/json")
 
     return Starlette(routes=[Route("/{path:path}", handle, methods=["GET", "POST"])])
@@ -213,6 +225,22 @@ def _wait_health(url: str, procs: list[subprocess.Popen], timeout: float) -> Non
         except Exception:
             time.sleep(2)
     raise RuntimeError(f"{url} did not become healthy in {timeout:.0f}s")
+
+
+def supervise(backends, procs, envs, stop_flag):
+    """Restart a model process that died (a GPU hang kills it): a long game must not end because of one crash."""
+    restarts = 0
+    while not stop_flag.is_set():
+        for i, p in enumerate(procs):
+            if p.poll() is not None and not stop_flag.is_set():
+                restarts += 1
+                print(
+                    f"[up] {'+'.join(backends[i].roles)} exited with code {p.returncode}; restarting (#{restarts})",
+                    flush=True,
+                )
+                time.sleep(5)  # let the driver recover
+                procs[i] = subprocess.Popen(backends[i].argv(), env=envs[i])
+        stop_flag.wait(2)
 
 
 def run(
@@ -260,8 +288,11 @@ def run(
         return 0
     key = (key or os.environ.get("TLE_LIQUID_API_KEY") or secrets.token_urlsafe(16)) if share else None
     procs: list[subprocess.Popen] = []
+    envs: list[dict] = []
+    stopping = threading.Event()
 
     def stop(*_):
+        stopping.set()
         for p in procs:
             if p.poll() is None:
                 p.terminate()
@@ -273,6 +304,7 @@ def run(
             env = {**os.environ, **b.env}
             if b.threads:
                 env["OMP_NUM_THREADS"] = env["MKL_NUM_THREADS"] = str(b.threads)
+            envs.append(env)
             procs.append(subprocess.Popen(b.argv(), env=env))
             for r in b.roles:
                 routes[r] = f"http://127.0.0.1:{b.port}"
@@ -287,6 +319,7 @@ def run(
             f"\nlink: {link}\n(keep Ctrl-C to stop; {'the link contains the access key' if key else 'local only'})\n",
             flush=True,
         )
+        threading.Thread(target=supervise, args=(backends, procs, envs, stopping), daemon=True).start()
         app = make_gateway(routes, key)
         uvicorn.run(app, host="0.0.0.0" if share else "127.0.0.1", port=port, log_level="warning")
     except KeyboardInterrupt:
