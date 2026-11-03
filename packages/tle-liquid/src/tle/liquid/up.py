@@ -28,6 +28,8 @@ import time
 from dataclasses import dataclass, field
 
 RESTART_GRACE = 240.0  # seconds a request waits for a crashed backend to come back
+# A process that runs on the CPU must not open the GPU: when the GPU resets (a hang) every process that has it open is killed too.
+NO_GPU = {"HIP_VISIBLE_DEVICES": "-1", "CUDA_VISIBLE_DEVICES": "-1", "ROCR_VISIBLE_DEVICES": "-1"}
 LAYOUTS = ("auto", "together", "s1-gpu", "s2-gpu", "cpu")
 
 
@@ -39,6 +41,7 @@ class Backend:
     max_batch: int
     threads: int | None = None
     env: dict[str, str] = field(default_factory=dict)
+    mode: str = "real"
 
     def argv(self) -> list[str]:
         a = [
@@ -57,6 +60,8 @@ class Backend:
             "--max-batch",
             str(self.max_batch),
         ]
+        if self.mode != "real":
+            a += ["--mode", self.mode]
         return a
 
 
@@ -104,14 +109,14 @@ def plan(
             if r == on_gpu:
                 out.append(Backend((r,), gpu_dev, port, mb_for((r,)) or 8, None, env))
             else:
-                out.append(Backend((r,), "cpu", port, mb_for((r,)) or 8, cpu_threads, {}))
+                out.append(Backend((r,), "cpu", port, mb_for((r,)) or 8, cpu_threads, NO_GPU))
             port += 1
         return layout, out
     # cpu: one process per role, the cores shared
     share = max(1, cores // len(roles))
     out = []
     for r in roles:
-        out.append(Backend((r,), "cpu", port, mb_for((r,)) or 8, share, {}))
+        out.append(Backend((r,), "cpu", port, mb_for((r,)) or 8, share, NO_GPU))
         port += 1
     return "cpu", out
 
@@ -147,9 +152,13 @@ def exports(link: str, roles: tuple[str, ...]) -> list[str]:
     return [f"export TLE_LIQUID_{r.upper()}_URL={link}" for r in roles]
 
 
-def make_gateway(routes: dict[str, str], key: str | None, client=None):
+def make_gateway(routes: dict[str, str], key: str | None, client=None, states=None, concurrency=None):
     """Starlette app: ``routes`` maps a role ("s1"/"s2") to the backend base URL. The key may come as ``/k/<key>`` prefix or
-    as ``Authorization: Bearer``."""
+    as ``Authorization: Bearer``.
+
+    ``states`` (role -> BackendState) and ``concurrency`` (role -> max requests in flight) switch on the queue: a FIFO per
+    model, requests wait while the model restarts after a crash, and a request that was in flight for two crashes is refused
+    (HTTP 500 ``poisoned_request``) instead of being sent again."""
     import hmac
 
     import httpx
@@ -158,11 +167,23 @@ def make_gateway(routes: dict[str, str], key: str | None, client=None):
     from starlette.responses import JSONResponse, Response
     from starlette.routing import Route
 
+    from .resilience import Quarantine
+
     client = client or httpx.AsyncClient(timeout=None)
     prefix = f"/k/{key}" if key else ""
+    quarantine = {r: Quarantine() for r in routes}
+    sems = {r: asyncio.Semaphore(max(1, (concurrency or {}).get(r, 1 << 30))) for r in routes}
 
     def role_of(path: str) -> str:
         return "s1" if path.endswith("/decisions") else "s2"
+
+    async def wait_ready(role: str, deadline: float) -> bool:
+        st = (states or {}).get(role)
+        while st is not None and not st.ready.is_set():
+            if time.monotonic() > deadline:
+                return False
+            await asyncio.sleep(0.5)
+        return True
 
     async def handle(request: Request):
         path = request.url.path
@@ -180,6 +201,9 @@ def make_gateway(routes: dict[str, str], key: str | None, client=None):
                     outs[r] = (await client.get(base + "/health")).json()
                 except Exception as e:
                     outs[r] = {"status": f"down: {type(e).__name__}"}
+                if states and r in states:
+                    outs[r]["crashes"] = states[r].total_crashes
+                    outs[r]["dropped_requests"] = quarantine[r].dropped
             ok = all(v.get("status") == "ok" for v in outs.values())
             return JSONResponse({"status": "ok" if ok else "degraded", "backends": outs})
         role = role_of(path)
@@ -189,24 +213,37 @@ def make_gateway(routes: dict[str, str], key: str | None, client=None):
                 status_code=404,
             )
         body = await request.body()
+        qkey = quarantine[role].key(path, body)
         deadline = time.monotonic() + RESTART_GRACE
-        while True:
-            try:
-                r = await client.request(
-                    request.method,
-                    routes[role] + path,
-                    content=body,
-                    headers={"content-type": "application/json"},
-                )
-                break
-            except (
-                httpx.HTTPError
-            ) as e:  # a backend that crashed (GPU hang) is restarted by the supervisor: wait for it
-                if time.monotonic() > deadline:
-                    return JSONResponse(
-                        {"error": {"message": f"backend down: {type(e).__name__}"}}, status_code=502
+        async with sems[role]:  # FIFO per model: a crash can be pinned on the requests that were running
+            while True:
+                if not await wait_ready(role, deadline):
+                    return JSONResponse({"error": {"message": "backend not ready"}}, status_code=503)
+                try:
+                    r = await client.request(
+                        request.method,
+                        routes[role] + path,
+                        content=body,
+                        headers={"content-type": "application/json"},
                     )
-                await asyncio.sleep(2)
+                    quarantine[role].done(qkey)
+                    break
+                except httpx.HTTPError as e:  # the model process died while it had this request
+                    if quarantine[role].crashed_with(qkey):
+                        return JSONResponse(
+                            {
+                                "error": {
+                                    "type": "poisoned_request",
+                                    "message": "this request was in flight for repeated crashes of the model process",
+                                }
+                            },
+                            status_code=500,
+                        )
+                    if time.monotonic() > deadline:
+                        return JSONResponse(
+                            {"error": {"message": f"backend down: {type(e).__name__}"}}, status_code=502
+                        )
+                    await asyncio.sleep(1)
         return Response(r.content, status_code=r.status_code, media_type="application/json")
 
     return Starlette(routes=[Route("/{path:path}", handle, methods=["GET", "POST"])])
@@ -229,22 +266,6 @@ def _wait_health(url: str, procs: list[subprocess.Popen], timeout: float) -> Non
     raise RuntimeError(f"{url} did not become healthy in {timeout:.0f}s")
 
 
-def supervise(backends, procs, envs, stop_flag):
-    """Restart a model process that died (a GPU hang kills it): a long game must not end because of one crash."""
-    restarts = 0
-    while not stop_flag.is_set():
-        for i, p in enumerate(procs):
-            if p.poll() is not None and not stop_flag.is_set():
-                restarts += 1
-                print(
-                    f"[up] {'+'.join(backends[i].roles)} exited with code {p.returncode}; restarting (#{restarts})",
-                    flush=True,
-                )
-                time.sleep(5)  # let the driver recover
-                procs[i] = subprocess.Popen(backends[i].argv(), env=envs[i])
-        stop_flag.wait(2)
-
-
 def run(
     roles: tuple[str, ...],
     port: int = 8100,
@@ -255,10 +276,12 @@ def run(
     wait: float = 3600.0,
     hw: dict | None = None,
     dry_run: bool = False,
+    mode: str = "real",
 ) -> int:
     import uvicorn
 
     from . import calibrate
+    from .resilience import BackendState, supervise_one, warm_up
 
     hw = hw or detect_hardware()
     cal = calibrate.load()
@@ -275,6 +298,8 @@ def run(
         cal = None
         print("calibration: none for this machine, using defaults (run `tle-liquid calibrate`)", flush=True)
     name, backends = plan(hw, roles, port, layout, max_batch, by)
+    for b in backends:
+        b.mode = mode
     print(
         f"hardware: {hw.get('backend')} {hw.get('name', '')} ({hw.get('cores')} cores); layout: {name}",
         flush=True,
@@ -310,8 +335,20 @@ def run(
             procs.append(subprocess.Popen(b.argv(), env=env))
             for r in b.roles:
                 routes[r] = f"http://127.0.0.1:{b.port}"
+        states: dict[str, BackendState] = {}
         for b in backends:
             _wait_health(f"http://127.0.0.1:{b.port}", procs, wait)
+        for b in backends:
+            st = BackendState(role_label="+".join(b.roles))
+            if not warm_up(b.port, b.roles[0]):
+                print(
+                    f"[up] warning: {st.role_label} did not pass its warm-up; the supervisor will restart it",
+                    flush=True,
+                )
+            else:
+                st.ready.set()
+            for r in b.roles:
+                states[r] = st
         host = lan_ip() if share else "127.0.0.1"
         link = make_link(host, port, key)
         print("\nREADY. On the machine that plays:\n", flush=True)
@@ -321,8 +358,26 @@ def run(
             f"\nlink: {link}\n(keep Ctrl-C to stop; {'the link contains the access key' if key else 'local only'})\n",
             flush=True,
         )
-        threading.Thread(target=supervise, args=(backends, procs, envs, stopping), daemon=True).start()
-        app = make_gateway(routes, key)
+        for i, b in enumerate(backends):
+
+            def spawn(i=i):
+                return subprocess.Popen(backends[i].argv(), env=envs[i])
+
+            def ready_check(b=b):
+                try:
+                    _wait_health(f"http://127.0.0.1:{b.port}", [], 3.0)
+                except RuntimeError:
+                    return False
+                return warm_up(b.port, b.roles[0])
+
+            threading.Thread(
+                target=supervise_one,
+                args=(i, spawn, procs, states[b.roles[0]], ready_check, stopping),
+                daemon=True,
+            ).start()
+        app = make_gateway(
+            routes, key, states=states, concurrency={r: b.max_batch for b in backends for r in b.roles}
+        )
         uvicorn.run(app, host="0.0.0.0" if share else "127.0.0.1", port=port, log_level="warning")
     except KeyboardInterrupt:
         pass

@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import asyncio
 import hmac
+import os
 import time
 import uuid
 
@@ -30,6 +31,7 @@ def _err(status: int, msg: str, kind: str = "invalid_request_error") -> JSONResp
 
 def create_app(engine: LiquidEngine) -> Starlette:
     key = engine.cfg.api_key
+    needle = os.environ.get("TLE_LIQUID_TEST_POISON", "")
 
     def unauthorized(request: Request) -> JSONResponse | None:
         if not key:
@@ -116,6 +118,10 @@ def create_app(engine: LiquidEngine) -> Starlette:
     async def decisions(request: Request):
         if (r := unauthorized(request)) is not None:
             return r
+        if (
+            needle and needle.encode() in await request.body()
+        ):  # tests: a request that kills the process (like a GPU hang)
+            os._exit(134)
         try:
             body = await request.json()
             state, questions = body["state"], body["questions"]
