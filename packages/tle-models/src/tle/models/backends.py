@@ -1,8 +1,6 @@
 """Model backends (spec 3.6 / Technical Implementation 3.6). A backend turns (system, user, JSON schema)
 into text; it knows nothing about the game. ``openai_compat`` covers vLLM, llama.cpp server, Ollama,
-LM Studio and hosted APIs; its HTTP transport is injectable so tests never open a socket. A ``local``
-in-process backend (transformers + outlines) is deliberately not implemented in the cloud slice: see
-docs/local-setup.md for how to add it on the machine that has the GPU."""
+LM Studio and hosted APIs; its HTTP transport is injectable so tests never open a socket. Local models run in their own process: see packages/tle-liquid."""
 
 from __future__ import annotations
 
@@ -150,7 +148,7 @@ def make_backend(kind: str, **kw) -> Backend:
         return JevBackend(**kw)
     if kind == "local":
         raise NotImplementedError(
-            "the in-process 'local' backend is added on the GPU machine; "
-            "run a local server (vLLM/llama.cpp/Ollama) and use 'openai_compat'"
+            "there is no in-process backend: run the Liquid engine (packages/tle-liquid/README.md) or any "
+            "OpenAI-compatible server and use 'openai_compat' / 'jev'"
         )
     raise ValueError(f"unknown backend '{kind}'")

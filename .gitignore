@@ -226,3 +226,6 @@ runs/*
 .claude/settings.local.json
 .venv/
 uv.lock.bak
+
+# tle-liquid: calibration of this machine (tle-liquid calibrate)
+.tle-liquid/

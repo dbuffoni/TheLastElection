@@ -6,7 +6,7 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "tle-engine", "tle-config", "tle-models", "tle-store", "tle-lab",
-    "tle-game", "tle-devtools", "tle-cli", "tle-viz", "tle-dashboard",
+    "tle-game", "tle-devtools", "tle-cli", "tle-viz", "tle-dashboard", "tle-liquid",
 ]
 
 [dependency-groups]
@@ -33,6 +33,7 @@ tle-devtools = { workspace = true }
 tle-cli = { workspace = true }
 tle-viz = { workspace = true }
 tle-dashboard = { workspace = true }
+tle-liquid = { workspace = true }
 tle-testing = { workspace = true }
 
 [tool.pytest.ini_options]
@@ -63,4 +64,4 @@ python_version = "3.12"
 ignore_missing_imports = true
 namespace_packages = true
 explicit_package_bases = true
-mypy_path = ["packages/tle-engine/src", "packages/tle-config/src", "packages/tle-models/src", "packages/tle-store/src", "packages/tle-lab/src", "packages/tle-game/src", "packages/tle-devtools/src", "packages/tle-cli/src", "packages/tle-testing/src"]
+mypy_path = ["packages/tle-engine/src", "packages/tle-config/src", "packages/tle-models/src", "packages/tle-store/src", "packages/tle-lab/src", "packages/tle-game/src", "packages/tle-devtools/src", "packages/tle-cli/src", "packages/tle-liquid/src", "packages/tle-testing/src"]

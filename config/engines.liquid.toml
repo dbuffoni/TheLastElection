@@ -1,0 +1,30 @@
+# S1 and S2 on the Liquid engine (packages/tle-liquid): S1 = d1 decision model, S2 = LFM2.5 instruct.
+# 1. start the engine (same machine or your desktop):   packages/tle-liquid/scripts/serve.sh
+# 2. play:  uv run tle run --engines config/engines.liquid.toml --n 60 --cache runs/cache.jsonl
+# Where each engine runs is independent (one process per role is fine, and S1 can be on the CPU while S2 is on the GPU):
+#   local CPU  : TLE_LIQUID_S1_DEVICE=cpu packages/tle-liquid/scripts/serve.sh --roles s1 --port 8101
+#   local GPU  : TLE_LIQUID_S2_DEVICE=rocm|cuda packages/tle-liquid/scripts/serve.sh --roles s2 --port 8102
+#   remote API : TLE_LIQUID_S1_URL=http://<desktop-ip>:8101  (one URL per role; TLE_LIQUID_URL is the default for both)
+# Remote desktop: export TLE_LIQUID_URL=http://<desktop-ip>:8100 and, if the server has a key, TLE_LIQUID_API_KEY=<key>
+# (then add api_key_env = "TLE_LIQUID_API_KEY" to both tables; an empty key is refused, so it is off by default).
+
+[s1]
+kind            = "jev"           # the d1 decision API (state + questions -> answers)
+base_url        = "${TLE_LIQUID_S1_URL:-${TLE_LIQUID_URL:-http://127.0.0.1:8100}}/api/alpha/decisions"
+model           = "liquid-s1"
+batch_size      = "${TLE_LIQUID_S1_BATCH:-1}"               # citizens per request. 1 = no grouping (measured: grouping gains little and large requests hang small GPUs).
+                                  # The server still fuses concurrent requests: that is `--max-batch` of `tle-liquid up`.
+max_concurrency = 16
+timeout         = 120
+# Reuse the answer of a citizen closer than this (0..1 on the S7 labels; 0 = identical labels only; -1 = off, the default).
+# Measured with the real d1 on 60 citizens: at 0.06 it saves ~19% of the reaction calls but followers agree with the
+# representative only 75% of the time (a random citizen's answer agrees 65%), so it is off unless you want speed over fidelity.
+similarity      = "${TLE_LIQUID_SIMILARITY:--1}"
+
+[s2]
+kind        = "openai_compat"
+base_url    = "${TLE_LIQUID_S2_URL:-${TLE_LIQUID_URL:-http://127.0.0.1:8100}}/v1"
+model       = "liquid-s2"
+max_tokens  = 1024
+timeout     = 120
+temperature = 0.7

@@ -33,6 +33,9 @@ class EngineSpec:
     temperature: float = 0.0
     max_tokens: int = 2048  # cap on one answer's length (0 = the server's default)
     batch_size: int = 10  # S1 items answered in one request (openai_compat only; 1 = one request per item)
+    similarity: float = (
+        -1.0
+    )  # S1 only: reuse the answer of a citizen closer than this (0..1; -1 = off, 0 = identical labels)
     max_concurrency: int = (
         16  # parallel requests for per-citizen choices (jev; a vLLM server batches by itself)
     )
@@ -50,10 +53,13 @@ def load_dotenv(path: Path = Path(".env")) -> None:
 
 
 def _expand(v):
-    """``${VAR}`` and ``${VAR:-default}`` in string values of the engines file."""
+    """``${VAR}`` and ``${VAR:-default}`` in string values of the engines file; defaults may nest (innermost first)."""
     if not isinstance(v, str):
         return v
-    return re.sub(r"\$\{(\w+)(?::-([^}]*))?\}", lambda m: os.environ.get(m.group(1), m.group(2) or ""), v)
+    pat = re.compile(r"\$\{(\w+)(?::-([^${}]*))?\}")
+    while (out := pat.sub(lambda m: os.environ.get(m.group(1), m.group(2) or ""), v)) != v:
+        v = out
+    return v
 
 
 def load_specs(path: Path | None = None) -> dict[str, EngineSpec]:
@@ -64,7 +70,15 @@ def load_specs(path: Path | None = None) -> dict[str, EngineSpec]:
     data = tomllib.loads(Path(path).read_text())
     for k in out:
         if k in data:
-            out[k] = EngineSpec(**{a: _expand(b) for a, b in data[k].items()})
+            defaults = EngineSpec()
+            vals = {}
+            for a, b in data[k].items():
+                b = _expand(b)
+                want = type(getattr(defaults, a, None))
+                if isinstance(b, str) and want in (int, float):  # numbers can come from ${VAR:-n}
+                    b = want(b)
+                vals[a] = b
+            out[k] = EngineSpec(**vals)
     return out
 
 
@@ -129,6 +143,7 @@ def build_engines(
             n_retry=p.technical.n_retry,
             temperature=spec.temperature,
             batch=spec.batch_size if name == "s1" else 1,
+            similarity=spec.similarity if name == "s1" and spec.similarity >= 0 else None,
         )
         built[name] = CachedEngine(real, cache) if cache else real
         info[name] = {"kind": spec.kind, "model": spec.model, "base_url": spec.base_url, "batch": real.batch}

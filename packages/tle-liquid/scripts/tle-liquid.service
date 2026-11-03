@@ -1,0 +1,16 @@
+# systemd USER unit for a desktop that serves the engine in the background (Fedora):
+#   mkdir -p ~/.config/systemd/user && cp tle-liquid.service ~/.config/systemd/user/
+#   edit WorkingDirectory (your clone) and the key, then:
+#   systemctl --user daemon-reload && systemctl --user enable --now tle-liquid
+#   sudo firewall-cmd --add-port=8100/tcp --permanent && sudo firewall-cmd --reload     # if other machines connect
+[Unit]
+Description=The Last Election - Liquid engine (S1 d1 + S2 LFM)
+
+[Service]
+WorkingDirectory=%h/TheLastElection
+Environment=TLE_LIQUID_API_KEY=change-me
+ExecStart=%h/TheLastElection/packages/tle-liquid/scripts/serve.sh --host 0.0.0.0
+Restart=on-failure
+
+[Install]
+WantedBy=default.target

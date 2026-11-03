@@ -104,6 +104,8 @@ def _fill(tpl: Any, answers: dict) -> Any:
         if "__s__" in tpl:
             return tpl["__s__"]
         return {k: _fill(v, answers) for k, v in tpl.items()}
+    if isinstance(tpl, list):  # the items of a batch
+        return [_fill(v, answers) for v in tpl]
     return tpl
 
 

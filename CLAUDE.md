@@ -28,7 +28,7 @@ scale (`tle.core.labels`). Everything an LLM does goes through the `Engine` prot
 ## Layout
 `config/` params, catalogs, campaigns, metrics (population registry), balance targets | `packages/tle-engine` core, world, systems, loop, engines, contracts |
 `tle-models` real/cached engines + backends | `tle-store` run store + `tle.runs` readers | `tle-lab` campaigns, analyzers (incl. population), impulse test, HTML report, balance |
-`tle-cli` the `tle` command | `tle-game` text client | `tle-devtools` checks | `tests/` | `.claude/` skills and agents.
+`tle-cli` the `tle` command | `tle-game` text client | `tle-devtools` checks | `tle-liquid` local/remote Liquid model engine (own process, never imports the game) | `tests/` | `.claude/` skills and agents.
 
 ## Working style
 Small verified steps; run `uv run tle check` and the tests before committing. When a balance result looks wrong, check

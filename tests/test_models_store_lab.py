@@ -340,3 +340,11 @@ def test_jev_single_call_after_render_does_not_describe_the_citizen_twice():
     _, user = render("choose_reaction", m.ChooseReactionIn(context=row, news=news, options=opts))
     body, _ = JevBackend().build(user, None, 1)
     assert "who" in body["state"]["context"] and "option" in body["questions"]
+
+
+def test_jev_fill_rebuilds_batched_items():
+    from tle.models.jev import _fill
+
+    tpl = {"items": [{"a": {"__q__": "i0:a"}, "s": {"__s__": "any"}}, {"a": {"__q__": "i1:a"}, "s": {"__s__": "any"}}]}
+    answers = {"i0:a": {"choice": "x"}, "i1:a": {"choice": "y"}}
+    assert _fill(tpl, answers) == {"items": [{"a": "x", "s": "any"}, {"a": "y", "s": "any"}]}
