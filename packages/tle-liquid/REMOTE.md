@@ -90,6 +90,26 @@ Grids: GPU `G in {1,2,5,10}`, `R in {1,2,4,8,16}` (at most 64 citizens per measu
 `--quick` is smaller. On the 780M the earlier hand measurements were: grouping above ~10-12 citizens hangs the GPU and gains 30-60% at
 best; on the CPU neither G nor R changes anything.
 
+## When a model process crashes (GPU hang)
+
+On the Radeon 780M the GPU hangs now and then ("HW Exception ... GPU Hang") and kills the model processes. In an 8 hour game there
+were 14 hangs: three alone and eleven within 7 minutes, each right after a restart (a request that kept killing the process).
+`up` therefore does not just restart and re-send (`packages/tle-liquid/src/tle/liquid/resilience.py`):
+
+* **One queue per model at the gateway**, as many requests in flight as `--max-batch`; the rest wait in order.
+* **Attribution**: when a process dies the requests that were in flight are known. One that was in flight for two crashes is
+  refused with HTTP 500 `poisoned_request` (the game falls back for that single call) instead of being sent again for ever.
+* **Restart with backoff**: 5 s, 15 s, 45 s, 135 s, 180 s for crashes inside 10 minutes, back to 5 s after a quiet period.
+* **Warm-up before traffic**: after every start the process answers a few known requests (from `data/`) before the gateway sends
+  anything to it; requests wait meanwhile (up to 4 minutes, then HTTP 503).
+* **CPU processes cannot see the GPU** (`HIP_VISIBLE_DEVICES=-1`), so S2 on the CPU is no longer killed by a hang of S1.
+* `/health` of the link shows `crashes` and `dropped_requests` per model.
+
+Measured: a validation game (60 citizens, 60 turns, 105 minutes) ran with one hang, at start-up during the warm-up, absorbed by the
+supervisor; none during play. The earlier full game had 14 in 8.4 hours, so this is promising but not proof: hangs are intermittent
+and their cause is not known. In 100 minutes of continuous S1 load on the GPU (5 runs of 20 minutes, 9,000 requests; default kernels,
+no experimental attention, no Triton, with S2 on the CPU at the same time, game-like mix with 16 threads) there was no hang at all.
+
 ## Similarity cache (optional, off by default)
 
 `similarity` in `config/engines.liquid.toml` (env `TLE_LIQUID_SIMILARITY`, 0..1, -1 = off): before asking S1, citizens are compared on
